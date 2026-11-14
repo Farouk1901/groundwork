@@ -1,0 +1,4 @@
+node_modules/
+.blast-radius/
+*.log
+.env

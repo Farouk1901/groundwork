@@ -1,0 +1,227 @@
+// The questions a developer (or a coding agent) asks before touching an issue, answered from the graph.
+//
+// blastRadius: which files, modules and people does this change reach, and why?
+//   1. seeds   files the issue names, files its own fix touched, and files touched by the fixes of
+//              similar past issues and similar pull requests (hybrid search: vector + full-text, WRRF)
+//   2. expand  files that historically change together with the seeds (CO_CHANGED)
+//   3. people  who authored the most changes to those files
+//   4. risks   open issues and recent bug fixes in the same files
+// Every score keeps the graph paths that produced it, so the answer can be explained and drawn.
+import { embedOne, cleanText } from './embed.js';
+import { num, type Row, type Store } from './store.js';
+
+export type Reason = { kind: 'fixed-by' | 'named' | 'similar-issue' | 'similar-pr' | 'co-change'; text: string; via?: string; score: number };
+export type FileHit = { path: string; module: string; score: number; reasons: Reason[] };
+export type Expert = { login: string; changes: number; files: string[]; last: string };
+export type Risk = { kind: 'open-issue' | 'recent-bug-fix'; number: number; title: string; url: string; why: string };
+export type Similar = { kind: 'issue' | 'pr'; number: number; title: string; url: string; score: number; state?: string };
+export type GraphView = { nodes: { id: string; label: string; type: string; score?: number }[]; edges: { from: string; to: string; type: string }[] };
+export type BlastReport = {
+  repo: string;
+  target: { kind: 'issue'; number: number; title: string; url: string; state: string } | { kind: 'text'; text: string };
+  files: FileHit[]; modules: { module: string; score: number; files: number }[];
+  experts: Expert[]; risks: Risk[]; similar: Similar[]; graph: GraphView; tookMs: number;
+};
+
+const STOP = new Set('a an the and or of to in on for with is are was were be been it this that when after before from by as at not no do does did can cannot should would could i we you they my our your their issue bug error fix fails failing failed add support use using via into out up new'.split(' '));
+
+/** A safe full-text query: lowercase alphanumeric terms, stop words removed (Relate tokenizes the same way). */
+export function keywords(text: string, max = 8): string {
+  const seen = new Set<string>();
+  for (const w of text.toLowerCase().match(/[a-z0-9_]{3,}/g) ?? []) {
+    if (!STOP.has(w)) seen.add(w);
+    if (seen.size >= max) break;
+  }
+  return [...seen].join(' ');
+}
+
+const s = (v: unknown) => (v == null ? '' : String(v));
+
+function hybrid(store: Store, label: 'Issue' | 'PR', repo: string, vec: number[], text: string, limit: number): { node: Row; score: number }[] {
+  const idx = label === 'Issue' ? ['issue_embed', 'issue_text'] : ['pr_embed', 'pr_text'];
+  const kw = keywords(text);
+  const cypher = kw
+    ? `MATCH (n:${label}) SEARCH n IN (COMBINE (
+         VECTOR INDEX ${idx[0]} FOR $vec WHERE n.repo = $repo LIMIT $k WEIGHT 0.7,
+         FULLTEXT INDEX ${idx[1]} FOR $kw LIMIT $k WEIGHT 0.3) USING WRRF WITH CONSTANT 60 LIMIT $k) SCORE AS score
+       RETURN n.key AS key, n.number AS number, n.title AS title, n.url AS url, n.state AS state, n.repo AS repo, score`
+    : `MATCH (n:${label}) SEARCH n IN (VECTOR INDEX ${idx[0]} FOR $vec WHERE n.repo = $repo LIMIT $k) SCORE AS score
+       RETURN n.key AS key, n.number AS number, n.title AS title, n.url AS url, n.state AS state, n.repo AS repo, score`;
+  return store.query(cypher, { vec, kw, repo, k: limit }).filter((r) => r.repo === repo).map((r) => ({ node: r, score: num(r.score) }));
+}
+
+export async function similar(store: Store, repo: string, text: string, limit = 8, exclude?: string): Promise<Similar[]> {
+  const vec = await embedOne(cleanText(text));
+  const issues = hybrid(store, 'Issue', repo, vec, text, limit + 1).filter((h) => h.node.key !== exclude)
+    .map((h) => ({ kind: 'issue' as const, number: num(h.node.number), title: s(h.node.title), url: s(h.node.url), state: s(h.node.state), score: h.score }));
+  const prs = hybrid(store, 'PR', repo, vec, text, limit)
+    .map((h) => ({ kind: 'pr' as const, number: num(h.node.number), title: s(h.node.title), url: s(h.node.url), score: h.score }));
+  return [...issues, ...prs].sort((a, b) => b.score - a.score).slice(0, limit * 2);
+}
+
+export async function blastRadius(store: Store, repo: string, target: { issue: number } | { text: string }, opts: { files?: number; similar?: number } = {}): Promise<BlastReport> {
+  const t0 = Date.now();
+  const q = store.query;
+  const maxFiles = opts.files ?? 12;
+  const k = opts.similar ?? 8;
+
+  let text: string;
+  let selfKey: string | undefined;
+  let tgt: BlastReport['target'];
+  let vec: number[];
+  if ('issue' in target) {
+    selfKey = `${repo}#${target.issue}`;
+    const r = q('MATCH (i:Issue {key: $k}) RETURN i.title AS title, i.body AS body, i.url AS url, i.state AS state, i.embedding AS embedding', { k: selfKey })[0];
+    if (!r) throw new Error(`Issue #${target.issue} is not in the graph for ${repo}. Run "ingest" first, or pass text instead.`);
+    text = `${s(r.title)}. ${s(r.body)}`;
+    vec = (r.embedding as number[]) ?? (await embedOne(text));
+    tgt = { kind: 'issue', number: target.issue, title: s(r.title), url: s(r.url), state: s(r.state) };
+  } else {
+    text = target.text;
+    vec = await embedOne(cleanText(text));
+    tgt = { kind: 'text', text };
+  }
+
+  const files = new Map<string, FileHit>();
+  const add = (path: string, module: string, r: Reason) => {
+    const f = files.get(path) ?? { path, module, score: 0, reasons: [] };
+    f.score += r.score;
+    f.reasons.push(r);
+    files.set(path, f);
+  };
+
+  // 1a. The issue's own fix and the files it names.
+  if (selfKey) {
+    for (const r of q(`MATCH (i:Issue {key: $k})<-[:FIXES]-(x:PR)-[:TOUCHES]->(f:File)-[:IN]->(m:Module)
+                       RETURN f.path AS path, m.path AS module, x.number AS pr, x.title AS title`, { k: selfKey })) {
+      add(s(r.path), s(r.module), { kind: 'fixed-by', text: `changed by PR #${num(r.pr)} that fixes this issue`, via: `pr:${num(r.pr)}`, score: 1.2 });
+    }
+    for (const r of q(`MATCH (i:Issue {key: $k})-[:NAMES]->(f:File)-[:IN]->(m:Module) RETURN f.path AS path, m.path AS module`, { k: selfKey })) {
+      add(s(r.path), s(r.module), { kind: 'named', text: 'named in the issue text', score: 1.0 });
+    }
+  }
+
+  // 1b. Similar past issues → the pull requests that fixed them → files.
+  const simIssues = hybrid(store, 'Issue', repo, vec, text, k + 1).filter((h) => h.node.key !== selfKey).slice(0, k);
+  const simPrs = hybrid(store, 'PR', repo, vec, text, k);
+  const top = (xs: { score: number }[]) => Math.max(1e-9, ...xs.map((x) => x.score));
+  const iTop = top(simIssues), pTop = top(simPrs);
+  for (const h of simIssues) {
+    const rel = h.score / iTop;
+    for (const r of q(`MATCH (i:Issue {key: $k})<-[:FIXES]-(x:PR)-[:TOUCHES]->(f:File)-[:IN]->(m:Module)
+                       WHERE x.fileCount <= 40 RETURN f.path AS path, m.path AS module, x.number AS pr`, { k: h.node.key })) {
+      add(s(r.path), s(r.module), { kind: 'similar-issue', text: `similar issue #${num(h.node.number)} "${s(h.node.title).slice(0, 70)}" was fixed by PR #${num(r.pr)}`, via: `issue:${num(h.node.number)}|pr:${num(r.pr)}`, score: 0.8 * rel });
+    }
+  }
+  // 1c. Similar merged pull requests (many repos never link PRs to issues) → files.
+  for (const h of simPrs) {
+    const rel = h.score / pTop;
+    for (const r of q(`MATCH (x:PR {key: $k})-[:TOUCHES]->(f:File)-[:IN]->(m:Module) WHERE x.fileCount <= 40
+                       RETURN f.path AS path, m.path AS module`, { k: h.node.key })) {
+      add(s(r.path), s(r.module), { kind: 'similar-pr', text: `similar PR #${num(h.node.number)} "${s(h.node.title).slice(0, 70)}" changed it`, via: `pr:${num(h.node.number)}`, score: 0.6 * rel });
+    }
+  }
+
+  // 2. Expand along co-change: files that historically move together with the strongest seeds.
+  const seeds = [...files.values()].sort((a, b) => b.score - a.score).slice(0, 10);
+  for (const sd of seeds) {
+    for (const r of q(`MATCH (a:File {key: $k})-[e:CO_CHANGED]-(b:File)-[:IN]->(m:Module) RETURN b.path AS path, m.path AS module, e.count AS c ORDER BY c DESC LIMIT 6`,
+      { k: `${repo}:${sd.path}` })) {
+      const c = num(r.c);
+      add(s(r.path), s(r.module), { kind: 'co-change', text: `changed together with ${sd.path} in ${c} PRs`, via: `file:${sd.path}`, score: 0.35 * Math.min(1, c / 4) * Math.min(1, sd.score) });
+    }
+  }
+
+  const ranked = [...files.values()].sort((a, b) => b.score - a.score).slice(0, maxFiles);
+  const max = Math.max(1e-9, ...ranked.map((f) => f.score));
+  for (const f of ranked) {
+    f.score = Math.round((f.score / max) * 100) / 100;
+    f.reasons = f.reasons.sort((a, b) => b.score - a.score).slice(0, 4);
+  }
+
+  const modMap = new Map<string, { module: string; score: number; files: number }>();
+  for (const f of ranked) {
+    const m = modMap.get(f.module) ?? { module: f.module, score: 0, files: 0 };
+    m.score += f.score; m.files++;
+    modMap.set(f.module, m);
+  }
+  const modules = [...modMap.values()].sort((a, b) => b.score - a.score);
+
+  // 3. People who changed these files the most.
+  const keys = ranked.map((f) => `${repo}:${f.path}`);
+  const experts: Expert[] = q(`MATCH (p:Person)-[:AUTHORED]->(x:PR)-[:TOUCHES]->(f:File) WHERE f.key IN $keys
+      RETURN p.login AS login, count(DISTINCT x) AS changes, collect(DISTINCT f.path) AS files, max(x.mergedAt) AS last
+      ORDER BY changes DESC LIMIT 5`, { keys })
+    .map((r) => ({ login: s(r.login), changes: num(r.changes), files: (r.files as string[]).slice(0, 5), last: s(r.last).slice(0, 10) }))
+    .filter((e) => !/\[bot\]$|^dependabot|^renovate/i.test(e.login));
+
+  // 4. Risks: open issues that name these files or look alike, and recent bug fixes in the same files.
+  const risks: Risk[] = [];
+  for (const r of q(`MATCH (i:Issue)-[:NAMES]->(f:File) WHERE f.key IN $keys AND i.state = 'OPEN' AND i.key <> $self
+      RETURN DISTINCT i.number AS number, i.title AS title, i.url AS url, f.path AS path LIMIT 5`, { keys, self: selfKey ?? '' })) {
+    risks.push({ kind: 'open-issue', number: num(r.number), title: s(r.title), url: s(r.url), why: `open issue that names ${s(r.path)}` });
+  }
+  for (const h of simIssues.filter((x) => x.node.state === 'OPEN').slice(0, 3)) {
+    if (!risks.some((x) => x.number === num(h.node.number))) risks.push({ kind: 'open-issue', number: num(h.node.number), title: s(h.node.title), url: s(h.node.url), why: 'open issue about the same thing (hybrid search)' });
+  }
+  for (const r of q(`MATCH (x:PR)-[:FIXES]->(i:Issue)-[:LABELED]->(l:Label), (x)-[:TOUCHES]->(f:File)
+      WHERE f.key IN $keys AND toLower(l.name) CONTAINS 'bug' AND i.key <> $self
+      RETURN DISTINCT i.number AS number, i.title AS title, i.url AS url, x.number AS pr, x.mergedAt AS at, f.path AS path
+      ORDER BY at DESC LIMIT 4`, { keys, self: selfKey ?? '' })) {
+    risks.push({ kind: 'recent-bug-fix', number: num(r.number), title: s(r.title), url: s(r.url), why: `bug fixed by PR #${num(r.pr)} on ${s(r.at).slice(0, 10)} in ${s(r.path)}: check for regressions` });
+  }
+
+  const sim: Similar[] = [
+    ...simIssues.map((h) => ({ kind: 'issue' as const, number: num(h.node.number), title: s(h.node.title), url: s(h.node.url), state: s(h.node.state), score: Math.round(h.score * 1000) / 1000 })),
+    ...simPrs.map((h) => ({ kind: 'pr' as const, number: num(h.node.number), title: s(h.node.title), url: s(h.node.url), score: Math.round(h.score * 1000) / 1000 })),
+  ];
+
+  return { repo, target: tgt, files: ranked, modules, experts, risks, similar: sim, graph: toGraph(tgt, ranked, experts), tookMs: Date.now() - t0 };
+}
+
+/** The explanation as a small graph: target → (similar issue / PR) → file → module, plus experts. */
+function toGraph(tgt: BlastReport['target'], files: FileHit[], experts: Expert[]): GraphView {
+  const nodes = new Map<string, GraphView['nodes'][number]>();
+  const edges: GraphView['edges'] = [];
+  const root = tgt.kind === 'issue' ? `issue:${tgt.number}` : 'query';
+  nodes.set(root, { id: root, label: tgt.kind === 'issue' ? `#${tgt.number}` : 'your change', type: 'target' });
+  const node = (id: string, label: string, type: string, score?: number) => { if (!nodes.has(id)) nodes.set(id, { id, label, type, score }); };
+  const edge = (from: string, to: string, type: string) => { if (!edges.some((e) => e.from === from && e.to === to)) edges.push({ from, to, type }); };
+  for (const f of files) {
+    const fid = `file:${f.path}`;
+    node(fid, f.path.split('/').pop()!, 'file', f.score);
+    node(`module:${f.module}`, f.module, 'module');
+    edge(fid, `module:${f.module}`, 'IN');
+    for (const r of f.reasons.slice(0, 2)) {
+      if (r.kind === 'named' || r.kind === 'fixed-by') { if (r.via) { node(r.via, `PR #${r.via.split(':')[1]}`, 'pr'); edge(root, r.via, 'FIXED_BY'); edge(r.via, fid, 'TOUCHES'); } else edge(root, fid, 'NAMES'); }
+      else if (r.kind === 'similar-issue' && r.via) {
+        const [iss, pr] = r.via.split('|');
+        node(iss, `#${iss.split(':')[1]}`, 'issue'); node(pr, `PR #${pr.split(':')[1]}`, 'pr');
+        edge(root, iss, 'SIMILAR'); edge(pr, iss, 'FIXES'); edge(pr, fid, 'TOUCHES');
+      } else if (r.kind === 'similar-pr' && r.via) { node(r.via, `PR #${r.via.split(':')[1]}`, 'pr'); edge(root, r.via, 'SIMILAR'); edge(r.via, fid, 'TOUCHES'); }
+      else if (r.kind === 'co-change' && r.via) { const src = `file:${r.via.slice(5)}`; if (nodes.has(src)) edge(src, fid, 'CO_CHANGED'); }
+    }
+  }
+  for (const e of experts.slice(0, 4)) {
+    node(`person:${e.login}`, `@${e.login}`, 'person');
+    for (const p of e.files.slice(0, 3)) if (nodes.has(`file:${p}`)) edge(`person:${e.login}`, `file:${p}`, 'CHANGED');
+  }
+  return { nodes: [...nodes.values()], edges };
+}
+
+/** A readable Markdown report, for the CLI and for agents. */
+export function toMarkdown(r: BlastReport): string {
+  const L: string[] = [];
+  L.push(r.target.kind === 'issue' ? `# Blast radius of ${r.repo}#${r.target.number}: ${r.target.title}` : `# Blast radius of: "${r.target.text.slice(0, 120)}"`);
+  L.push('', '## Files most likely to change', '');
+  r.files.forEach((f, i) => {
+    L.push(`${i + 1}. \`${f.path}\` (${Math.round(f.score * 100)}%)`);
+    for (const x of f.reasons.slice(0, 2)) L.push(`   - ${x.text}`);
+  });
+  L.push('', '## Modules', '', ...r.modules.map((m) => `- ${m.module}: ${m.files} file(s)`));
+  if (r.experts.length) L.push('', '## Who knows this code', '', ...r.experts.map((e) => `- @${e.login}: ${e.changes} merged PRs here (last ${e.last})`));
+  if (r.risks.length) L.push('', '## Watch out for', '', ...r.risks.map((x) => `- #${x.number} ${x.title}: ${x.why}`));
+  if (r.similar.length) L.push('', '## Similar past work', '', ...r.similar.slice(0, 8).map((x) => `- ${x.kind === 'pr' ? 'PR' : 'Issue'} #${x.number} ${x.title}${x.state ? ` (${x.state.toLowerCase()})` : ''}`));
+  L.push('', `_Answered from the Relate graph in ${r.tookMs} ms._`);
+  return L.join('\n');
+}
