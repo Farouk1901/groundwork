@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Blast Radius</title>
+<style>
+:root {
+  --bg: #f6f7f9; --surface: #ffffff; --surface-2: #eef1f5; --text: #18202b; --muted: #5d6878; --line: #dde2ea;
+  --accent: #d1452b; --accent-soft: #fbe7e2; --teal: #13777f; --teal-soft: #dcf0f0; --amber: #9a5b00; --amber-soft: #fbefd9;
+  --violet: #5b4bc4; --violet-soft: #e9e6fb; --radius: 12px; color-scheme: light;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0f1318; --surface: #171c23; --surface-2: #1f2630; --text: #e8edf3; --muted: #9aa6b5; --line: #2a333f;
+    --accent: #ff7a5c; --accent-soft: #3a211b; --teal: #5ccad1; --teal-soft: #15302f; --amber: #f0b45a; --amber-soft: #33281a;
+    --violet: #a99cff; --violet-soft: #252040; color-scheme: dark;
+  }
+}
+* { box-sizing: border-box; }
+body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
+.wrap { max-width: 1280px; margin: 0 auto; padding: 20px 16px 48px; }
+header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
+.logo { width: 38px; height: 38px; flex: none; }
+h1 { font-size: 22px; margin: 0; letter-spacing: -.01em; }
+.sub { color: var(--muted); margin: 0; font-size: 14px; }
+form { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; display: grid; grid-template-columns: 220px 1fr auto; gap: 10px; }
+select, input, button { font: inherit; color: var(--text); }
+select, input { background: var(--surface-2); border: 1px solid var(--line); border-radius: 9px; padding: 9px 11px; min-width: 0; }
+button { background: var(--accent); color: #fff; border: 0; border-radius: 9px; padding: 9px 18px; font-weight: 650; cursor: pointer; }
+button:disabled { opacity: .55; cursor: wait; }
+.chips { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; }
+.chip { background: var(--surface-2); color: var(--text); border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; font-size: 13px; font-weight: 500; max-width: 420px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chip:hover { border-color: var(--accent); }
+:focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
+.status { color: var(--muted); font-size: 13px; margin: 10px 2px; min-height: 20px; }
+.grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 14px; align-items: start; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; }
+.card h2 { font-size: 14px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 10px; }
+.target { font-size: 17px; font-weight: 650; margin: 0 0 4px; }
+.target a { color: inherit; }
+ol.files { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
+.file { display: grid; grid-template-columns: 1fr 64px; gap: 4px 10px; }
+.path { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 13px; font-weight: 600; word-break: break-all; }
+.bar { height: 6px; background: var(--surface-2); border-radius: 99px; overflow: hidden; align-self: center; }
+.bar i { display: block; height: 100%; background: var(--accent); }
+.why { grid-column: 1 / -1; margin: 0; padding-left: 16px; color: var(--muted); font-size: 13px; }
+.why li::marker { color: var(--line); }
+.tag { display: inline-block; font-size: 11px; font-weight: 650; border-radius: 6px; padding: 0 6px; margin-right: 6px; }
+.t-similar-issue, .t-similar-pr { background: var(--violet-soft); color: var(--violet); }
+.t-co-change { background: var(--teal-soft); color: var(--teal); }
+.t-named, .t-fixed-by { background: var(--accent-soft); color: var(--accent); }
+#cy { height: 520px; border-radius: 10px; background: var(--surface-2); }
+.legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--muted); margin-top: 8px; }
+.legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; background: var(--c); }
+.cols3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 14px; }
+ul.plain { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; font-size: 14px; }
+ul.plain small { color: var(--muted); display: block; }
+a { color: var(--teal); }
+.empty { color: var(--muted); font-size: 14px; }
+footer { color: var(--muted); font-size: 12px; margin-top: 18px; }
+@media (max-width: 900px) { form { grid-template-columns: 1fr; } .grid, .cols3 { grid-template-columns: 1fr; } #cy { height: 380px; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <svg class="logo" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="none" stroke="currentColor" stroke-opacity=".18" stroke-width="2"/><circle cx="20" cy="20" r="11" fill="none" stroke="#d1452b" stroke-opacity=".5" stroke-width="2"/><circle cx="20" cy="20" r="4.5" fill="#d1452b"/><circle cx="33" cy="12" r="2.6" fill="#13777f"/><circle cx="8" cy="27" r="2.6" fill="#5b4bc4"/></svg>
+    <div><h1>Blast Radius</h1><p class="sub">What will this change touch? Answered from a Relate graph of the repository: past fixes, files, co-changes and people.</p></div>
+  </header>
+
+  <form id="f">
+    <select id="repo" aria-label="Repository"></select>
+    <input id="q" placeholder="An issue number, e.g. 5562, or describe the change you plan" aria-label="Issue number or description" autocomplete="off">
+    <button id="go">Analyse</button>
+    <div class="chips" id="examples"></div>
+  </form>
+  <div class="status" id="status" role="status"></div>
+
+  <div id="out" hidden>
+    <div class="grid">
+      <section class="card">
+        <p class="target" id="target"></p>
+        <h2>Files most likely to change</h2>
+        <ol class="files" id="files"></ol>
+      </section>
+      <section class="card">
+        <h2>Why: the graph behind the answer</h2>
+        <div id="cy" role="img" aria-label="Graph of the issue, similar work, files, modules and people"></div>
+        <div class="legend">
+          <span style="--c:#d1452b">this change</span><span style="--c:#5b4bc4">issue</span><span style="--c:#8a6ad8">pull request</span>
+          <span style="--c:#13777f">file</span><span style="--c:#9aa6b5">module</span><span style="--c:#c98a1b">person</span>
+        </div>
+      </section>
+    </div>
+    <div class="cols3">
+      <section class="card"><h2>Who knows this code</h2><ul class="plain" id="experts"></ul></section>
+      <section class="card"><h2>Watch out for</h2><ul class="plain" id="risks"></ul></section>
+      <section class="card"><h2>Similar past work</h2><ul class="plain" id="similar"></ul></section>
+    </div>
+  </div>
+  <footer id="foot"></footer>
+</div>
+<script src="/vendor/cytoscape.min.js"></script>
+<script>
+const $ = (id) => document.getElementById(id);
+const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+const gh = (repo, kind, n) => `https://github.com/${repo}/${kind === 'pr' ? 'pull' : 'issues'}/${n}`;
+let cy;
+
+async function boot() {
+  const r = await fetch('/api/repos').then((x) => x.json());
+  $('repo').innerHTML = r.repos.map((x) => `<option value="${esc(x.name)}">${esc(x.name)} · ${x.issues} issues · ${x.prs} PRs</option>`).join('');
+  if (!r.repos.length) { $('status').textContent = 'The graph is empty. Run: npx tsx src/cli.ts ingest owner/repo'; return; }
+  $('examples').innerHTML = '<span class="sub" style="align-self:center">Open issues:</span>' + r.examples.slice(0, 6)
+    .map((e) => `<button type="button" class="chip" data-q="${e.number}" title="${esc(e.title)}">#${e.number} ${esc(e.title)}</button>`).join('');
+  const q = new URLSearchParams(location.search).get('q');
+  if (q) { $('q').value = q; run(); }
+}
+
+$('examples').addEventListener('click', (e) => { const b = e.target.closest('[data-q]'); if (b) { $('q').value = b.dataset.q; run(); } });
+$('f').addEventListener('submit', (e) => { e.preventDefault(); run(); });
+
+async function run() {
+  const repo = $('repo').value, q = $('q').value.trim();
+  if (!q) return;
+  $('go').disabled = true; $('status').textContent = 'Walking the graph…';
+  try {
+    const r = await fetch(`/api/blast?repo=${encodeURIComponent(repo)}&q=${encodeURIComponent(q)}`).then((x) => x.json());
+    if (r.error) throw new Error(r.error);
+    history.replaceState(null, '', `?q=${encodeURIComponent(q)}`);
+    render(r);
+    $('status').textContent = `${r.files.length} files · ${r.graph.nodes.length} nodes in the explanation · answered from Relate in ${r.tookMs} ms`;
+  } catch (e) { $('status').textContent = e.message; }
+  $('go').disabled = false;
+}
+
+function render(r) {
+  $('out').hidden = false;
+  $('target').innerHTML = r.target.kind === 'issue'
+    ? `<a href="${esc(r.target.url)}" target="_blank" rel="noopener">#${r.target.number}</a> ${esc(r.target.title)} <small class="sub">(${esc(r.target.state.toLowerCase())})</small>`
+    : `“${esc(r.target.text)}”`;
+  $('files').innerHTML = r.files.map((f) => `<li class="file">
+      <span class="path">${esc(f.path)}</span><span class="bar" title="${Math.round(f.score * 100)}%"><i style="width:${Math.round(f.score * 100)}%"></i></span>
+      <ul class="why">${f.reasons.slice(0, 2).map((x) => `<li><span class="tag t-${x.kind}">${x.kind.replace('-', ' ')}</span>${esc(x.text)}</li>`).join('')}</ul></li>`).join('')
+    || '<li class="empty">Nothing found. Try describing the change in more words.</li>';
+  $('experts').innerHTML = r.experts.map((e) => `<li><a href="https://github.com/${esc(e.login)}" target="_blank" rel="noopener">@${esc(e.login)}</a><small>${e.changes} merged PRs here · last ${esc(e.last)}</small></li>`).join('') || '<li class="empty">No history yet.</li>';
+  $('risks').innerHTML = r.risks.map((x) => `<li><a href="${esc(x.url)}" target="_blank" rel="noopener">#${x.number}</a> ${esc(x.title)}<small>${esc(x.why)}</small></li>`).join('') || '<li class="empty">Nothing open in these files.</li>';
+  $('similar').innerHTML = r.similar.slice(0, 8).map((x) => `<li><a href="${esc(x.url || gh(r.repo, x.kind, x.number))}" target="_blank" rel="noopener">${x.kind === 'pr' ? 'PR' : 'Issue'} #${x.number}</a> ${esc(x.title)}<small>${x.state ? esc(x.state.toLowerCase()) + ' · ' : ''}hybrid score ${x.score}</small></li>`).join('');
+  drawGraph(r);
+}
+
+function drawGraph(r) {
+  const dark = matchMedia('(prefers-color-scheme: dark)').matches;
+  const color = { target: '#d1452b', issue: '#5b4bc4', pr: '#8a6ad8', file: '#13777f', module: '#9aa6b5', person: '#c98a1b' };
+  const elements = [
+    ...r.graph.nodes.map((n) => ({ data: { id: n.id, label: n.label, type: n.type, size: n.type === 'target' ? 46 : n.type === 'file' ? 18 + 26 * (n.score ?? 0.3) : n.type === 'module' ? 30 : 20 } })),
+    ...r.graph.edges.map((e, i) => ({ data: { id: 'e' + i, source: e.from, target: e.to, type: e.type } })),
+  ];
+  cy?.destroy();
+  cy = cytoscape({
+    container: $('cy'), elements, wheelSensitivity: 0.25,
+    style: [
+      { selector: 'node', style: { 'background-color': (n) => color[n.data('type')] || '#888', width: 'data(size)', height: 'data(size)', label: 'data(label)',
+        'font-size': 10, color: dark ? '#e8edf3' : '#18202b', 'text-valign': 'bottom', 'text-margin-y': 4, 'text-outline-width': 2, 'text-outline-color': dark ? '#1f2630' : '#eef1f5' } },
+      { selector: 'node[type = "target"]', style: { 'font-size': 13, 'font-weight': 700 } },
+      { selector: 'edge', style: { width: 1.4, 'line-color': dark ? '#3a4452' : '#c5ccd6', 'target-arrow-color': dark ? '#3a4452' : '#c5ccd6', 'target-arrow-shape': 'triangle', 'arrow-scale': .7, 'curve-style': 'bezier',
+        label: 'data(type)', 'font-size': 7, color: dark ? '#9aa6b5' : '#5d6878', 'text-rotation': 'autorotate', 'text-background-opacity': 0 } },
+      { selector: 'edge[type = "CO_CHANGED"]', style: { 'line-style': 'dashed', 'line-color': '#13777f', 'target-arrow-color': '#13777f' } },
+      { selector: 'edge[type = "SIMILAR"]', style: { 'line-style': 'dotted', 'line-color': '#5b4bc4', 'target-arrow-color': '#5b4bc4' } },
+    ],
+    layout: { name: 'cose', animate: false, nodeRepulsion: 9000, idealEdgeLength: 70, padding: 20 },
+  });
+  cy.on('tap', 'node', (e) => {
+    const [kind, v] = e.target.id().split(':');
+    if (kind === 'issue' || kind === 'pr') window.open(gh(r.repo, kind, v), '_blank', 'noopener');
+    if (kind === 'person') window.open(`https://github.com/${v}`, '_blank', 'noopener');
+  });
+}
+
+boot();
+</script>
+</body>
+</html>

@@ -4,7 +4,10 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "tsx --test test/*.test.ts",
+    "start": "tsx src/cli.ts serve",
+    "mcp": "tsx src/cli.ts mcp",
+    "cli": "tsx src/cli.ts"
   },
   "keywords": [],
   "author": "",
@@ -14,6 +17,7 @@
     "@huggingface/transformers": "4.3.2",
     "@modelcontextprotocol/sdk": "1.32.2",
     "@relate/relate": "1.0.1",
+    "cytoscape": "3.34.4",
     "zod": "4.6.7"
   },
   "devDependencies": {

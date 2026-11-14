@@ -35,19 +35,31 @@ export function keywords(text: string, max = 8): string {
   return [...seen].join(' ');
 }
 
+// Files that change in almost every PR (manifests, lockfiles, changelogs) say little about a specific change.
+const NOISE = /(^|\/)(package\.json|package-lock\.json|pnpm-lock\.yaml|yarn\.lock|bun\.lockb?|Cargo\.lock|go\.sum|poetry\.lock|CHANGELOG[^/]*|\.changeset\/[^/]+)$/i;
+
+const TEST = /(^|\/)(__tests__|tests?|spec)\/|\.(test|spec)\.[a-z]+$/i;
+
 const s = (v: unknown) => (v == null ? '' : String(v));
 
-function hybrid(store: Store, label: 'Issue' | 'PR', repo: string, vec: number[], text: string, limit: number): { node: Row; score: number }[] {
+// Relate's cosine is rebounded to [0, 1] ((1 + cos) / 2). Below this, a match is noise: about cos 0.3.
+const MIN_SIM = 0.65;
+
+/**
+ * Hybrid retrieval: Relate fuses the vector and full-text rankings with WRRF (the order), and we also read the
+ * cosine similarity, because fused rank scores are nearly flat and say nothing about how close a match really is.
+ */
+function hybrid(store: Store, label: 'Issue' | 'PR', repo: string, vec: number[], text: string, limit: number): { node: Row; score: number; sim: number }[] {
   const idx = label === 'Issue' ? ['issue_embed', 'issue_text'] : ['pr_embed', 'pr_text'];
   const kw = keywords(text);
   const cypher = kw
     ? `MATCH (n:${label}) SEARCH n IN (COMBINE (
          VECTOR INDEX ${idx[0]} FOR $vec WHERE n.repo = $repo LIMIT $k WEIGHT 0.7,
          FULLTEXT INDEX ${idx[1]} FOR $kw LIMIT $k WEIGHT 0.3) USING WRRF WITH CONSTANT 60 LIMIT $k) SCORE AS score
-       RETURN n.key AS key, n.number AS number, n.title AS title, n.url AS url, n.state AS state, n.repo AS repo, score`
+       RETURN n.key AS key, n.number AS number, n.title AS title, n.url AS url, n.state AS state, n.repo AS repo, score, vector.similarity.cosine(n.embedding, $vec) AS cos`
     : `MATCH (n:${label}) SEARCH n IN (VECTOR INDEX ${idx[0]} FOR $vec WHERE n.repo = $repo LIMIT $k) SCORE AS score
-       RETURN n.key AS key, n.number AS number, n.title AS title, n.url AS url, n.state AS state, n.repo AS repo, score`;
-  return store.query(cypher, { vec, kw, repo, k: limit }).filter((r) => r.repo === repo).map((r) => ({ node: r, score: num(r.score) }));
+       RETURN n.key AS key, n.number AS number, n.title AS title, n.url AS url, n.state AS state, n.repo AS repo, score, vector.similarity.cosine(n.embedding, $vec) AS cos`;
+  return store.query(cypher, { vec, kw, repo, k: limit }).filter((r) => r.repo === repo).map((r) => ({ node: r, score: num(r.score), sim: num(r.cos) }));
 }
 
 export async function similar(store: Store, repo: string, text: string, limit = 8, exclude?: string): Promise<Similar[]> {
@@ -85,7 +97,7 @@ export async function blastRadius(store: Store, repo: string, target: { issue: n
   const files = new Map<string, FileHit>();
   const add = (path: string, module: string, r: Reason) => {
     const f = files.get(path) ?? { path, module, score: 0, reasons: [] };
-    f.score += r.score;
+    f.score += NOISE.test(path) && r.kind !== 'named' ? r.score * 0.25 : r.score;
     f.reasons.push(r);
     files.set(path, f);
   };
@@ -104,10 +116,12 @@ export async function blastRadius(store: Store, repo: string, target: { issue: n
   // 1b. Similar past issues → the pull requests that fixed them → files.
   const simIssues = hybrid(store, 'Issue', repo, vec, text, k + 1).filter((h) => h.node.key !== selfKey).slice(0, k);
   const simPrs = hybrid(store, 'PR', repo, vec, text, k);
-  const top = (xs: { score: number }[]) => Math.max(1e-9, ...xs.map((x) => x.score));
-  const iTop = top(simIssues), pTop = top(simPrs);
+  // Weight each match by how similar it really is, relative to the best one; drop the noise.
+  const weight = (sim: number, best: number) => (sim < MIN_SIM ? 0 : (sim - MIN_SIM) / Math.max(1e-6, best - MIN_SIM));
+  const iBest = Math.max(0, ...simIssues.map((h) => h.sim)), pBest = Math.max(0, ...simPrs.map((h) => h.sim));
   for (const h of simIssues) {
-    const rel = h.score / iTop;
+    const rel = weight(h.sim, iBest);
+    if (rel <= 0) continue;
     for (const r of q(`MATCH (i:Issue {key: $k})<-[:FIXES]-(x:PR)-[:TOUCHES]->(f:File)-[:IN]->(m:Module)
                        WHERE x.fileCount <= 40 RETURN f.path AS path, m.path AS module, x.number AS pr`, { k: h.node.key })) {
       add(s(r.path), s(r.module), { kind: 'similar-issue', text: `similar issue #${num(h.node.number)} "${s(h.node.title).slice(0, 70)}" was fixed by PR #${num(r.pr)}`, via: `issue:${num(h.node.number)}|pr:${num(r.pr)}`, score: 0.8 * rel });
@@ -115,7 +129,8 @@ export async function blastRadius(store: Store, repo: string, target: { issue: n
   }
   // 1c. Similar merged pull requests (many repos never link PRs to issues) → files.
   for (const h of simPrs) {
-    const rel = h.score / pTop;
+    const rel = weight(h.sim, pBest);
+    if (rel <= 0) continue;
     for (const r of q(`MATCH (x:PR {key: $k})-[:TOUCHES]->(f:File)-[:IN]->(m:Module) WHERE x.fileCount <= 40
                        RETURN f.path AS path, m.path AS module`, { k: h.node.key })) {
       add(s(r.path), s(r.module), { kind: 'similar-pr', text: `similar PR #${num(h.node.number)} "${s(h.node.title).slice(0, 70)}" changed it`, via: `pr:${num(h.node.number)}`, score: 0.6 * rel });
@@ -132,6 +147,8 @@ export async function blastRadius(store: Store, repo: string, target: { issue: n
     }
   }
 
+  // Tests usually follow the source they cover: rank the source file first when the evidence is the same.
+  for (const f of files.values()) if (TEST.test(f.path)) f.score *= 0.92;
   const ranked = [...files.values()].sort((a, b) => b.score - a.score).slice(0, maxFiles);
   const max = Math.max(1e-9, ...ranked.map((f) => f.score));
   for (const f of ranked) {

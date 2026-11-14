@@ -4,6 +4,7 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
+import { HOME } from './store.js';
 
 export type GhIssue = {
   number: number; title: string; body: string; state: 'OPEN' | 'CLOSED'; url: string;
@@ -73,7 +74,7 @@ export async function fetchRepo(repo: string, opts: { prs?: number; issues?: num
   const log = opts.log ?? (() => {});
   const [owner, name] = repo.split('/');
   if (!owner || !name) throw new Error('Repository must look like owner/name');
-  const cacheDir = opts.cacheDir ?? './.blast-radius/cache';
+  const cacheDir = opts.cacheDir ?? path.join(HOME, 'cache');
   const file = path.join(cacheDir, `${owner}__${name}.json`);
   if (!opts.refresh && existsSync(file)) {
     log(`Using cached ${file}`);
