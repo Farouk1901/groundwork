@@ -1,0 +1,39 @@
+{
+ "scoredAt": "2026-11-24T11:17:20.556Z",
+ "sealedAt": "2026-11-24T11:16:45.937Z",
+ "frozen": false,
+ "totals": {
+  "forecasts": 617,
+  "fixed": 0,
+  "hit5": 0,
+  "hit10": 0,
+  "baselineHit5": 0
+ },
+ "repos": [
+  {
+   "repo": "honojs/hono",
+   "forecasts": 263,
+   "fixed": 0,
+   "hit5": 0,
+   "hit10": 0,
+   "baselineHit5": 0
+  },
+  {
+   "repo": "vitest-dev/vitest",
+   "forecasts": 352,
+   "fixed": 0,
+   "hit5": 0,
+   "hit10": 0,
+   "baselineHit5": 0
+  },
+  {
+   "repo": "relatedb/relate",
+   "forecasts": 2,
+   "fixed": 0,
+   "hit5": 0,
+   "hit10": 0,
+   "baselineHit5": 0
+  }
+ ],
+ "cases": []
+}

@@ -1,0 +1,33 @@
+# Scores the sealed forecasts (docs/predictions/sealed.json) every day against the pull requests merged since the
+# seal, and commits docs/predictions/score.json. It freezes at the contest deadline: after that the score is final.
+name: Score sealed predictions
+
+on:
+  schedule:
+    - cron: '17 5 * * *'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  score:
+    runs-on: ubuntu-latest
+    if: github.repository == 'Farouk1901/groundwork'
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Score (frozen after the deadline, 2026-12-11 18:00 PST)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx tsx src/cli.ts score-predictions --until 2026-12-12T02:00:00Z
+      - name: Commit the score if it changed
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/predictions/score.json
+          git diff --cached --quiet || git commit -m "Score sealed predictions ($(date -u +%F))" && git push
