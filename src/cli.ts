@@ -33,8 +33,9 @@ async function main() {
     case 'ingest': {
       const from = flag('from');
       // --max-age 7: keep a graph that is less than 7 days old (the GitHub Action caches it between tickets).
+      const store = openStore();
       if (flag('max-age') && pos[0]) {
-        const at = String(openStore().query('MATCH (r:Repo {name: $repo}) RETURN r.fetchedAt AS at', { repo: pos[0] })[0]?.at ?? '');
+        const at = String(store.query('MATCH (r:Repo {name: $repo}) RETURN r.fetchedAt AS at', { repo: pos[0] })[0]?.at ?? '');
         if (at && Date.now() - Date.parse(at) < Number(flag('max-age')) * 86_400_000) { log(`Graph for ${pos[0]} is from ${at.slice(0, 10)}: kept.`); return; }
       }
       const snap: { data: RepoData; vectors?: number[][] } = from ? readSnapshot(from) : await (async () => {
@@ -42,7 +43,6 @@ async function main() {
         if (!repo) throw new Error('Usage: groundwork ingest owner/repo   or   groundwork ingest --from snapshot.json.gz');
         return { data: await fetchRepo(repo, { prs: Number(flag('prs', '1500')), issues: Number(flag('issues', '2000')), refresh: has('refresh'), log }) };
       })();
-      const store = openStore();
       const r = await ingest(store, snap.data, log, { vectors: snap.vectors });
       log(`Graph ready in ${store.path}: ${r.nodes} nodes, ${r.rels} relationships.`);
       return;
