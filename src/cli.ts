@@ -61,7 +61,11 @@ async function main() {
     case 'blast': {
       const [repo, what] = pos;
       if (!repo || !what) throw new Error('Usage: groundwork plan owner/repo <ticket-number | "describe the change">');
-      const r = await planTicket(openStore(), repo, targetOf(what), { files: Number(flag('files', '12')) });
+      const store = openStore();
+      let r = await planTicket(store, repo, targetOf(what), { files: Number(flag('files', '12')) });
+      // --code <clone>: also search the code for the ticket's words and fuse (Hit@5 77% → 82% on hono).
+      const codeDir = flag('code') ?? process.env.GROUNDWORK_CODE;
+      if (codeDir) r = (await import('./code.js')).withCode(store, r, codeDir, Number(flag('files', '12')));
       console.log(has('json') ? JSON.stringify(r, null, 2) : toMarkdown(r));
       return;
     }
@@ -71,7 +75,11 @@ async function main() {
       const files = flag('files')?.split(',').map((x) => x.trim()).filter(Boolean)
         ?? gitChangedFiles({ cwd: flag('cwd'), staged: has('staged'), base: flag('base') });
       if (!files.length) throw new Error('No changed files: pass --files, or run it inside a clone with changes.');
-      const r = await checkChange(openStore(), repo, targetOf(what), files, { threshold: Number(flag('threshold', '0.5')) });
+      const store = openStore();
+      const codeDir = flag('code') ?? process.env.GROUNDWORK_CODE;
+      const { withCode } = await import('./code.js');
+      const r = await checkChange(store, repo, targetOf(what), files, { threshold: Number(flag('threshold', '0.5')),
+        refine: codeDir ? (p) => withCode(store, p, codeDir, 15) : undefined });
       console.log(has('json') ? JSON.stringify({ ...r, plan: undefined, target: r.plan.target }, null, 2) : checkMarkdown(r));
       if (has('strict') && !r.ok) process.exitCode = 1;
       return;

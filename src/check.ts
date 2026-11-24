@@ -18,9 +18,11 @@ export type CheckReport = {
 const best = (rs: Reason[]) => rs.slice().sort((a, b) => b.score - a.score)[0]?.text ?? '';
 
 export async function checkChange(store: Store, repo: string, target: { issue: number | string } | { text: string }, changed: string[],
-  opts: { threshold?: number; files?: number } = {}): Promise<CheckReport> {
+  opts: { threshold?: number; files?: number; refine?: (p: Plan) => Plan } = {}): Promise<CheckReport> {
   const threshold = opts.threshold ?? 0.5;
-  const plan = await planTicket(store, repo, target, { files: opts.files ?? 15 });
+  // refine: on Node.js, fuse in grep over the local clone (code.ts); the browser build has no clone.
+  const raw = await planTicket(store, repo, target, { files: opts.files ?? 15 });
+  const plan = opts.refine ? opts.refine(raw) : raw;
   const ch = new Set(changed.map((p) => p.replace(/\\/g, '/')));
   const predicted = plan.files.filter((f) => !NOISE.test(f.path));
   const covered = predicted.filter((f) => ch.has(f.path)).map((f) => ({ path: f.path, score: f.score }));

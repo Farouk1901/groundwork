@@ -14,7 +14,7 @@
 import { embedOne, cleanText } from './embed.js';
 import { num, type Row, type Store } from './core.js';
 
-export type Reason = { kind: 'fixed-by' | 'named' | 'similar-issue' | 'similar-pr' | 'co-change'; text: string; via?: string; score: number };
+export type Reason = { kind: 'fixed-by' | 'named' | 'similar-issue' | 'similar-pr' | 'co-change' | 'grep'; text: string; via?: string; score: number };
 export type FileHit = { path: string; module: string; score: number; reasons: Reason[] };
 export type Expert = { login: string; changes: number; files: string[]; last: string };
 export type Risk = { kind: 'open-issue' | 'recent-bug-fix'; number: number; title: string; url: string; why: string };
@@ -83,6 +83,8 @@ function hybrid(store: Store, label: 'Issue' | 'PR', repo: string, vec: number[]
   const useVec = opts.vector !== false;
   // When replaying the past, ask for more and drop what did not exist yet.
   const k = opts.asOf ? limit * 6 : limit;
+  // The full-text index cannot filter by repository (the vector index can): over-fetch, then keep this repository's.
+  const kf = k * 5;
   const ret = `RETURN n.key AS key, n.number AS number, n.title AS title, n.url AS url, n.state AS state, n.repo AS repo,
        n.createdAt AS createdAt, n.mergedAt AS mergedAt, score, vector.similarity.cosine(n.embedding, $vec) AS cos`;
   let cypher: string;
@@ -90,18 +92,18 @@ function hybrid(store: Store, label: 'Issue' | 'PR', repo: string, vec: number[]
     // The WebAssembly build cannot switch on the hybrid-search preview, so run both Relate indexes and fuse the two
     // rankings here with the same weighted reciprocal rank fusion (score = Σ weight / (60 + rank)).
     const vrows = store.query(`MATCH (n:${label}) SEARCH n IN (VECTOR INDEX ${idx[0]} FOR $vec WHERE n.repo = $repo LIMIT $k) SCORE AS score ${ret}`, { vec, repo, k });
-    const frows = store.query(`MATCH (n:${label}) SEARCH n IN (FULLTEXT INDEX ${idx[1]} FOR $kw LIMIT $k) SCORE AS score ${ret}`, { vec, kw, k });
-    let rows = fuseWrrf([[vrows, WEIGHTS.vector], [frows, 1 - WEIGHTS.vector]], k).filter((r) => r.repo === repo);
+    const frows = store.query(`MATCH (n:${label}) SEARCH n IN (FULLTEXT INDEX ${idx[1]} FOR $kw LIMIT $kf) SCORE AS score ${ret}`, { vec, kw, kf });
+    let rows = fuseWrrf([[vrows, WEIGHTS.vector], [frows, 1 - WEIGHTS.vector]], kf).filter((r) => r.repo === repo);
     if (opts.asOf) rows = rows.filter((r) => s(label === 'PR' ? r.mergedAt : r.createdAt) < opts.asOf!);
     return rows.slice(0, limit).map((r) => ({ node: r, score: num(r.score), sim: num(r.cos) }));
   }
   if (kw && useVec) cypher = `MATCH (n:${label}) SEARCH n IN (COMBINE (
          VECTOR INDEX ${idx[0]} FOR $vec WHERE n.repo = $repo LIMIT $k WEIGHT $wv,
-         FULLTEXT INDEX ${idx[1]} FOR $kw LIMIT $k WEIGHT $wf) USING WRRF WITH CONSTANT 60 LIMIT $k) SCORE AS score ${ret}`;
+         FULLTEXT INDEX ${idx[1]} FOR $kw LIMIT $kf WEIGHT $wf) USING WRRF WITH CONSTANT 60 LIMIT $kf) SCORE AS score ${ret}`;
   else if (useVec) cypher = `MATCH (n:${label}) SEARCH n IN (VECTOR INDEX ${idx[0]} FOR $vec WHERE n.repo = $repo LIMIT $k) SCORE AS score ${ret}`;
-  else if (kw) cypher = `MATCH (n:${label}) SEARCH n IN (FULLTEXT INDEX ${idx[1]} FOR $kw LIMIT $k) SCORE AS score ${ret}`;
+  else if (kw) cypher = `MATCH (n:${label}) SEARCH n IN (FULLTEXT INDEX ${idx[1]} FOR $kw LIMIT $kf) SCORE AS score ${ret}`;
   else return [];
-  let rows = store.query(cypher, { vec, kw, repo, k, wv: WEIGHTS.vector, wf: 1 - WEIGHTS.vector }).filter((r) => r.repo === repo);
+  let rows = store.query(cypher, { vec, kw, repo, k, kf, wv: WEIGHTS.vector, wf: 1 - WEIGHTS.vector }).filter((r) => r.repo === repo);
   if (opts.asOf) rows = rows.filter((r) => s(label === 'PR' ? r.mergedAt : r.createdAt) < opts.asOf!);
   return rows.slice(0, limit).map((r) => ({ node: r, score: num(r.score), sim: num(r.cos) }));
 }
@@ -312,6 +314,7 @@ export function toGraph(tgt: Plan['target'], files: FileHit[], experts: Expert[]
         node(iss, `#${iss.split(':')[1]}`, 'issue'); node(pr, `PR #${pr.split(':')[1]}`, 'pr');
         edge(root, iss, 'SIMILAR'); edge(pr, iss, 'FIXES'); edge(pr, fid, 'TOUCHES');
       } else if (r.kind === 'similar-pr' && r.via) { node(r.via, `PR #${r.via.split(':')[1]}`, 'pr'); edge(root, r.via, 'SIMILAR'); edge(r.via, fid, 'TOUCHES'); }
+      else if (r.kind === 'grep') edge(root, fid, 'WORDS_IN_CODE');
       else if (r.kind === 'co-change' && r.via) { const src = `file:${r.via.slice(5)}`; if (nodes.has(src)) edge(src, fid, 'CO_CHANGED'); }
     }
   }

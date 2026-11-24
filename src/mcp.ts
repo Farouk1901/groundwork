@@ -6,6 +6,7 @@ import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js'
 import { z } from 'zod';
 import { planTicket, similar, toMarkdown } from './analyze.js';
 import { checkChange, checkMarkdown } from './check.js';
+import { withCode } from './code.js';
 import { num, openStore, type Store } from './store.js';
 
 const WRITE = /\b(CREATE|MERGE|DELETE|DETACH|SET|REMOVE|DROP|LOAD|CALL\s+db\.|FOREACH)\b/i;
@@ -40,10 +41,13 @@ export async function runMcp() {
   server.registerTool('plan_ticket', {
     title: 'Groundwork for a ticket, before writing code',
     description: 'Call this first when you are given a ticket or a change to make. Returns the files and modules most likely to change, why (graph paths through the fixes of similar past tickets and PRs, files the ticket names, co-change history), who knows that code, and open tickets or recent bug fixes to watch. Pass a ticket number, or describe the change in text.',
-    inputSchema: { repo: z.string().describe('owner/name, already ingested'), issue: z.number().int().optional(), text: z.string().optional(), files: z.number().int().min(3).max(30).optional() },
-  }, async ({ repo, issue, text: t, files }) => {
+    inputSchema: { repo: z.string().describe('owner/name, already ingested'), issue: z.number().int().optional(), text: z.string().optional(), files: z.number().int().min(3).max(30).optional(),
+      code_dir: z.string().optional().describe('path of the local clone you are working in: also searches the code for the ticket’s words and fuses both rankings (more accurate)') },
+  }, async ({ repo, issue, text: t, files, code_dir }) => {
     if (!issue && !t) return text('Pass either issue or text.');
-    const r = await planTicket(store, repo, issue ? { issue } : { text: t! }, { files });
+    let r = await planTicket(store, repo, issue ? { issue } : { text: t! }, { files });
+    const dir = code_dir ?? process.env.GROUNDWORK_CODE;
+    if (dir) r = withCode(store, r, dir, files ?? 12);
     return text(toMarkdown(r));
   });
 

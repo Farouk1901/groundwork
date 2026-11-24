@@ -270,3 +270,27 @@ test('sealed predictions: forecast open tickets, score only fixes merged after t
   assert.equal(s.totals.hit5, 100);
   assert.deepEqual(s.cases[0].truth, ['src/http/cookie.ts']); // package.json is noise
 });
+
+test('with the code at hand: grep for the ticket words and fuse with the graph', async () => {
+  const { execFileSync } = await import('node:child_process');
+  const { withCode, grepRank } = await import('../src/code.ts');
+  const dir = mkdtempSync(path.join(tmpdir(), 'gw-code-'));
+  const git = (...a: string[]) => execFileSync('git', ['-C', dir, ...a], { stdio: 'ignore' });
+  git('init', '-q');
+  const { mkdirSync } = await import('node:fs');
+  mkdirSync(path.join(dir, 'src', 'http'), { recursive: true });
+  writeFileSync(path.join(dir, 'src', 'http', 'cookie.ts'), 'export function parse(value) { /* cookie value equals */ }');
+  writeFileSync(path.join(dir, 'src', 'http', 'session-store.ts'), 'export const session = "cookie value session"');
+  writeFileSync(path.join(dir, 'README.md'), 'nothing here');
+  git('add', '-A'); git('-c', 'user.name=t', '-c', 'user.email=t@t', 'commit', '-qm', 'x');
+  const ranked = grepRank(dir, new Date(Date.now() + 60_000).toISOString(), 'Cookie with equals in value breaks session', 5);
+  assert.ok(ranked.includes('src/http/session-store.ts') && ranked.includes('src/http/cookie.ts'));
+  assert.ok(!ranked.includes('README.md'));
+  const store = await graph();
+  const plan = await planTicket(store, 'acme/shop', { issue: 3 });
+  const fused = withCode(store, plan, dir);
+  const extra = fused.files.find((f) => f.path === 'src/http/session-store.ts')!;
+  assert.ok(extra, 'a file only grep found joins the list');
+  assert.equal(extra.reasons[0].kind, 'grep');
+  assert.equal(fused.files[0].path, 'src/http/cookie.ts'); // found by both: first
+});

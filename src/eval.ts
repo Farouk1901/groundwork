@@ -7,8 +7,8 @@
 //   ablations    one part switched off at a time (similar tickets, similar PRs, co-change, full-text, vector)
 //   popular      baseline: the files changed most often before that moment. This is the best a tool that has to
 //                start from a file (co-change, ownership) can do when there is only a ticket and no code yet.
-import { execFileSync } from 'node:child_process';
-import { NOISE, fuseWrrf, keywords, planTicket, type PlanOptions } from './analyze.js';
+import { NOISE, fuseWrrf, planTicket, type PlanOptions } from './analyze.js';
+import { grepRank } from './code.js';
 import { cleanText, embedOne } from './embed.js';
 import { num, type Store } from './core.js';
 
@@ -61,27 +61,6 @@ export function prCases(store: Store, repo: string, opts: { limit?: number; minH
   const half = Math.ceil(out.length / 2);
   const picked = opts.split === 'newer' ? out.slice(0, half) : opts.split === 'older' ? out.slice(half) : out;
   return { cases: opts.limit ? picked.slice(0, opts.limit) : picked, skipped };
-}
-
-/**
- * The baseline a coding agent already has: search the code, as it was that day, for the ticket's words. Files are
- * ranked by the summed IDF of the distinct words they contain (rare words count more), then by name length.
- */
-export function grepRank(clone: string, before: string, text: string, k: number): string[] {
-  const git = (...a: string[]) => { try { return execFileSync('git', ['-C', clone, ...a], { encoding: 'utf8', maxBuffer: 64 << 20, stdio: ['ignore', 'pipe', 'ignore'] }); } catch (e) { return (e as { stdout?: string }).stdout ?? ''; } };
-  const commit = git('rev-list', '-1', `--before=${before}`, 'HEAD').trim();
-  if (!commit) return [];
-  const words = keywords(text, 8).split(' ').filter(Boolean);
-  if (!words.length) return [];
-  const total = Math.max(1, git('ls-tree', '-r', '--name-only', commit).split('\n').filter(Boolean).length);
-  const score = new Map<string, number>();
-  for (const w of words) {
-    const files = git('grep', '-I', '-i', '-l', '-F', '-e', w, commit, '--').split('\n').filter(Boolean).map((l) => l.slice(commit.length + 1));
-    if (!files.length) continue;
-    const idf = Math.log(total / files.length);
-    for (const f of files) score.set(f, (score.get(f) ?? 0) + idf);
-  }
-  return [...score].filter(([f]) => !NOISE.test(f)).sort((a, b) => b[1] - a[1] || a[0].length - b[0].length).slice(0, k).map(([f]) => f);
 }
 
 function popular(store: Store, repo: string, asOf: string, k: number): string[] {
