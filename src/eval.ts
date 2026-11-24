@@ -7,7 +7,8 @@
 //   ablations    one part switched off at a time (similar tickets, similar PRs, co-change, full-text, vector)
 //   popular      baseline: the files changed most often before that moment. This is the best a tool that has to
 //                start from a file (co-change, ownership) can do when there is only a ticket and no code yet.
-import { NOISE, planTicket, type PlanOptions } from './analyze.js';
+import { execFileSync } from 'node:child_process';
+import { NOISE, fuseWrrf, keywords, planTicket, type PlanOptions } from './analyze.js';
 import { cleanText, embedOne } from './embed.js';
 import { num, type Store } from './core.js';
 
@@ -62,6 +63,27 @@ export function prCases(store: Store, repo: string, opts: { limit?: number; minH
   return { cases: opts.limit ? picked.slice(0, opts.limit) : picked, skipped };
 }
 
+/**
+ * The baseline a coding agent already has: search the code, as it was that day, for the ticket's words. Files are
+ * ranked by the summed IDF of the distinct words they contain (rare words count more), then by name length.
+ */
+export function grepRank(clone: string, before: string, text: string, k: number): string[] {
+  const git = (...a: string[]) => { try { return execFileSync('git', ['-C', clone, ...a], { encoding: 'utf8', maxBuffer: 64 << 20, stdio: ['ignore', 'pipe', 'ignore'] }); } catch (e) { return (e as { stdout?: string }).stdout ?? ''; } };
+  const commit = git('rev-list', '-1', `--before=${before}`, 'HEAD').trim();
+  if (!commit) return [];
+  const words = keywords(text, 8).split(' ').filter(Boolean);
+  if (!words.length) return [];
+  const total = Math.max(1, git('ls-tree', '-r', '--name-only', commit).split('\n').filter(Boolean).length);
+  const score = new Map<string, number>();
+  for (const w of words) {
+    const files = git('grep', '-I', '-i', '-l', '-F', '-e', w, commit, '--').split('\n').filter(Boolean).map((l) => l.slice(commit.length + 1));
+    if (!files.length) continue;
+    const idf = Math.log(total / files.length);
+    for (const f of files) score.set(f, (score.get(f) ?? 0) + idf);
+  }
+  return [...score].filter(([f]) => !NOISE.test(f)).sort((a, b) => b[1] - a[1] || a[0].length - b[0].length).slice(0, k).map(([f]) => f);
+}
+
 function popular(store: Store, repo: string, asOf: string, k: number): string[] {
   return store.query(`MATCH (x:PR)-[:TOUCHES]->(f:File) WHERE x.repo = $repo AND x.mergedAt < $asOf AND x.fileCount <= 40
       RETURN f.path AS p, count(x) AS n ORDER BY n DESC LIMIT $k`, { repo, asOf, k: k * 3 })
@@ -92,7 +114,7 @@ export const VARIANTS: { name: string; use?: PlanOptions['use'] }[] = [
   { name: '  full-text only (no vector)', use: { vector: false } },
 ];
 
-export async function backtest(store: Store, repo: string, opts: { limit?: number; k?: number; ablations?: boolean; minHistory?: number; split?: 'older' | 'newer'; mode?: 'tickets' | 'prs'; log?: (s: string) => void } = {}): Promise<EvalReport> {
+export async function backtest(store: Store, repo: string, opts: { limit?: number; k?: number; ablations?: boolean; minHistory?: number; split?: 'older' | 'newer'; mode?: 'tickets' | 'prs'; clone?: string; log?: (s: string) => void } = {}): Promise<EvalReport> {
   const k = opts.k ?? 10;
   const log = opts.log ?? (() => {});
   const mode = opts.mode ?? 'tickets';
@@ -105,6 +127,7 @@ export async function backtest(store: Store, repo: string, opts: { limit?: numbe
   const results: Score[] = [];
   const examples: EvalReport['examples'] = [];
   const variants = opts.ablations === false ? VARIANTS.slice(0, 1) : VARIANTS;
+  const fullTop = new Map<number, string[]>();
   for (const v of variants) {
     const t0 = Date.now();
     const preds: { top: string[]; truth: string[] }[] = [];
@@ -114,10 +137,26 @@ export async function backtest(store: Store, repo: string, opts: { limit?: numbe
         : await planTicket(store, repo, { issue: c.issue }, { asOf: c.createdAt, files: k, use: v.use, minScore: 0 });
       const top = p.files.map((f) => f.path).filter((x) => !NOISE.test(x));
       preds.push({ top, truth: c.truth });
+      if (v === VARIANTS[0]) fullTop.set(c.issue, top);
       if (v === VARIANTS[0] && examples.length < 12) examples.push({ issue: c.issue, title: c.title, truth: c.truth, top: top.slice(0, 5) });
     }
     results.push(score(v.name, preds, Date.now() - t0));
     log(`  ${v.name.trim()}: done`);
+  }
+  if (opts.clone) {
+    // grep needs the text an agent would read: the ticket's title and body (PR mode: the title).
+    const t1 = Date.now();
+    const grepTop = new Map<number, string[]>();
+    for (const c of cs) {
+      const text = c.pr ? c.title : String(store.query('MATCH (i:Issue {key: $k}) RETURN i.title AS t, i.body AS b', { k: `${repo}#${c.issue}` }).map((r) => `${r.t}. ${r.b}`)[0] ?? c.title);
+      grepTop.set(c.issue, grepRank(opts.clone, c.createdAt, text, k));
+    }
+    results.push(score('Baseline: grep the code for the ticket’s words', cs.map((c) => ({ top: grepTop.get(c.issue)!, truth: c.truth })), Date.now() - t1));
+    // Both together: the graph's answer and grep's, fused with the same reciprocal rank fusion.
+    results.push(score('Groundwork + grep (fused)', cs.map((c) => ({
+      top: fuseWrrf([[(fullTop.get(c.issue) ?? []).map((key) => ({ key })), 0.6], [(grepTop.get(c.issue) ?? []).map((key) => ({ key })), 0.4]], k).map((r) => String(r.key)),
+      truth: c.truth })), 0));
+    log('  grep: done');
   }
   const t0 = Date.now();
   results.push(score('Baseline: most-changed files', cs.map((c) => ({ top: popular(store, repo, c.createdAt, k), truth: c.truth })), Date.now() - t0));

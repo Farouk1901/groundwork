@@ -39,6 +39,9 @@ h1 { font-size: 23px; margin: 0; letter-spacing: -.015em; }
 .proof .big { font-size: 28px; font-weight: 750; color: var(--good); letter-spacing: -.02em; line-height: 1; }
 .proof .big small { font-size: 13px; color: var(--muted); font-weight: 500; letter-spacing: 0; }
 .proof p { margin: 0; font-size: 14px; }
+.sealed { border-left-color: var(--violet); }
+.sealed .big { color: var(--violet); }
+.sealed ul { margin: 6px 0 0; padding-left: 18px; font-size: 13px; }
 .proof details { grid-column: 1 / -1; font-size: 13px; overflow-x: auto; min-width: 0; }
 .proof summary { cursor: pointer; color: var(--teal); }
 table { border-collapse: collapse; width: 100%; margin-top: 8px; font-variant-numeric: tabular-nums; }
@@ -111,6 +114,7 @@ footer { color: var(--muted); font-size: 12px; margin-top: 18px; }
   </header>
 
   <section class="proof" id="proof" hidden></section>
+  <section class="proof sealed" id="sealed" hidden></section>
 
   <form id="f">
     <select id="repo" aria-label="Repository"></select>
@@ -175,6 +179,7 @@ async function boot() {
     $('go').disabled = false;
     $('foot').textContent = 'Running entirely in your browser: Relate compiled to WebAssembly, the graph built in this tab, the same analysis code as the CLI. Free-text questions download a small embedding model on first use.';
   }
+  loadSealed();
   await loadRepoView(new URLSearchParams(location.search).get('repo') || undefined);
   const qs = new URLSearchParams(location.search);
   if (qs.get('q')) { $('q').value = qs.get('q'); run(qs.get('replay') === '1'); }
@@ -205,6 +210,22 @@ $('repo').addEventListener('change', async () => {
   await loadRepoView($('repo').value);
   $('go').disabled = false;
 });
+
+// Forecasts sealed in a commit before the fixes existed, scored every day by a GitHub Action.
+async function loadSealed() {
+  try {
+    const [sealed, sc] = await Promise.all([fetch('predictions/sealed.json').then((x) => x.json()), fetch('predictions/score.json').then((x) => x.json())]);
+    const n = sealed.repos.reduce((a, r) => a + r.forecasts.length, 0);
+    const day = sealed.sealedAt.slice(0, 10);
+    const t = sc.totals;
+    $('sealed').innerHTML = `<div class="big">${t.fixed ? t.hit5 + '%' : n} <small>${t.fixed ? 'vs ' + t.baselineHit5 + '%' : 'forecasts'}</small></div>
+      <p><b>Sealed forecasts, scored on the future.</b> On ${esc(day)} Groundwork forecast the files for every open, unfixed ticket of ${sealed.repos.map((r) => esc(r.repo)).join(', ')} (${fmt(n)} tickets) and the forecast was committed to the repository, so its date is public. A GitHub Action checks it every day against the pull requests merged since.
+      ${t.fixed ? `So far <b>${t.fixed}</b> of them have been fixed: a file the real fix changed was in the forecast's top 5 for <b>${t.hit5}%</b> (top 10: ${t.hit10}%); the most-changed files, frozen the same day, got ${t.baselineHit5}%.` : 'No forecast ticket has been fixed yet: check back, the score updates daily.'}
+      <small class="sub">Last scored ${esc(sc.scoredAt.slice(0, 10))}${sc.frozen ? ', final (frozen at the contest deadline)' : ''}. <a href="https://github.com/Farouk1901/groundwork/blob/main/docs/predictions/sealed.json" target="_blank" rel="noopener">sealed.json</a></small></p><span></span>
+      ${sc.cases.length ? `<details><summary>The fixed tickets</summary><ul>${sc.cases.slice(0, 30).map((c) => `<li>${c.hit5 ? '<span class="ok">✓</span>' : '✗'} <a href="${esc(c.url)}" target="_blank" rel="noopener">${esc(c.repo)}#${c.issue}</a> ${esc(c.title)} <small class="sub">fixed by PR #${c.pr} on ${esc(c.mergedAt.slice(0, 10))}</small></li>`).join('')}</ul></details>` : ''}`;
+    $('sealed').hidden = false;
+  } catch { /* no sealed forecasts shipped */ }
+}
 
 async function loadProof() {
   const e = await api(`/api/eval?repo=${encodeURIComponent($('repo').value)}`).catch(() => null);

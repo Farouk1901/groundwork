@@ -29,6 +29,12 @@ export function serve(port = 7474) {
     try {
       if (url.pathname === '/') { res.writeHead(200, { 'Content-Type': 'text/html; charset=utf-8' }); return res.end(page()); }
       if (url.pathname === '/vendor/cytoscape.min.js') { res.writeHead(200, { 'Content-Type': 'text/javascript', 'Cache-Control': 'max-age=86400' }); return res.end(cyto); }
+      if (url.pathname.startsWith('/predictions/') && /^\/predictions\/[\w.-]+\.json$/.test(url.pathname)) {
+        const f = path.join(here, '..', 'docs', url.pathname);
+        if (!existsSync(f)) return json(res, 404, { error: 'not found' });
+        res.writeHead(200, { 'Content-Type': 'application/json; charset=utf-8', 'Cache-Control': 'no-store' });
+        return res.end(readFileSync(f));
+      }
       if (url.pathname === '/api/repos') {
         const repos = store.query(`MATCH (r:Repo) OPTIONAL MATCH (i:Issue {repo: r.name}) WITH r, count(i) AS issues
           OPTIONAL MATCH (x:PR {repo: r.name}) RETURN r.name AS name, issues, count(x) AS prs, r.fetchedAt AS fetchedAt ORDER BY name`)

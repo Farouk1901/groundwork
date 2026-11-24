@@ -32,6 +32,11 @@ async function main() {
   switch (cmd) {
     case 'ingest': {
       const from = flag('from');
+      // --max-age 7: keep a graph that is less than 7 days old (the GitHub Action caches it between tickets).
+      if (flag('max-age') && pos[0]) {
+        const at = String(openStore().query('MATCH (r:Repo {name: $repo}) RETURN r.fetchedAt AS at', { repo: pos[0] })[0]?.at ?? '');
+        if (at && Date.now() - Date.parse(at) < Number(flag('max-age')) * 86_400_000) { log(`Graph for ${pos[0]} is from ${at.slice(0, 10)}: kept.`); return; }
+      }
       const snap: { data: RepoData; vectors?: number[][] } = from ? readSnapshot(from) : await (async () => {
         const repo = pos[0];
         if (!repo) throw new Error('Usage: groundwork ingest owner/repo   or   groundwork ingest --from snapshot.json.gz');
@@ -74,9 +79,9 @@ async function main() {
     case 'eval': {
       const repo = pos[0];
       if (!repo) throw new Error('Usage: groundwork eval owner/repo [--limit 200] [--fast]');
-      const r = await backtest(openStore(), repo, { limit: Number(flag('limit', '0')) || undefined, ablations: !has('fast'), split: flag('split') as 'older' | 'newer' | undefined, mode: flag('mode') === 'prs' ? 'prs' : 'tickets', log });
+      const r = await backtest(openStore(), repo, { limit: Number(flag('limit', '0')) || undefined, ablations: !has('fast'), split: flag('split') as 'older' | 'newer' | undefined, mode: flag('mode') === 'prs' ? 'prs' : 'tickets', clone: flag('clone'), log });
       mkdirSync(path.join(HOME, 'eval'), { recursive: true });
-      const out = path.join(HOME, 'eval', `${repo.replace('/', '__')}${flag('mode') === 'prs' ? '.prs' : ''}${flag('split') ? '.' + flag('split') : ''}.json`);
+      const out = path.join(HOME, 'eval', `${repo.replace('/', '__')}${flag('mode') === 'prs' ? '.prs' : ''}${flag('split') ? '.' + flag('split') : ''}${flag('clone') ? '.grep' : ''}.json`);
       writeFileSync(out, JSON.stringify(r, null, 2));
       console.log(has('json') ? JSON.stringify(r, null, 2) : evalMarkdown(r));
       log(`Saved ${out} (the web view shows it).`);

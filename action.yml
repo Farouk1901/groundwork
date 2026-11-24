@@ -1,0 +1,59 @@
+# Groundwork as a GitHub Action: when a ticket is opened, comment with the files it will most likely touch, who
+# knows that code and what to watch, each with the graph path behind it. The repository's graph is built once
+# (embeddings run on the runner, nothing leaves it) and cached for a week.
+#
+#   on: { issues: { types: [opened] } }
+#   permissions: { issues: write, contents: read }
+#   jobs: { groundwork: { runs-on: ubuntu-latest, steps: [ { uses: Farouk1901/groundwork@main } ] } }
+name: Groundwork
+description: Comment on new tickets with the files, people and risks that similar past fixes point to (Relate graph).
+branding:
+  icon: layers
+  color: orange
+inputs:
+  token:
+    description: Token used to read the repository's history and to comment.
+    default: ${{ github.token }}
+  history:
+    description: Repository whose history to learn from (default this one; a fork can point at its upstream).
+    default: ${{ github.repository }}
+  prs:
+    description: How many merged pull requests to learn from.
+    default: '1000'
+  issues:
+    description: How many tickets to learn from.
+    default: '1500'
+runs:
+  using: composite
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: 22
+    - name: Install Groundwork
+      shell: bash
+      run: cd "${{ github.action_path }}" && npm ci --no-audit --no-fund
+    - name: Restore the graph (cached for a week)
+      uses: actions/cache@v4
+      with:
+        path: |
+          ${{ github.action_path }}/.groundwork
+          ${{ github.action_path }}/node_modules/@huggingface/transformers/.cache
+        key: groundwork-${{ inputs.history }}-${{ github.run_id }}
+        restore-keys: groundwork-${{ inputs.history }}-
+    - name: Build or refresh the graph
+      shell: bash
+      env:
+        GITHUB_TOKEN: ${{ inputs.token }}
+      run: cd "${{ github.action_path }}" && npx tsx src/cli.ts ingest "${{ inputs.history }}" --prs "${{ inputs.prs }}" --issues "${{ inputs.issues }}" --refresh --max-age 7
+    - name: Plan the new ticket and comment
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.token }}
+        TITLE: ${{ github.event.issue.title }}
+        BODY: ${{ github.event.issue.body }}
+      run: |
+        cd "${{ github.action_path }}"
+        npx tsx src/cli.ts plan "${{ inputs.history }}" "$TITLE. $BODY" > "$RUNNER_TEMP/plan.md"
+        sed -i '1s/.*/### Groundwork: where this ticket will likely lead/' "$RUNNER_TEMP/plan.md"
+        printf '\n\n<sub>From how similar tickets and pull requests in this repository were fixed, in a [Relate](https://github.com/relatedb/relate) graph. [Groundwork](https://github.com/Farouk1901/groundwork)</sub>\n' >> "$RUNNER_TEMP/plan.md"
+        gh issue comment "${{ github.event.issue.number }}" --repo "${{ github.repository }}" --body-file "$RUNNER_TEMP/plan.md"
