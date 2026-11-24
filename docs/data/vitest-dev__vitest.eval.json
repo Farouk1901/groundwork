@@ -1,0 +1,284 @@
+{
+  "repo": "vitest-dev/vitest",
+  "at": "2026-11-24T10:35:20.588Z",
+  "split": "newer",
+  "mode": "tickets",
+  "cases": 220,
+  "skipped": 89,
+  "k": 10,
+  "results": [
+    {
+      "name": "Groundwork (full)",
+      "cases": 220,
+      "hit5": 60.5,
+      "hit10": 72.3,
+      "recall5": 25.3,
+      "recall10": 34,
+      "mrr": 0.47,
+      "ms": 800
+    },
+    {
+      "name": "  without similar tickets",
+      "cases": 220,
+      "hit5": 61.8,
+      "hit10": 69.5,
+      "recall5": 26.8,
+      "recall10": 33.7,
+      "mrr": 0.461,
+      "ms": 635
+    },
+    {
+      "name": "  without similar PRs",
+      "cases": 220,
+      "hit5": 51.4,
+      "hit10": 58.6,
+      "recall5": 21.8,
+      "recall10": 27.7,
+      "mrr": 0.414,
+      "ms": 603
+    },
+    {
+      "name": "  without co-change",
+      "cases": 220,
+      "hit5": 61.4,
+      "hit10": 71.8,
+      "recall5": 25.4,
+      "recall10": 33.1,
+      "mrr": 0.459,
+      "ms": 596
+    },
+    {
+      "name": "  vector only (no full-text)",
+      "cases": 220,
+      "hit5": 56.4,
+      "hit10": 69.1,
+      "recall5": 22.5,
+      "recall10": 32.1,
+      "mrr": 0.402,
+      "ms": 179
+    },
+    {
+      "name": "  full-text only (no vector)",
+      "cases": 220,
+      "hit5": 60.5,
+      "hit10": 71.4,
+      "recall5": 25.2,
+      "recall10": 33.1,
+      "mrr": 0.446,
+      "ms": 559
+    },
+    {
+      "name": "Baseline: most-changed files",
+      "cases": 220,
+      "hit5": 16.8,
+      "hit10": 20.5,
+      "recall5": 3.7,
+      "recall10": 6,
+      "mrr": 0.077,
+      "ms": 35
+    },
+    {
+      "name": "Ceiling (files seen before)",
+      "cases": 220,
+      "hit5": null,
+      "hit10": null,
+      "recall5": null,
+      "recall10": 74.7,
+      "mrr": null,
+      "ms": 0
+    }
+  ],
+  "examples": [
+    {
+      "issue": 12037,
+      "title": "Fork cleanup throws setMaxListeners(-1) on Bun",
+      "truth": [
+        "test/e2e/test/pool.test.ts",
+        "packages/vitest/src/node/pools/workers/forksWorker.ts",
+        "packages/vitest/src/node/pools/watchdog.ts",
+        "packages/vitest/src/node/pools/pool.ts"
+      ],
+      "top": [
+        "packages/vitest/src/node/pools/pool.ts",
+        "test/e2e/test/pool-worker-exit.test.ts",
+        "packages/vitest/src/node/pools/poolRunner.ts",
+        "packages/vitest/src/node/pools/workers/forksWorker.ts",
+        "packages/vitest/src/node/core.ts"
+      ]
+    },
+    {
+      "issue": 12036,
+      "title": "vitest related --changed with no files reports no changed files",
+      "truth": [
+        "test/e2e/test/git-changed.test.ts",
+        "packages/vitest/src/node/config/resolveConfig.ts",
+        "docs/guide/cli.md"
+      ],
+      "top": [
+        "packages/vitest/src/node/core.ts",
+        "packages/vitest/src/node/environments/transformService.ts",
+        "test/e2e/test/watch/file-watching.test.ts",
+        "packages/vitest/src/node/cache/fsModuleCache.ts",
+        "packages/vitest/src/node/affected-modules.ts"
+      ]
+    },
+    {
+      "issue": 12030,
+      "title": "Errors during `globalSetup` are misdiagnosed as \"No test files found\"",
+      "truth": [
+        "test/e2e/test/global-setup.test.ts",
+        "packages/vitest/src/node/core.ts"
+      ],
+      "top": [
+        "test/test-utils/index.ts",
+        "packages/vitest/src/node/core.ts",
+        "test/e2e/test/global-setup.test.ts",
+        "docs/guide/common-errors.md",
+        "packages/vitest/src/node/config/resolveConfig.ts"
+      ]
+    },
+    {
+      "issue": 12023,
+      "title": "Browser mode: since 5.1.0, a factory `vi.mock` of a pre-bundled dependency transforms it twice",
+      "truth": [
+        "packages/mocker/src/node/manualMockPlugin.ts"
+      ],
+      "top": [
+        "packages/browser/src/node/index.ts",
+        "test/browser/specs/mocking.test.ts",
+        "packages/browser-playwright/src/playwright.ts",
+        "test/browser/fixtures/mocking/vitest.config.ts",
+        "test/browser/fixtures/mocking/src/zzz-dual-id-target.test.ts"
+      ]
+    },
+    {
+      "issue": 12015,
+      "title": "maxWorkers run-mode default is documented as all available parallelism",
+      "truth": [
+        "docs/config/maxworkers.md"
+      ],
+      "top": [
+        "packages/vitest/src/node/config/resolveConfig.ts",
+        "test/e2e/test/projects.test.ts",
+        "packages/vitest/src/node/projects/resolveProjects.ts",
+        "packages/vitest/src/utils/workers.ts",
+        "packages/vitest/src/node/pool.ts"
+      ]
+    },
+    {
+      "issue": 11980,
+      "title": "coverage-v8 counts Vite's negated CJS default-import helper as a source branch",
+      "truth": [
+        "test/coverage-test/test/cjs-dependency.test.ts",
+        "packages/coverage-v8/src/provider.ts"
+      ],
+      "top": [
+        "packages/coverage-v8/src/provider.ts",
+        "test/coverage-test/test/cjs-dependency.test.ts",
+        "test/coverage-test/fixtures/src/cjs-dependency.ts",
+        "test/coverage-test/vitest.config.ts",
+        "test/coverage-test/fixtures/test/cjs-dependency.test.ts"
+      ]
+    },
+    {
+      "issue": 11967,
+      "title": "Wildcard in `noExternal` does not match a dash in a package name",
+      "truth": [
+        "test/e2e/test/vite-ssr-resolve.test.ts",
+        "packages/vitest/src/node/plugins/testConfig.ts",
+        "docs/guide/common-errors.md"
+      ],
+      "top": [
+        "packages/vitest/src/node/core.ts",
+        "test/e2e/test/list.test.ts",
+        "test/e2e/test/__snapshots__/list.test.ts.snap",
+        "packages/vitest/src/node/plugins/runnerTransform.ts",
+        "packages/vitest/src/node/plugins/testConfig.ts"
+      ]
+    },
+    {
+      "issue": 11964,
+      "title": "JSON reporter reports a test file as `passed` when its worker crashes",
+      "truth": [
+        "test/e2e/test/reporters/json.test.ts",
+        "packages/vitest/src/node/reporters/json.ts"
+      ],
+      "top": [
+        "docs/guide/reporters.md",
+        "packages/vitest/src/node/reporters/json.ts",
+        "test/e2e/test/reporters/merge-reports.test.ts",
+        "packages/vitest/src/node/core.ts",
+        "packages/vitest/src/runtime/rpc.ts"
+      ]
+    },
+    {
+      "issue": 11959,
+      "title": "`expect.element()` fails immediately with the webdriverio provider in 5.1.0 (default `traceView: \"failure-only\"`)",
+      "truth": [
+        "test/browser/specs/trace.test.ts",
+        "packages/utils/src/trace.ts",
+        "packages/browser/src/client/tester/tester-utils.ts",
+        "packages/browser/src/client/tester/locators.ts",
+        "packages/browser/src/client/tester/expect-element.ts"
+      ],
+      "top": [
+        "test/browser/specs/trace-timeline.test.ts",
+        "docs/guide/browser/trace-view.md",
+        "packages/vitest/src/node/reporters/renderers/trace-timeline.ts",
+        "packages/vitest/src/node/cli/cli-config.ts",
+        "docs/guide/cli-generated.md"
+      ]
+    },
+    {
+      "issue": 11942,
+      "title": "Vitest 5.1.0 declarations import ESTree from Vite, breaking type-checking with Vite 7",
+      "truth": [
+        "packages/vitest/src/node/types/coverage.ts",
+        "packages/coverage-v8/src/provider.ts"
+      ],
+      "top": [
+        "packages/vitest/src/runtime/moduleRunner/moduleRunner.ts",
+        "packages/vitest/src/public/browser.ts",
+        "packages/vitest/browser/context.d.ts",
+        "packages/browser/context.d.ts",
+        "packages/vitest/config.d.ts"
+      ]
+    },
+    {
+      "issue": 11938,
+      "title": "`context.signal` stays aborted in retries after a timeout",
+      "truth": [
+        "test/e2e/test/signal.test.ts",
+        "packages/vitest/src/runtime/runner/suite.ts",
+        "packages/vitest/src/runtime/runner/run.ts",
+        "packages/vitest/src/runtime/runner/context.ts",
+        "docs/guide/test-context.md"
+      ],
+      "top": [
+        "packages/vitest/src/node/core.ts",
+        "packages/vitest/src/runtime/runner/run.ts",
+        "packages/vitest/src/runtime/runner/context.ts",
+        "test/e2e/test/retry.test.ts",
+        "test/e2e/test/watch/file-watching.test.ts"
+      ]
+    },
+    {
+      "issue": 11921,
+      "title": "coverage-v8: one statement gets two end columns when node and browser projects load the same file",
+      "truth": [
+        "test/coverage-test/test/source-maps.test.ts",
+        "test/coverage-test/fixtures/test/end-mapping-fixture.test.ts",
+        "test/coverage-test/fixtures/src/end-mapping.ts",
+        "test/coverage-test/fixtures/src/end-mapping-dependency.ts",
+        "pnpm-workspace.yaml"
+      ],
+      "top": [
+        "packages/vitest/src/node/coverage.ts",
+        "packages/coverage-v8/src/provider.ts",
+        "test/e2e/test/reporters/merge-reports.test.ts",
+        "packages/vitest/src/node/types/coverage.ts",
+        "docs/config/coverage.md"
+      ]
+    }
+  ]
+}

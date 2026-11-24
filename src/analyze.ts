@@ -12,7 +12,7 @@
 // `asOf` replays the graph as it was at a moment in time (only PRs merged and tickets fixed before it); the
 // backtest in eval.ts uses it to predict a ticket's files without peeking at the fix.
 import { embedOne, cleanText } from './embed.js';
-import { num, type Row, type Store } from './store.js';
+import { num, type Row, type Store } from './core.js';
 
 export type Reason = { kind: 'fixed-by' | 'named' | 'similar-issue' | 'similar-pr' | 'co-change'; text: string; via?: string; score: number };
 export type FileHit = { path: string; module: string; score: number; reasons: Reason[] };
@@ -33,6 +33,8 @@ export type PlanOptions = {
   minScore?: number;
   /** Replay the graph as it was at this ISO time: no fix of the target, nothing merged or fixed later. */
   asOf?: string;
+  /** A precomputed embedding of the text target (the backtest embeds each case once). */
+  vector?: number[];
   /** Switch parts off, for ablations in the backtest. */
   use?: Partial<Record<'named' | 'issues' | 'prs' | 'coChange' | 'fulltext' | 'vector', boolean>>;
 };
@@ -61,9 +63,11 @@ const MIN_SIM = 0.65;
 const MAX_PR_FILES = 40;
 
 /** Weights. Defaults were chosen on the older half of the hono backtest and reported on the newer half (see eval). */
+// Read from the environment on Node.js only; the browser build has no process.
+const env: Record<string, string | undefined> = (globalThis as { process?: { env: Record<string, string | undefined> } }).process?.env ?? {};
 export const WEIGHTS = {
-  vector: Number(process.env.GW_W_VECTOR ?? 0.5),
-  coChange: Number(process.env.GW_W_COCHANGE ?? 0.05),
+  vector: Number(env.GW_W_VECTOR ?? 0.5),
+  coChange: Number(env.GW_W_COCHANGE ?? 0.05),
 };
 
 type Hit = { node: Row; score: number; sim: number };
@@ -82,6 +86,15 @@ function hybrid(store: Store, label: 'Issue' | 'PR', repo: string, vec: number[]
   const ret = `RETURN n.key AS key, n.number AS number, n.title AS title, n.url AS url, n.state AS state, n.repo AS repo,
        n.createdAt AS createdAt, n.mergedAt AS mergedAt, score, vector.similarity.cosine(n.embedding, $vec) AS cos`;
   let cypher: string;
+  if (kw && useVec && store.nativeHybrid === false) {
+    // The WebAssembly build cannot switch on the hybrid-search preview, so run both Relate indexes and fuse the two
+    // rankings here with the same weighted reciprocal rank fusion (score = Σ weight / (60 + rank)).
+    const vrows = store.query(`MATCH (n:${label}) SEARCH n IN (VECTOR INDEX ${idx[0]} FOR $vec WHERE n.repo = $repo LIMIT $k) SCORE AS score ${ret}`, { vec, repo, k });
+    const frows = store.query(`MATCH (n:${label}) SEARCH n IN (FULLTEXT INDEX ${idx[1]} FOR $kw LIMIT $k) SCORE AS score ${ret}`, { vec, kw, k });
+    let rows = fuseWrrf([[vrows, WEIGHTS.vector], [frows, 1 - WEIGHTS.vector]], k).filter((r) => r.repo === repo);
+    if (opts.asOf) rows = rows.filter((r) => s(label === 'PR' ? r.mergedAt : r.createdAt) < opts.asOf!);
+    return rows.slice(0, limit).map((r) => ({ node: r, score: num(r.score), sim: num(r.cos) }));
+  }
   if (kw && useVec) cypher = `MATCH (n:${label}) SEARCH n IN (COMBINE (
          VECTOR INDEX ${idx[0]} FOR $vec WHERE n.repo = $repo LIMIT $k WEIGHT $wv,
          FULLTEXT INDEX ${idx[1]} FOR $kw LIMIT $k WEIGHT $wf) USING WRRF WITH CONSTANT 60 LIMIT $k) SCORE AS score ${ret}`;
@@ -91,6 +104,18 @@ function hybrid(store: Store, label: 'Issue' | 'PR', repo: string, vec: number[]
   let rows = store.query(cypher, { vec, kw, repo, k, wv: WEIGHTS.vector, wf: 1 - WEIGHTS.vector }).filter((r) => r.repo === repo);
   if (opts.asOf) rows = rows.filter((r) => s(label === 'PR' ? r.mergedAt : r.createdAt) < opts.asOf!);
   return rows.slice(0, limit).map((r) => ({ node: r, score: num(r.score), sim: num(r.cos) }));
+}
+
+/** Weighted reciprocal rank fusion of ranked row lists (rank 1 first), keyed by n.key. */
+export function fuseWrrf(lists: [Row[], number][], limit: number, constant = 60): Row[] {
+  const acc = new Map<string, { row: Row; score: number }>();
+  for (const [rows, w] of lists) rows.forEach((r, i) => {
+    const key = s(r.key);
+    const e = acc.get(key) ?? { row: r, score: 0 };
+    e.score += w / (constant + i + 1);
+    acc.set(key, e);
+  });
+  return [...acc.values()].sort((a, b) => b.score - a.score).slice(0, limit).map((e) => ({ ...e.row, score: e.score }));
 }
 
 export async function similar(store: Store, repo: string, text: string, limit = 8, exclude?: string): Promise<Similar[]> {
@@ -129,7 +154,7 @@ export async function planTicket(store: Store, repo: string, target: { issue: nu
     tgt = { kind: 'issue', number: num(r.number), ref: r.ticket ? s(r.ticket) : `#${num(r.number)}`, title: s(r.title), url: s(r.url), state: s(r.state) };
   } else {
     text = target.text;
-    vec = await embedOne(cleanText(text));
+    vec = opts.vector ?? (await embedOne(cleanText(text)));
     tgt = { kind: 'text', text };
   }
 
@@ -253,6 +278,18 @@ export async function planTicket(store: Store, repo: string, target: { issue: nu
   ].sort((a, b) => b.sim - a.sim);
 
   return { repo, target: tgt, files: ranked, modules, experts, risks, similar: sim, graph: toGraph(tgt, ranked, experts), tookMs: Date.now() - t0 };
+}
+
+/**
+ * For a closed ticket with a known fix: when it was opened and which files the fix really changed, so a plan
+ * replayed as of that day can be checked against the truth (the web view's Replay button, the backtest's unit).
+ */
+export function fixOf(store: Store, repo: string, issue: number | string): { createdAt: string; prs: number[]; files: string[] } | null {
+  const rows = store.query(`MATCH (i:Issue {key: $k})<-[:FIXES]-(x:PR)-[:TOUCHES]->(f:File)
+      WHERE x.mergedAt >= i.createdAt RETURN i.createdAt AS at, collect(DISTINCT x.number) AS prs, collect(DISTINCT f.path) AS files`, { k: `${repo}#${issue}` });
+  const r = rows[0];
+  if (!r || !(r.files as unknown[])?.length) return null;
+  return { createdAt: s(r.at), prs: (r.prs as unknown[]).map(num), files: (r.files as string[]).filter((p) => !NOISE.test(p)) };
 }
 
 /** The explanation as a small graph: target → (similar ticket / PR) → file → module, plus experts. */

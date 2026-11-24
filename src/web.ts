@@ -5,7 +5,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { createRequire } from 'node:module';
-import { planTicket } from './analyze.js';
+import { fixOf, planTicket } from './analyze.js';
 import { checkChange } from './check.js';
 import { HOME, num, openStore } from './store.js';
 import { targetOf } from './util.js';
@@ -42,7 +42,11 @@ export function serve(port = 7474) {
       }
       if (url.pathname === '/api/plan' || url.pathname === '/api/blast') {
         if (!p('repo') || !p('q')) return json(res, 400, { error: 'repo and q are required' });
-        return json(res, 200, await planTicket(store, p('repo'), targetOf(p('q')), { files: 12 }));
+        const target = targetOf(p('q'));
+        const fix = 'issue' in target ? fixOf(store, p('repo'), target.issue) : null;
+        // Replay: the plan as of the day the ticket was opened (its fix hidden), with the files the fix really changed.
+        if (p('replay') && fix) return json(res, 200, { ...(await planTicket(store, p('repo'), target, { files: 12, asOf: fix.createdAt })), replay: fix });
+        return json(res, 200, { ...(await planTicket(store, p('repo'), target, { files: 12 })), canReplay: !!fix });
       }
       if (url.pathname === '/api/check') {
         const files = p('files').split(/[\s,]+/).filter(Boolean);
@@ -54,8 +58,8 @@ export function serve(port = 7474) {
         // Your own run first; else the result shipped with the example snapshot.
         // The held-out half (never used to choose a default) is the honest headline; fall back to the full run.
         const base = p('repo').replace('/', '__');
-        const f = [`${base}.newer.json`, `${base}.json`].flatMap((n) => [path.join(HOME, 'eval', n), path.join(here, '..', 'examples', 'eval', n)])
-          .find((x) => existsSync(x));
+        const f = [...[`${base}.newer.json`, `${base}.json`, `${base}.prs.newer.json`, `${base}.prs.json`].map((n) => path.join(HOME, 'eval', n)),
+          path.join(here, '..', 'docs', 'data', `${base}.eval.json`)].find((x) => existsSync(x));
         return json(res, 200, f ? JSON.parse(readFileSync(f, 'utf8')) : null);
       }
       json(res, 404, { error: 'not found' });

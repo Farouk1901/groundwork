@@ -1,0 +1,402 @@
+{
+  "repo": "relatedb/relate",
+  "at": "2026-11-24T10:51:59.717Z",
+  "split": "newer",
+  "mode": "prs",
+  "cases": 283,
+  "skipped": 52,
+  "k": 10,
+  "results": [
+    {
+      "name": "Groundwork (full)",
+      "cases": 283,
+      "hit5": 53.4,
+      "hit10": 61.5,
+      "recall5": 12.2,
+      "recall10": 17.9,
+      "mrr": 0.405,
+      "ms": 608
+    },
+    {
+      "name": "  without similar tickets",
+      "cases": 283,
+      "hit5": 59.4,
+      "hit10": 67.5,
+      "recall5": 13.7,
+      "recall10": 20,
+      "mrr": 0.441,
+      "ms": 640
+    },
+    {
+      "name": "  without similar PRs",
+      "cases": 283,
+      "hit5": 3.5,
+      "hit10": 4.2,
+      "recall5": 0.3,
+      "recall10": 0.5,
+      "mrr": 0.024,
+      "ms": 731
+    },
+    {
+      "name": "  without co-change",
+      "cases": 283,
+      "hit5": 52.7,
+      "hit10": 62.2,
+      "recall5": 12.2,
+      "recall10": 17.9,
+      "mrr": 0.394,
+      "ms": 638
+    },
+    {
+      "name": "  vector only (no full-text)",
+      "cases": 283,
+      "hit5": 43.1,
+      "hit10": 53,
+      "recall5": 10.1,
+      "recall10": 15.4,
+      "mrr": 0.344,
+      "ms": 166
+    },
+    {
+      "name": "  full-text only (no vector)",
+      "cases": 283,
+      "hit5": 53.4,
+      "hit10": 63.3,
+      "recall5": 13.5,
+      "recall10": 20,
+      "mrr": 0.407,
+      "ms": 630
+    },
+    {
+      "name": "Baseline: most-changed files",
+      "cases": 283,
+      "hit5": 18.4,
+      "hit10": 29.7,
+      "recall5": 1.8,
+      "recall10": 3.6,
+      "mrr": 0.11,
+      "ms": 40
+    },
+    {
+      "name": "Ceiling (files seen before)",
+      "cases": 283,
+      "hit5": null,
+      "hit10": null,
+      "recall5": null,
+      "recall10": 77.3,
+      "mrr": null,
+      "ms": 0
+    }
+  ],
+  "examples": [
+    {
+      "issue": 734,
+      "title": "fix(executor): resolve four name-scope disagreements between the row and the scope (REL8-2029)",
+      "truth": [
+        "relate/relate/tests/rel8_2029_name_scope.rs",
+        "relate/relate-ir/src/walk/vars.rs",
+        "relate/relate-ir/src/walk/mod.rs",
+        "relate/relate-ir/src/lib.rs",
+        "relate/relate-ir/src/ast.rs",
+        "relate/relate-front/src/validate/scope/expr_scope.rs",
+        "relate/relate-front/src/validate/expressions/mod.rs",
+        "relate/relate-executor/src/exec/project.rs",
+        "relate/relate-executor/src/exec/pattern_policies.rs",
+        "relate/relate-executor/src/exec/match_clause.rs",
+        "relate/relate-executor/src/exec/gpm/mod.rs",
+        "relate/relate-executor/src/exec/gpm/gpm_tests.rs",
+        "relate/relate-executor/src/exec/call/tests.rs",
+        "relate/relate-executor/src/exec/call/shared.rs",
+        "relate/relate-executor/src/exec/call/mod.rs",
+        "relate/relate-executor/src/exec/call/in_transactions.rs",
+        "relate/relate-executor/src/exec/call/feed.rs",
+        "relate/relate-executor/src/exec/call/conditional.rs",
+        "relate/relate-executor/src/exec/aggregate/seed.rs",
+        "docs/adr/0674-a-clause-bound-null-matches-nothing.md",
+        "docs/adr/0335-unbound-variable-fails-not-null.md",
+        ".changes/734-name-scope-disagreements.md"
+      ],
+      "top": [
+        "relate/relate-front/src/call_scope/mod.rs",
+        "relate/relate-executor/src/overlay/reads.rs",
+        "relate/relate-executor/src/exec/mod.rs",
+        "relate/relate/tests/call_in_transactions.rs",
+        "relate/relate-executor/src/exec/scope.rs"
+      ]
+    },
+    {
+      "issue": 747,
+      "title": "refactor(examples): drop the flag-default re-derivation in the extension examples (REL8-1978)",
+      "truth": [
+        "docs/api/extensions/examples/so-to-graph.ts",
+        "docs/api/extensions/examples/so-to-graph.sh",
+        "docs/api/extensions/examples/so-to-graph.py"
+      ],
+      "top": [
+        "surfaces/relate-cli/src/extensions/install/sources.rs",
+        "surfaces/relate-cli/src/extension_cmd.rs",
+        "surfaces/relate-python/README.md",
+        "clients/javascript/README.md",
+        "relate/relate/README.md"
+      ]
+    },
+    {
+      "issue": 757,
+      "title": "docs(load-perf): dispatch works on refs that carry the workflow file, not on any branch",
+      "truth": [
+        "docs/testing/load-perf.md",
+        "docs/testing/ci-lanes.md",
+        ".github/workflows/load-perf.yml"
+      ],
+      "top": [
+        "docs/api/extensions/spec.md",
+        ".github/workflows/publish-registries.yml",
+        ".github/workflows/release.yml",
+        "docs/api/cli/spec.md",
+        "README.md"
+      ]
+    },
+    {
+      "issue": 758,
+      "title": "fix(executor): a seek bound must be ready on the entry row (REL8-2074)",
+      "truth": [
+        "relate/relate-executor/src/pattern_walk/candidates/seek.rs",
+        "relate/relate-executor/src/exec/seek_readiness_tests.rs",
+        "relate/relate-executor/src/exec/pushdown.rs",
+        "relate/relate-executor/src/exec/mod.rs",
+        "relate/relate-executor/src/exec/kernels/program.rs",
+        "relate/relate-executor/src/exec/gpm/shortest_route/filters.rs",
+        "relate/relate-executor/src/exec/gpm/shortest_route/end_filter.rs",
+        "relate/relate-executor/src/exec/candidates/mod.rs",
+        "relate/relate-executor/src/eval/mod.rs",
+        ".changes/758-seek-bound-readiness.md"
+      ],
+      "top": [
+        "relate/relate-executor/src/pattern_walk/candidates/tests.rs",
+        "relate/relate-executor/src/pattern_walk/candidates/mod.rs",
+        "relate/relate-executor/src/exec/gpm/shortest_route/route.rs",
+        "relate/relate-executor/src/overlay/seek.rs",
+        "relate/relate-executor/src/exec/project.rs"
+      ]
+    },
+    {
+      "issue": 726,
+      "title": "fix(cypher): toStringOrNull renders a homogeneous list, matching live (REL8-2034)",
+      "truth": [
+        "relate/relate/tests/cip_value_operators.rs",
+        "relate/relate-front/src/validate/static_types.rs",
+        "relate/relate-front/src/validate/static_reduce.rs",
+        "relate/relate-front/src/validate/static_literal.rs",
+        "relate/relate-front/src/validate/static_calls.rs",
+        "relate/relate-front/src/validate/static_arithmetic.rs",
+        "relate/relate-front/src/validate/mod.rs",
+        "relate/relate-front/src/validate/dynamic.rs",
+        "relate/relate-executor/src/eval/function/convert/tests.rs",
+        "relate/relate-executor/src/eval/function/convert/mod.rs",
+        "relate/relate-core/src/typename.rs",
+        "relate/relate-core/src/literal.rs",
+        "relate/relate-core/src/lib.rs",
+        "docs/reference/functions.md",
+        ".changes/726-tostring-homogeneous-list.md"
+      ],
+      "top": [
+        "docs/reference/cypher-syntax.md",
+        "relate/relate-core/src/value/tests.rs",
+        "relate/relate-core/src/value/mod.rs",
+        "relate/relate/tests/ce_admin.rs",
+        "relate/relate-executor/src/eval/function/list.rs"
+      ]
+    },
+    {
+      "issue": 728,
+      "title": "fix(fulltext): strict query syntax, CJK tokenization, procedure options, control escapes (REL8-2031)",
+      "truth": [
+        "relate/relate/tests/fulltext_search_semantics.rs",
+        "relate/relate/tests/fulltext_query_strictness.rs",
+        "relate/relate/tests/fulltext_folding.rs",
+        "relate/relate/tests/fulltext_cjk.rs",
+        "relate/relate-parser/src/parser/tests/strings.rs",
+        "relate/relate-parser/src/parser/interp.rs",
+        "relate/relate-parser/src/lexer/tests/escapes.rs",
+        "relate/relate-parser/src/lexer/string.rs",
+        "relate/relate-parser/src/lexer.rs",
+        "relate/relate-executor/src/procedure_registry/signatures.rs",
+        "relate/relate-executor/src/exec/procedures/scans.rs",
+        "relate/relate-executor/src/exec/fulltext/query/scan.rs",
+        "relate/relate-executor/src/exec/fulltext/query/mod.rs",
+        "relate/relate-executor/src/exec/fulltext/query.rs",
+        "relate/relate-executor/src/exec/fulltext/analyzer.rs",
+        "relate/relate-executor/src/exec/fulltext.rs",
+        "relate/relate-executor/src/exec/candidates/mod.rs",
+        "docs/reference/cypher-syntax.md",
+        "docs/adr/0672-fulltext-cjk-tokenization-and-strict-query-syntax.md",
+        "docs/adr/0636-fulltext-index-analyzer-both-sides.md",
+        "docs/adr/0583-fulltext-accent-folding-and-wildcards.md",
+        ".changes/728-fulltext-query-strictness-cjk-options.md"
+      ],
+      "top": [
+        "relate/relate-executor/src/exec/fulltext.rs",
+        "relate/relate-executor/src/exec/search.rs",
+        "relate/relate-executor/src/exec/fulltext/query.rs",
+        "relate/relate-executor/src/exec/fulltext/analyzer.rs",
+        "relate/relate-executor/src/exec/procedures.rs"
+      ]
+    },
+    {
+      "issue": 727,
+      "title": "fix(http,cypher): Query API v2 ids and values; emptiness counts probe (REL8-2033)",
+      "truth": [
+        "surfaces/relate-load/src/typed_value.rs",
+        "surfaces/relate-load/src/push/wire.rs",
+        "surfaces/relate-http/src/v2_plan.rs",
+        "surfaces/relate-http/src/v2_json.rs",
+        "surfaces/relate-http/src/v2_envelope.rs",
+        "surfaces/relate-http/src/typed_params.rs",
+        "surfaces/relate-http/src/reply.rs",
+        "surfaces/relate-http/src/negotiation_tests.rs",
+        "relate/relate/tests/rel8_2033_planner_perf.rs",
+        "relate/relate/src/lib.rs",
+        "relate/relate/src/binding.rs",
+        "relate/relate-model/src/value.rs",
+        "relate/relate-model/src/point.rs",
+        "relate/relate-front/src/lower/mod.rs",
+        "relate/relate-front/src/lower/expr.rs",
+        "relate/relate-front/src/lower/existence.rs",
+        "relate/relate-executor/src/spatial/tests.rs",
+        "relate/relate-executor/src/spatial/mod.rs",
+        "relate/relate-core/src/value/tests.rs",
+        "relate/relate-core/src/value/mod.rs",
+        "docs/api/rust/spec.md",
+        "docs/api/http/spec.md",
+        ".changes/727-http-query-api-v2-neo4j-encoding.md"
+      ],
+      "top": [
+        "surfaces/relate-http/src/reply.rs",
+        "surfaces/relate-http/src/query_api.rs",
+        "surfaces/relate-load/src/http.rs",
+        "docs/api/http/spec.md",
+        "surfaces/relate-http/src/http.rs"
+      ]
+    },
+    {
+      "issue": 729,
+      "title": "fix(executor): a subquery body's missed reads and unrun NEXT stages (REL8-2028)",
+      "truth": [
+        "relate/relate/tests/rel8_2028_existence_subqueries.rs",
+        "relate/relate-planner/src/validate.rs",
+        "relate/relate-planner/src/names.rs",
+        "relate/relate-planner/src/expr_check.rs",
+        "relate/relate-ir/src/walk_query/pattern.rs",
+        "relate/relate-ir/src/walk_query/clause.rs",
+        "relate/relate-ir/src/walk_query.rs",
+        "relate/relate-ir/src/walk/vars.rs",
+        "relate/relate-ir/src/lib.rs",
+        "relate/relate-front/src/validate/expressions/mod.rs",
+        "relate/relate-front/src/ast/tree/clause.rs",
+        "relate/relate-front/src/ast/tree.rs",
+        "relate/relate-front/src/ast/collect/scoped.rs",
+        "relate/relate-executor/src/exec/subquery_eval.rs",
+        "relate/relate-executor/src/exec/scope.rs",
+        "relate/relate-executor/src/exec/pushdown.rs",
+        ".changes/729-existence-subquery-short-bodies.md"
+      ],
+      "top": [
+        "docs/api/extensions/spec.md",
+        "docs/api/cli/spec.md",
+        "README.md",
+        "relate/relate-planner/src/agg/mod.rs",
+        "surfaces/relate-cli/src/skill/bundle/references/operations.md"
+      ]
+    },
+    {
+      "issue": 730,
+      "title": "fix(executor): one total order over every value kind (REL8-2030)",
+      "truth": [
+        "relate/relate/tests/rel8_2030_value_ordering.rs",
+        "relate/relate-executor/src/graph/declared/order/tests.rs",
+        "relate/relate-executor/src/graph/declared/order/scan.rs",
+        "relate/relate-executor/src/graph/declared/order.rs",
+        "relate/relate-executor/src/exec/test_support/aggregate.rs",
+        "relate/relate-executor/src/exec/mod.rs",
+        "relate/relate-executor/src/exec/aggregate_tests.rs",
+        "relate/relate-executor/src/exec/aggregate_pool_tests.rs",
+        "relate/relate-executor/src/exec/aggregate_percentile_tests.rs",
+        "relate/relate-executor/src/exec/aggregate_charge_tests.rs",
+        "relate/relate-executor/src/exec/aggregate/stream.rs",
+        "relate/relate-executor/src/exec/aggregate/site.rs",
+        "relate/relate-executor/src/exec/aggregate/pool.rs",
+        "relate/relate-executor/src/exec/aggregate/columns.rs",
+        "relate/relate-executor/src/eval/mod.rs",
+        "relate/relate-executor/src/eval/expr.rs",
+        "relate/relate-executor/src/eval/aggregate/accumulator.rs",
+        "relate/relate-core/src/value/ordering_tests.rs",
+        "relate/relate-core/src/value/ordering.rs",
+        "relate/relate-core/src/temporal/mod.rs",
+        ".changes/730-value-total-order.md"
+      ],
+      "top": [
+        "relate/relate-executor/src/exec/agg_fold/one_hop.rs",
+        "relate/relate-executor/src/exec/agg_fold/mod.rs",
+        "relate/relate-executor/src/lib.rs",
+        "relate/relate-executor/src/exec/dispatch.rs",
+        "relate/relate-executor/src/exec/project.rs"
+      ]
+    },
+    {
+      "issue": 731,
+      "title": "fix(executor): the contracted kernels observe cancellation inside their loops (REL8-2032)",
+      "truth": [
+        "relate/relate-executor/src/exec/kernels/mod.rs",
+        "relate/relate-executor/src/exec/kernels/hub_star.rs",
+        "relate/relate-executor/src/exec/kernels/chain.rs",
+        "relate/relate-executor/src/exec/kernels/cancel_tests.rs",
+        ".changes/731-kernel-cancellation.md"
+      ],
+      "top": [
+        "relate/relate-executor/src/exec/kernels/matcher.rs",
+        "relate/relate-executor/src/exec/kernels/frontier_differential_tests.rs",
+        "relate/relate-executor/src/exec/kernels/mod.rs",
+        "relate/relate-executor/src/exec/kernels/frontier_emit.rs",
+        "relate/relate-executor/src/eval/vector.rs"
+      ]
+    },
+    {
+      "issue": 753,
+      "title": "fix(http): encode result rows lazily from the engine's values (REL8-2038, ADR-0675)",
+      "truth": [
+        "surfaces/relate-http/src/v2_envelope.rs",
+        "surfaces/relate-http/src/reply.rs",
+        "docs/api/http/spec.md",
+        "docs/adr/0675-http-rows-encode-lazily.md",
+        "docs/adr/0386-http-chunked-streaming.md",
+        ".changes/753-http-rows-encode-lazily.md"
+      ],
+      "top": [
+        "surfaces/relate-http/src/reply.rs",
+        "relate/relate-error/src/classification.rs",
+        "relate/relate-error/src/lib.rs",
+        "surfaces/relate-http/src/query_api.rs",
+        "docs/api/cli/spec.md"
+      ]
+    },
+    {
+      "issue": 724,
+      "title": "fix(executor): bulk-batched writes keep both relationship orientations and uniqueness (REL8-2027)",
+      "truth": [
+        "relate/relate/tests/labs263_bulk_writes.rs",
+        "relate/relate-executor/src/exec/create_admission.rs",
+        "relate/relate-executor/src/exec/bulk/tests.rs",
+        "relate/relate-executor/src/exec/bulk.rs",
+        "docs/api/rust/spec.md",
+        ".changes/724-bulk-batch-relationship-equivalence.md"
+      ],
+      "top": [
+        "docs/api/extensions/spec.md",
+        "relate/relate-executor/src/exec/bulk/tests.rs",
+        "relate/relate-executor/src/graph/mod.rs",
+        "relate/relate-executor/src/graph/adjacency.rs",
+        "docs/api/cli/spec.md"
+      ]
+    }
+  ]
+}

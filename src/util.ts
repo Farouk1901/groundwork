@@ -1,14 +1,17 @@
 import { readFileSync } from 'node:fs';
 import { gunzipSync } from 'node:zlib';
 import type { RepoData } from './github.js';
+import { decodeVectors } from './vectors.js';
 
-/** "1234" or "#1234" is a GitHub ticket, "SHOP-142" a Jira key; anything else describes the change. */
-export const targetOf = (what: string): { issue: number | string } | { text: string } =>
-  /^#?\d+$/.test(what.trim()) ? { issue: Number(what.trim().replace('#', '')) }
-    : /^[A-Z][A-Z0-9]+-\d+$/.test(what.trim()) ? { issue: what.trim() } : { text: what.slice(0, 2000) };
+export { targetOf } from './target.js';
 
-/** A repository snapshot (the cached GitHub data), plain or gzipped: lets anyone build the graph without a token. */
-export function readSnapshot(file: string): RepoData {
+/**
+ * A repository snapshot, plain or gzipped: the cached GitHub data, or a web export that also carries the embeddings
+ * (int8), which makes building the graph take seconds instead of minutes. Lets anyone build it without a token.
+ */
+export function readSnapshot(file: string): { data: RepoData; vectors?: number[][] } {
   const buf = readFileSync(file);
-  return JSON.parse((file.endsWith('.gz') ? gunzipSync(buf) : buf).toString('utf8')) as RepoData;
+  const j = JSON.parse((file.endsWith('.gz') ? gunzipSync(buf) : buf).toString('utf8')) as RepoData | { data: RepoData; vectors: string; dim: number; scale: number };
+  if ('vectors' in j && 'data' in j) return { data: j.data, vectors: decodeVectors(j.vectors, j.dim, j.scale) };
+  return { data: j as RepoData };
 }

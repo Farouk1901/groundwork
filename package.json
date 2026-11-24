@@ -5,12 +5,14 @@
   "scripts": {
     "test": "tsx --test test/*.test.ts",
     "typecheck": "tsc -p .",
-    "demo:ingest": "tsx src/cli.ts ingest --from examples/honojs__hono.json.gz",
-    "demo": "tsx src/cli.ts ingest --from examples/honojs__hono.json.gz && tsx src/cli.ts serve",
+    "demo:ingest": "tsx src/cli.ts ingest --from docs/data/honojs__hono.json.gz",
+    "demo": "tsx src/cli.ts ingest --from docs/data/honojs__hono.json.gz && tsx src/cli.ts serve",
     "start": "tsx src/cli.ts serve",
     "mcp": "tsx src/cli.ts mcp",
     "eval": "tsx src/cli.ts eval honojs/hono",
-    "cli": "tsx src/cli.ts"
+    "cli": "tsx src/cli.ts",
+    "site": "node scripts/build-site.mjs && node scripts/serve-site.mjs",
+    "site:build": "node scripts/build-site.mjs"
   },
   "keywords": [
     "relate",
@@ -30,11 +32,13 @@
     "@huggingface/transformers": "4.3.2",
     "@modelcontextprotocol/sdk": "1.32.2",
     "@relate/relate": "1.0.1",
+    "@relate/relate-wasm": "1.2.0",
     "cytoscape": "3.34.4",
     "zod": "4.6.7"
   },
   "devDependencies": {
     "@types/node": "26.6.6",
+    "esbuild": "0.25.12",
     "tsx": "4.23.15",
     "typescript": "7.0.2"
   },

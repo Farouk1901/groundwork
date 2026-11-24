@@ -63,6 +63,10 @@ button:disabled { opacity: .55; cursor: wait; }
 .card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; min-width: 0; }
 .card h2 { font-size: 12.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); margin: 0 0 10px; }
 .target { font-size: 17px; font-weight: 650; margin: 0 0 12px; }
+.replay { font-size: 13.5px; background: var(--surface-2); border: 1px solid var(--line); border-radius: 9px; padding: 8px 10px; margin: -4px 0 12px; }
+.replay.on { background: var(--good-soft); border-color: var(--good); }
+.replay .btn-link { margin-left: 4px; padding: 2px 8px; }
+.ok { color: var(--good); font-weight: 700; }
 .target a { color: inherit; }
 ol.files { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; counter-reset: f; }
 .file { display: grid; grid-template-columns: 22px 1fr 70px; gap: 2px 10px; padding: 8px; border-radius: 9px; cursor: pointer; border: 1px solid transparent; }
@@ -119,6 +123,7 @@ footer { color: var(--muted); font-size: 12px; margin-top: 18px; }
     <div class="grid">
       <section class="card">
         <p class="target" id="target"></p>
+        <p class="replay" id="replay" hidden></p>
         <h2>Files most likely to change</h2>
         <ol class="files" id="files"></ol>
       </section>
@@ -146,35 +151,70 @@ footer { color: var(--muted); font-size: 12px; margin-top: 18px; }
   </div>
   <footer id="foot">Everything runs locally: a Relate graph on disk, embeddings computed on this machine, no API keys.</footer>
 </div>
-<script src="/vendor/cytoscape.min.js"></script>
+<script src="vendor/cytoscape.min.js"></script>
 <script>
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const gh = (repo, kind, n) => `https://github.com/${repo}/${kind === 'pr' ? 'pull' : 'issues'}/${n}`;
 const fmt = (n) => Number(n).toLocaleString('en-US');
 let cy, last;
+// Locally the page talks to `groundwork serve`; on GitHub Pages the same calls are answered by Relate (WebAssembly)
+// running in this tab, with the same analysis code.
+const STATIC = !!window.GW_STATIC;
+let gw = null;
+const api = (path) => (STATIC ? gw.api(path) : fetch(path).then((x) => x.json()));
 
 async function boot() {
-  const r = await fetch('/api/repos').then((x) => x.json());
+  if (STATIC) {
+    $('go').disabled = true;
+    try {
+      gw = await import('./app.js');
+      await gw.ready((s) => { $('status').textContent = s; });
+    } catch (e) { $('status').textContent = 'Could not start Relate in this browser: ' + e.message; return; }
+    $('go').disabled = false;
+    $('foot').textContent = 'Running entirely in your browser: Relate compiled to WebAssembly, the graph built in this tab, the same analysis code as the CLI. Free-text questions download a small embedding model on first use.';
+  }
+  await loadRepoView(new URLSearchParams(location.search).get('repo') || undefined);
+  const qs = new URLSearchParams(location.search);
+  if (qs.get('q')) { $('q').value = qs.get('q'); run(qs.get('replay') === '1'); }
+}
+
+async function loadRepoView(repoName) {
+  const r = await api('/api/repos' + (repoName ? `?repo=${encodeURIComponent(repoName)}` : ''));
   $('repo').innerHTML = r.repos.map((x) => `<option value="${esc(x.name)}">${esc(x.name)} · ${fmt(x.issues)} tickets · ${fmt(x.prs)} PRs</option>`).join('');
+  if (repoName) $('repo').value = repoName;
   const c = r.counts || {};
   $('stats').innerHTML = `Relate graph · <b>${fmt(c.Issue || 0)}</b> tickets · <b>${fmt(c.PR || 0)}</b> PRs · <b>${fmt(c.File || 0)}</b> files · <b>${fmt(c.Person || 0)}</b> people · <b>${fmt(r.rels || 0)}</b> relationships`;
   if (!r.repos.length) { $('status').textContent = 'The graph is empty. Run: npm run demo:ingest (no token needed) or npx tsx src/cli.ts ingest owner/repo'; return; }
   $('examples').innerHTML = '<span class="sub">Open tickets:</span>' + r.examples.slice(0, 5)
     .map((e) => `<button type="button" class="chip" data-q="${e.number}" title="${esc(e.title)}">#${e.number} ${esc(e.title)}</button>`).join('')
-    + `<button type="button" class="chip text" data-q="JWT middleware should read the token from a cookie with a custom name">or describe one: “JWT middleware should read the token from a cookie…”</button>`;
+    + (TEXT_EXAMPLE[$('repo').value] ? `<button type="button" class="chip text" data-q="${esc(TEXT_EXAMPLE[$('repo').value])}">or describe one: “${esc(TEXT_EXAMPLE[$('repo').value].slice(0, 48))}…”</button>` : '');
   loadProof();
-  const q = new URLSearchParams(location.search).get('q');
-  if (q) { $('q').value = q; run(); }
 }
 
+const TEXT_EXAMPLE = {
+  'honojs/hono': 'JWT middleware should read the token from a cookie with a custom name',
+  'vitest-dev/vitest': 'Coverage report is missing files that are only imported inside worker threads',
+  'relatedb/relate': 'Full-text index ignores accented characters when matching words',
+};
+
+$('repo').addEventListener('change', async () => {
+  $('out').hidden = true; $('q').value = ''; history.replaceState(null, '', location.pathname);
+  $('go').disabled = true;
+  await loadRepoView($('repo').value);
+  $('go').disabled = false;
+});
+
 async function loadProof() {
-  const e = await fetch(`/api/eval?repo=${encodeURIComponent($('repo').value)}`).then((x) => x.json()).catch(() => null);
+  const e = await api(`/api/eval?repo=${encodeURIComponent($('repo').value)}`).catch(() => null);
+  $('proof').hidden = true;
   if (!e || !e.results) return;
   const full = e.results.find((x) => x.name.startsWith('Groundwork')), base = e.results.find((x) => x.name.startsWith('Baseline'));
   const pct = (v) => (Number.isNaN(v) || v == null ? '–' : v + '%');
   $('proof').innerHTML = `<div class="big">${full.hit5}% <small>vs ${base.hit5}%</small></div>
-    <p><b>Backtested on ${fmt(e.cases)} real tickets of ${esc(e.repo)}${e.split === 'newer' ? ', the newest half, never used to tune a weight' : ''}.</b> Each one replayed as of the moment it was opened, with its fix hidden: a file the real fix changed was in Groundwork's top 5 for ${full.hit5}% of them. Ranking the repository's most-changed files, which is all a tool that needs a starting file can do before any code exists, gets ${base.hit5}%.</p>
+    <p>${e.mode === 'prs'
+      ? `<b>Backtested on ${fmt(e.cases)} merged PRs of ${esc(e.repo)}${e.split === 'newer' ? ', the newest half' : ''}, each predicted from its title alone.</b> This repository rarely links PRs to tickets, so each PR title stands in for a ticket; the graph is replayed as of its merge, with the PR itself hidden. A file it really changed was in Groundwork's top 5 for ${full.hit5}% of them; the most-changed files get ${base.hit5}%.`
+      : `<b>Backtested on ${fmt(e.cases)} real tickets of ${esc(e.repo)}${e.split === 'newer' ? ', the newest half, never used to tune a weight' : ''}.</b> Each one replayed as of the moment it was opened, with its fix hidden: a file the real fix changed was in Groundwork's top 5 for ${full.hit5}% of them. Ranking the repository's most-changed files, which is all a tool that needs a starting file can do before any code exists, gets ${base.hit5}%.`}</p>
     <span></span>
     <details><summary>Full results and ablations</summary><table><thead><tr><th>Method</th><th>Hit@5</th><th>Hit@10</th><th>Recall@5</th><th>Recall@10</th><th>MRR</th></tr></thead><tbody>
     ${e.results.map((x) => `<tr class="${x.name.startsWith('Groundwork') ? 'main' : x.name.startsWith('Baseline') || x.name.startsWith('Ceiling') ? 'base' : ''}"><td>${esc(x.name.trim())}</td><td>${pct(x.hit5)}</td><td>${pct(x.hit10)}</td><td>${pct(x.recall5)}</td><td>${pct(x.recall10)}</td><td>${x.mrr == null || Number.isNaN(x.mrr) ? '–' : x.mrr}</td></tr>`).join('')}
@@ -185,17 +225,23 @@ async function loadProof() {
 $('examples').addEventListener('click', (e) => { const b = e.target.closest('[data-q]'); if (b) { $('q').value = b.dataset.q; run(); } });
 $('f').addEventListener('submit', (e) => { e.preventDefault(); run(); });
 $('checkBtn').addEventListener('click', check);
+$('replay').addEventListener('click', (e) => { if (e.target.id === 'replayBtn') run(true); if (e.target.id === 'liveBtn') run(false); });
 $('fillTop').addEventListener('click', () => { if (last?.files[0]) { $('changed').value = last.files[0].path; check(); } });
 
-async function run() {
+async function run(replay = false) {
   const repo = $('repo').value, q = $('q').value.trim();
   if (!q) return;
-  $('go').disabled = true; $('status').textContent = 'Searching past tickets and walking the graph…';
+  $('go').disabled = true;
+  const words = !/^#?\d+$|^[A-Z][A-Z0-9]+-\d+$/.test(q);
+  $('status').textContent = replay ? 'Rewinding the graph to the day the ticket was opened…'
+    : STATIC && words && !window.__modelReady ? 'Downloading the embedding model for your words (about 25 MB, first question only)…'
+    : 'Searching past tickets and walking the graph…';
   try {
-    const r = await fetch(`/api/plan?repo=${encodeURIComponent(repo)}&q=${encodeURIComponent(q)}`).then((x) => x.json());
+    const r = await api(`/api/plan?repo=${encodeURIComponent(repo)}&q=${encodeURIComponent(q)}${replay ? '&replay=1' : ''}`);
     if (r.error) throw new Error(r.error);
-    history.replaceState(null, '', `?q=${encodeURIComponent(q)}`);
+    history.replaceState(null, '', `?repo=${encodeURIComponent(repo)}&q=${encodeURIComponent(q)}${replay ? '&replay=1' : ''}`);
     last = r; render(r);
+    if (words) window.__modelReady = true;
     $('status').textContent = `${r.files.length} files · ${r.similar.length} similar tickets and PRs · ${r.graph.nodes.length} nodes in the explanation · answered from Relate in ${r.tookMs} ms`;
   } catch (e) { $('status').textContent = e.message; }
   $('go').disabled = false;
@@ -206,11 +252,18 @@ function pathHtml(p) { const i = p.lastIndexOf('/'); return i < 0 ? esc(p) : `<s
 function render(r) {
   $('out').hidden = false;
   $('checkOut').innerHTML = '';
+  const truth = new Set(r.replay ? r.replay.files : []);
+  const found5 = r.files.slice(0, 5).filter((f) => truth.has(f.path)).length;
+  $('replay').innerHTML = r.replay
+    ? `<b>Replayed as of ${esc(r.replay.createdAt.slice(0, 10))}</b>, the day this ticket was opened: its fix (PR ${r.replay.prs.map((n) => '#' + n).join(', ')}) and everything after it are hidden. <span class="ok">✓</span> marks a file the real fix changed: ${found5} of ${truth.size} in the top 5. <button type="button" class="btn-link" id="liveBtn">Back to today</button>`
+    : r.canReplay ? `This ticket is closed. <button type="button" class="btn-link" id="replayBtn">Replay it as of the day it was opened</button> to see what Groundwork would have said before the fix existed.` : '';
+  $('replay').hidden = !r.replay && !r.canReplay;
+  $('replay').classList.toggle('on', !!r.replay);
   $('target').innerHTML = r.target.kind === 'issue'
     ? `<a href="${esc(r.target.url)}" target="_blank" rel="noopener">${esc(r.target.ref)}</a> ${esc(r.target.title)} <small class="sub">(${esc(r.target.state.toLowerCase())})</small>`
     : `“${esc(r.target.text)}”`;
   $('files').innerHTML = r.files.map((f) => `<li class="file" data-file="${esc(f.path)}" tabindex="0">
-      <span class="path">${pathHtml(f.path)}</span><span class="bar" title="${Math.round(f.score * 100)}%"><i style="width:${Math.round(f.score * 100)}%"></i></span>
+      <span class="path">${truth.has(f.path) ? '<span class="ok" title="the real fix changed this file">✓ </span>' : ''}${pathHtml(f.path)}</span><span class="bar" title="${Math.round(f.score * 100)}%"><i style="width:${Math.round(f.score * 100)}%"></i></span>
       <ul class="why">${f.reasons.slice(0, 2).map((x) => `<li><span class="tag t-${x.kind}">${x.kind.replace('-', ' ')}</span>${esc(x.text)}</li>`).join('')}</ul></li>`).join('')
     || '<li class="empty">Nothing similar was fixed before. Describe the change in more words, or this is new ground.</li>';
   $('experts').innerHTML = r.experts.map((e) => `<li><a href="https://github.com/${esc(e.login)}" target="_blank" rel="noopener">@${esc(e.login)}</a><small>${e.changes} merged PRs in these files · last ${esc(e.last)}</small></li>`).join('') || '<li class="empty">No history yet.</li>';
@@ -280,7 +333,7 @@ async function check() {
   const files = $('changed').value.trim();
   if (!files || !$('q').value.trim()) return;
   $('checkOut').innerHTML = '<li class="empty">Checking…</li>';
-  const r = await fetch(`/api/check?repo=${encodeURIComponent($('repo').value)}&q=${encodeURIComponent($('q').value.trim())}&files=${encodeURIComponent(files)}`).then((x) => x.json());
+  const r = await api(`/api/check?repo=${encodeURIComponent($('repo').value)}&q=${encodeURIComponent($('q').value.trim())}&files=${encodeURIComponent(files)}`);
   if (r.error) { $('checkOut').innerHTML = `<li class="empty">${esc(r.error)}</li>`; return; }
   $('checkOut').innerHTML = [
     ...r.covered.map((f) => `<li class="ok">✓ ${esc(f.path)}</li>`),

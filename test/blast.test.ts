@@ -9,7 +9,7 @@ import { ingest, mentionedIssues, moduleOf, namedFiles } from '../src/ingest.ts'
 import { openStore, type Store } from '../src/store.ts';
 import { readOnlyCypher, whoKnows } from '../src/mcp.ts';
 import { checkChange, checkMarkdown } from '../src/check.ts';
-import { backtest, cases, evalMarkdown } from '../src/eval.ts';
+import { backtest, cases, evalMarkdown, prCases } from '../src/eval.ts';
 import { adfText, fromJiraJson, ingestJira, jiraKeys } from '../src/jira.ts';
 import { readSnapshot, targetOf } from '../src/util.ts';
 import type { RepoData } from '../src/github.ts';
@@ -134,6 +134,15 @@ test('backtest: cases only from tickets with history, scored against baselines',
   assert.deepEqual(cases(store, 'acme/shop', { minHistory: 1, split: 'newer' }).cases.map((c) => c.issue), [5]);
   assert.deepEqual(cases(store, 'acme/shop', { minHistory: 1, split: 'older' }).cases.map((c) => c.issue), [2]);
 
+  // PR mode: each merged PR predicted from its title, with itself and later PRs hidden; #10 has no history.
+  const prs = prCases(store, 'acme/shop', { minHistory: 1 }).cases;
+  assert.deepEqual(prs.map((c) => c.issue), [13, 12, 11]);
+  assert.deepEqual(prs.find((c) => c.issue === 12)!.known, []); // total.ts was new in #12
+  const pr = await backtest(store, 'acme/shop', { minHistory: 1, mode: 'prs', ablations: false });
+  assert.equal(pr.mode, 'prs');
+  assert.equal(pr.cases, 3);
+  assert.ok(pr.results[0].hit5 > 0, 'cookie PRs are found from earlier cookie PRs');
+
   assert.equal((await backtest(store, 'acme/shop', { ablations: false })).cases, 0); // the default needs 50 earlier PRs
   const r = await backtest(store, 'acme/shop', { minHistory: 1 });
   assert.equal(r.cases, 2);
@@ -170,8 +179,8 @@ test('snapshots load plain or gzipped (judges need no GitHub token)', () => {
   const dir = mkdtempSync(path.join(tmpdir(), 'gw-'));
   writeFileSync(path.join(dir, 'a.json'), JSON.stringify(data));
   writeFileSync(path.join(dir, 'a.json.gz'), gzipSync(JSON.stringify(data)));
-  assert.equal(readSnapshot(path.join(dir, 'a.json')).prs.length, 4);
-  assert.equal(readSnapshot(path.join(dir, 'a.json.gz')).issues.length, 5);
+  assert.equal(readSnapshot(path.join(dir, 'a.json')).data.prs.length, 4);
+  assert.equal(readSnapshot(path.join(dir, 'a.json.gz')).data.issues.length, 5);
 });
 
 test('agents get read-only Cypher and who-knows', async () => {
@@ -188,4 +197,57 @@ test('eval markdown renders a table', () => {
       { name: 'Ceiling (files seen before)', cases: 1, hit5: NaN, hit10: NaN, recall5: NaN, recall10: 80, mrr: NaN, ms: 0 }] });
   assert.match(md, /\| Groundwork \(full\) \| 100% \| 100% \| 50% \| 50% \| 1 \| 3 \|/);
   assert.match(md, /\| Ceiling \(files seen before\) \| – \| – \| – \| 80% \| – \| – \|/);
+});
+
+test('client-side WRRF fusion (used by the WebAssembly build) matches the fused order', async () => {
+  const { fuseWrrf } = await import('../src/analyze.ts');
+  const r = fuseWrrf([[[{ key: 'a' }, { key: 'b' }, { key: 'c' }], 0.5], [[{ key: 'c' }, { key: 'a' }], 0.5]], 3);
+  assert.deepEqual(r.map((x) => x.key), ['a', 'c', 'b']); // a: 1st + 2nd, c: 3rd + 1st, b: 2nd only
+  const store = await graph();
+  const client = { ...store, nativeHybrid: false };
+  const a = await planTicket(store, 'acme/shop', { issue: 3 });
+  const b = await planTicket(client, 'acme/shop', { issue: 3 });
+  assert.deepEqual(b.files.map((f) => f.path), a.files.map((f) => f.path));
+});
+
+test('the in-browser build: Relate WebAssembly gives the same plan as the native library', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { createRequire } = await import('node:module');
+  const wasm = await import('@relate/relate-wasm');
+  await wasm.default({ module_or_path: readFileSync(createRequire(import.meta.url).resolve('@relate/relate-wasm/relate_bg.wasm')) });
+  const { wasmStore } = await import('../web/browser.ts');
+  const w = wasmStore(new wasm.RelateDb());
+  await ingest(w, data);
+  const native = await planTicket(await graph(), 'acme/shop', { issue: 3 });
+  const inBrowser = await planTicket(w, 'acme/shop', { issue: 3 });
+  assert.equal(w.nativeHybrid, false);
+  assert.deepEqual(inBrowser.files.map((f) => f.path), native.files.map((f) => f.path));
+  assert.deepEqual(inBrowser.experts.map((e) => e.login), native.experts.map((e) => e.login));
+  const chk = await checkChange(w, 'acme/shop', { issue: 3 }, ['src/http/cookie.ts']);
+  assert.ok(chk.missing.some((f) => f.path === 'src/http/cookie.test.ts'));
+});
+
+test('web export round trip: snapshot + int8 embeddings rebuild the same graph without computing embeddings', async () => {
+  const { exportWeb } = await import('../src/export.ts');
+  const dir = mkdtempSync(path.join(tmpdir(), 'gw-web-'));
+  const m = exportWeb(await graph(), data, dir);
+  assert.equal(m.issues, 5);
+  const snap = readSnapshot(path.join(dir, m.file));
+  assert.equal(snap.vectors!.length, 9); // 5 tickets + 4 PRs
+  const fresh = openStore(':memory:');
+  await ingest(fresh, snap.data, () => {}, { vectors: snap.vectors });
+  const a = await planTicket(await graph(), 'acme/shop', { issue: 3 });
+  const b = await planTicket(fresh, 'acme/shop', { issue: 3 });
+  assert.deepEqual(b.files.map((f) => f.path), a.files.map((f) => f.path));
+});
+
+test('replay: a closed ticket knows when it was opened and what its fix changed', async () => {
+  const { fixOf } = await import('../src/analyze.ts');
+  const store = await graph();
+  const f = fixOf(store, 'acme/shop', 5)!;
+  assert.deepEqual(f.prs, [13]);
+  assert.equal(f.createdAt, '2026-04-01T00:00:00Z');
+  assert.deepEqual(f.files.sort(), ['src/http/cookie.test.ts', 'src/http/cookie.ts', 'src/http/parse-header.ts']);
+  assert.equal(fixOf(store, 'acme/shop', 3), null); // open, no fix
+  assert.deepEqual(fixOf(store, 'acme/shop', 2)!.files, ['src/cart/total.ts']); // package.json is noise
 });

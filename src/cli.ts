@@ -13,11 +13,12 @@
 //   mcp                                                             MCP server on stdio, for coding agents
 import { writeFileSync, mkdirSync } from 'node:fs';
 import path from 'node:path';
-import { fetchRepo } from './github.js';
+import { fetchRepo, type RepoData } from './github.js';
 import { readSnapshot, targetOf } from './util.js';
 import { ingest } from './ingest.js';
 import { planTicket, similar, toMarkdown } from './analyze.js';
-import { checkChange, checkMarkdown, gitChangedFiles } from './check.js';
+import { checkChange, checkMarkdown } from './check.js';
+import { gitChangedFiles } from './git.js';
 import { backtest, evalMarkdown } from './eval.js';
 import { HOME, num, openStore } from './store.js';
 
@@ -31,13 +32,13 @@ async function main() {
   switch (cmd) {
     case 'ingest': {
       const from = flag('from');
-      const data = from ? readSnapshot(from) : await (async () => {
+      const snap: { data: RepoData; vectors?: number[][] } = from ? readSnapshot(from) : await (async () => {
         const repo = pos[0];
         if (!repo) throw new Error('Usage: groundwork ingest owner/repo   or   groundwork ingest --from snapshot.json.gz');
-        return fetchRepo(repo, { prs: Number(flag('prs', '1500')), issues: Number(flag('issues', '2000')), refresh: has('refresh'), log });
+        return { data: await fetchRepo(repo, { prs: Number(flag('prs', '1500')), issues: Number(flag('issues', '2000')), refresh: has('refresh'), log }) };
       })();
       const store = openStore();
-      const r = await ingest(store, data, log);
+      const r = await ingest(store, snap.data, log, { vectors: snap.vectors });
       log(`Graph ready in ${store.path}: ${r.nodes} nodes, ${r.rels} relationships.`);
       return;
     }
@@ -73,12 +74,30 @@ async function main() {
     case 'eval': {
       const repo = pos[0];
       if (!repo) throw new Error('Usage: groundwork eval owner/repo [--limit 200] [--fast]');
-      const r = await backtest(openStore(), repo, { limit: Number(flag('limit', '0')) || undefined, ablations: !has('fast'), split: flag('split') as 'older' | 'newer' | undefined, log });
+      const r = await backtest(openStore(), repo, { limit: Number(flag('limit', '0')) || undefined, ablations: !has('fast'), split: flag('split') as 'older' | 'newer' | undefined, mode: flag('mode') === 'prs' ? 'prs' : 'tickets', log });
       mkdirSync(path.join(HOME, 'eval'), { recursive: true });
-      const out = path.join(HOME, 'eval', `${repo.replace('/', '__')}${flag('split') ? '.' + flag('split') : ''}.json`);
+      const out = path.join(HOME, 'eval', `${repo.replace('/', '__')}${flag('mode') === 'prs' ? '.prs' : ''}${flag('split') ? '.' + flag('split') : ''}.json`);
       writeFileSync(out, JSON.stringify(r, null, 2));
       console.log(has('json') ? JSON.stringify(r, null, 2) : evalMarkdown(r));
       log(`Saved ${out} (the web view shows it).`);
+      return;
+    }
+    case 'export-web': {
+      // groundwork export-web honojs/hono vitest-dev/vitest --out docs   (data for the in-browser demo)
+      if (!pos.length) throw new Error('Usage: groundwork export-web owner/repo [owner/repo …] [--out docs]');
+      const { exportWeb } = await import('./export.js');
+      const { existsSync } = await import('node:fs');
+      const out = flag('out', 'docs')!;
+      const store = openStore();
+      const manifest = [];
+      for (const repo of pos) {
+        const data = await fetchRepo(repo, { log });
+        const base = repo.replace('/', '__');
+        const evalFile = [`${base}.newer.json`, `${base}.json`, `${base}.prs.newer.json`, `${base}.prs.json`].map((n) => path.join(HOME, 'eval', n)).find((f) => existsSync(f));
+        manifest.push(exportWeb(store, data, out, evalFile));
+        log(`  ${repo}: exported${evalFile ? ' with ' + path.basename(evalFile) : ''}`);
+      }
+      writeFileSync(path.join(out, 'data', 'index.json'), JSON.stringify(manifest, null, 2));
       return;
     }
     case 'similar': {

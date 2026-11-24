@@ -5,17 +5,7 @@ import { pipeline, type FeatureExtractionPipeline } from '@huggingface/transform
 let fe: Promise<FeatureExtractionPipeline> | null = null;
 const model = () => (fe ??= pipeline('feature-extraction', 'Xenova/all-MiniLM-L6-v2', { dtype: 'q8' }) as Promise<FeatureExtractionPipeline>);
 
-/** Plain text for embedding and search: title first, then the body without code blocks, HTML or long URLs. */
-export function cleanText(title: string, body = '', max = 1200): string {
-  const b = body
-    .replace(/```[\s\S]*?```/g, ' ')
-    .replace(/<!--[\s\S]*?-->/g, ' ')
-    .replace(/<[^>]+>/g, ' ')
-    .replace(/https?:\/\/\S+/g, ' ')
-    .replace(/\s+/g, ' ')
-    .trim();
-  return `${title.trim()}. ${b}`.slice(0, max);
-}
+export { cleanText } from './text.js';
 
 export async function embed(texts: string[], batch = 32, onProgress?: (done: number) => void): Promise<number[][]> {
   const m = await model();

@@ -6,7 +6,7 @@
 import { readFileSync } from 'node:fs';
 import { cleanText, embed } from './embed.js';
 import { namedFiles } from './ingest.js';
-import { num, type Store } from './store.js';
+import { num, type Store } from './core.js';
 
 export type JiraTicket = {
   key: string; summary: string; description: string; status: 'OPEN' | 'CLOSED'; url: string;

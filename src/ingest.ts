@@ -5,7 +5,7 @@
 // Text and a local embedding are stored on every Issue and PR for hybrid search.
 import type { RepoData } from './github.js';
 import { cleanText, embed } from './embed.js';
-import { ensureSearchIndexes, num, type Store } from './store.js';
+import { ensureSearchIndexes, num, type Store } from './core.js';
 
 const MAX_FILES_FOR_COCHANGE = 30; // huge PRs (renames, formatting) say little about which files belong together
 
@@ -48,7 +48,11 @@ function chunks<T>(xs: T[], n: number): T[][] {
   return out;
 }
 
-export async function ingest(store: Store, data: RepoData, log: (s: string) => void = () => {}) {
+/**
+ * Build or update a repository's graph. `vectors` (one per issue, then one per PR, in data order) skips computing
+ * embeddings: the browser demo ships them precomputed.
+ */
+export async function ingest(store: Store, data: RepoData, log: (s: string) => void = () => {}, opts: { vectors?: number[][] } = {}) {
   const repo = data.repo;
   const q = store.query;
   q('MERGE (r:Repo {name: $repo}) SET r.fetchedAt = $at', { repo, at: data.fetchedAt });
@@ -56,8 +60,11 @@ export async function ingest(store: Store, data: RepoData, log: (s: string) => v
   // ---------- text + embeddings ----------
   const issueText = data.issues.map((i) => cleanText(i.title, i.body));
   const prText = data.prs.map((p) => cleanText(p.title, p.body));
-  log(`Embedding ${issueText.length + prText.length} issues and pull requests locally…`);
-  const vectors = await embed([...issueText, ...prText], 32, (d) => { if (d % 256 === 0) log(`  ${d}`); });
+  let vectors = opts.vectors;
+  if (!vectors) {
+    log(`Embedding ${issueText.length + prText.length} issues and pull requests locally…`);
+    vectors = await embed([...issueText, ...prText], 32, (d) => { if (d % 256 === 0) log(`  ${d}`); });
+  }
   const iv = vectors.slice(0, issueText.length), pv = vectors.slice(issueText.length);
 
   // ---------- nodes ----------

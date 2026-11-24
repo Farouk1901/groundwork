@@ -3,9 +3,8 @@
 //   expected, unchanged  missing: similar fixes in the past changed it too (a test, a sibling module, the docs)
 //   changed, unexpected  outside the ticket's usual footprint: fine if intended, worth a second look if not
 // Works on any list of files; gitChangedFiles reads them from a local clone.
-import { execFileSync } from 'node:child_process';
 import { NOISE, TEST, planTicket, type Plan, type Reason } from './analyze.js';
-import type { Store } from './store.js';
+import type { Store } from './core.js';
 
 export type CheckReport = {
   plan: Plan;
@@ -15,17 +14,6 @@ export type CheckReport = {
   unexpected: { path: string; seenBefore: boolean }[];
   ok: boolean;
 };
-
-export function gitChangedFiles(opts: { cwd?: string; staged?: boolean; base?: string } = {}): string[] {
-  const git = (...args: string[]) => execFileSync('git', args, { cwd: opts.cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] })
-    .split('\n').map((x) => x.trim()).filter(Boolean);
-  if (opts.staged) return git('diff', '--cached', '--name-only');
-  const out = new Set<string>();
-  if (opts.base) for (const f of git('diff', '--name-only', `${opts.base}...HEAD`)) out.add(f);
-  for (const f of git('diff', '--name-only', 'HEAD')) out.add(f);
-  for (const f of git('ls-files', '--others', '--exclude-standard')) out.add(f);
-  return [...out];
-}
 
 const best = (rs: Reason[]) => rs.slice().sort((a, b) => b.score - a.score)[0]?.text ?? '';
 

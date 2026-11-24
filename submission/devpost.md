@@ -7,6 +7,7 @@ Groundwork
 Before the first line of code: Groundwork reads a ticket, finds how similar tickets were fixed, and shows the files, people and risks, each with the Relate graph path behind it.
 
 ## Links
+- **Live demo (runs in the browser, nothing to install):** https://farouk1901.github.io/groundwork/
 - Repository: https://github.com/Farouk1901/groundwork  (topics: `relate`, `relate-neo4j-hackathon`)
 - Video: (to add)
 
@@ -28,7 +29,7 @@ a ticket, finding that file *is* the work. That gap is where Groundwork lives.
 Give Groundwork a ticket (a GitHub issue number, a Jira key, or a sentence) and it returns, in well under a second:
 
 - **The files most likely to change**, ranked, each with its reason as a graph path:
-  *your ticket → similar ticket hono#3189 ← fixed by PR #5164 → `src/utils/cookie.ts`*
+  *your ticket → similar ticket hono#5581 ← fixed by PR #5608 → `src/utils/cookie.test.ts`*
 - **Who knows that code**: the people who merged the most changes to those files, and when.
 - **What to watch**: open tickets about the same thing (likely duplicates) and recent bug fixes in the same files
   (regressions you must not reintroduce).
@@ -38,22 +39,26 @@ And when the change is written, `check` compares the diff with the ticket: cover
 fixes also changed but you did not (usually the test), and files outside the ticket's usual footprint.
 
 It works as a CLI, an **MCP server** for Claude Code / Cursor / Codex (`plan_ticket`, `check_diff`, `similar_work`,
-`who_knows`, read-only `graph_query`), a **Claude Code skill**, a pre-commit / CI gate (`check --strict`), and a
-local web view that draws the path behind each answer.
+`who_knows`, read-only `graph_query`), a **Claude Code skill**, a pre-commit / CI gate (`check --strict`), a local web
+view, and a **live demo where Relate runs in your browser** (WebAssembly), on hono, vitest and Relate's own repository.
 
-**Does it work? We measured it.** `eval` replays the repository's history: for each of the 200 newest real tickets of
-honojs/hono that a merged PR fixed (the older 200 were used to choose the weights, these never were), it rebuilds the view of the graph *as of the moment the ticket was opened*
-(the fix and everything later hidden), predicts the files from the ticket alone, and compares them with the real fix.
+**Does it work? We measured it, on three repositories.** `eval` replays history: for each closed ticket that a merged
+PR fixed, it rebuilds the graph *as of the moment the ticket was opened* (the fix and everything later hidden),
+predicts the files from the ticket alone, and compares them with the real fix. The two weights were chosen once, on
+the older half of hono's tickets; none of the numbers below were used to choose them.
 
-| Method | Hit@5 | Recall@10 |
-|---|---:|---:|
-| **Groundwork** | **77.5%** | **66.3%** |
-| without the hop through similar PRs | 69% | 57.7% |
-| vector search only | 74% | 62.9% |
-| Baseline: the repository's most-changed files | 15.5% | 12.2% |
+| Repository | Cases | Groundwork Hit@5 | Baseline (most-changed files) |
+|---|---:|---:|---:|
+| honojs/hono, newer half | 200 tickets | **77.5%** | 15.5% |
+| vitest-dev/vitest, newer half (never tuned on) | 220 tickets | **60.5%** | 16.8% |
+| relatedb/relate itself, newer half, from the **PR title alone** | 283 PRs | **53.4%** | 18.4% |
 
-Hit@5: a file the real fix changed is among the first five suggestions. Five times the baseline, which is the best a
-tool that needs a starting file can do before any code exists. Every number reproduces with one command.
+Hit@5: a file the real fix changed is among the first five suggestions. That is 3 to 5 times the baseline, which is
+the best a tool that needs a starting file can do before any code exists.
+
+**See it yourself:** in the live demo, open a closed ticket and press **Replay**. The graph rewinds to the day the
+ticket was opened, the fix disappears, and every file the real fix changed gets a ✓. hono#2550, a Lambda header
+regression: the first suggestion is `src/adapter/aws-lambda/handler.ts`, the file PR #2585 fixed 12 days later.
 
 ## How we built it
 
@@ -71,8 +76,14 @@ tool that needs a starting file can do before any code exists. Every number repr
   co-change from earlier PRs only, so the backtest never sees the answer.
 - **Ingest** from the GitHub GraphQL API (merged PRs with files and closing references, tickets), cached on disk;
   optional **Jira** import links tickets to PRs that mention their key.
-- TypeScript on Node.js with tsx, the MCP TypeScript SDK, Cytoscape.js for the web view, `node:test` for the tests
-  (10 tests against an in-memory Relate store).
+- **The same code in the browser.** The live demo bundles the same `ingest`, `planTicket` and `checkChange` on top of
+  `@relate/relate-wasm`: the page downloads a snapshot with int8 embeddings and builds the graph in Relate inside the
+  tab (about 15 s for hono). The WASM build cannot enable the hybrid-search preview, so there Relate runs the vector
+  and full-text indexes separately and the page fuses them with the same WRRF; on the hono backtest that gives the
+  same top 5 for 188 of 200 tickets and the same 77.5% Hit@5.
+- TypeScript on Node.js with tsx, the MCP TypeScript SDK, Cytoscape.js for the web view, esbuild for the browser
+  bundle, `node:test` for the tests (14 tests, including one that runs Relate WebAssembly in Node.js and checks it
+  gives the same plan as the native library).
 
 ## Challenges we ran into
 
@@ -83,13 +94,21 @@ tool that needs a starting file can do before any code exists. Every number repr
   counted over all history. The `asOf` replay hides both, and a test pins it.
 - **Noise files.** Lockfiles, manifests and changelogs change in every PR; they are damped, and huge PRs (renames,
   formatting) are left out of co-change.
-- **Many repos never link PRs to tickets.** Searching merged PRs directly, not only tickets, covers them.
+- **Many repos never link PRs to tickets.** Searching merged PRs directly, not only tickets, covers them; Relate's
+  own repository has 19 tickets, so there we evaluate from PR titles instead.
+- **Hybrid search in the browser.** The WebAssembly build of Relate reads preview flags from an environment variable
+  that does not exist in a browser. We run both indexes in Relate and fuse in the page, and measured that it matches.
+- **Tuning honestly.** The first weights over-trusted co-change. We picked new ones on one half of one repository and
+  report only on data that never influenced them, including two other repositories.
 
 ## Accomplishments that we're proud of
 
-- A measured result, reproducible with one command, with ablations that show which part of the graph earns its keep.
-- Every answer is explainable: the web view lights up the path from the ticket to any suggested file.
-- A judge can run everything without a GitHub token: the hono snapshot ships in the repository.
+- Measured on three repositories, two of them never tuned on, with ablations that show which part of the graph earns
+  its keep, all reproducible with one command each.
+- A live demo with the real engine: Relate WebAssembly and the same analysis code, plus a Replay button that lets
+  anyone check a prediction against the real fix.
+- Every answer is explainable: click a suggested file and the path from the ticket to it lights up.
+- No token, no model download and about 30 seconds to build a graph locally: the snapshots ship with their embeddings.
 
 ## What we learned
 
@@ -103,17 +122,19 @@ Follow file renames, weight recent history higher, learn the hybrid weights per 
 GitLab and Linear importers, and a GitHub Action that comments the groundwork on each new issue.
 
 ## Built with
-relate, neo4j, cypher, typescript, node.js, transformers.js, mcp, cytoscape.js, github-graphql-api, jira-rest-api
+relate, relate-wasm, neo4j, cypher, typescript, node.js, webassembly, transformers.js, mcp, cytoscape.js, esbuild, github-graphql-api, jira-rest-api, github-pages
 
 ## Relate capabilities used
 Embedded use (`@relate/relate` in-process), Cypher (MERGE / UNWIND ingest, multi-hop MATCH, aggregation),
 uniqueness constraints and property indexes, **vector indexes with a filter**, **full-text indexes**, **hybrid
 retrieval with `SEARCH … COMBINE … USING WRRF`** (preview feature `hybrid-search`), `vector.similarity.cosine`,
-and an MCP server that exposes the graph (including read-only Cypher) to coding agents.
+single-file `.rl` stores, **`@relate/relate-wasm` in the browser** (the live demo builds and queries the graph in the
+tab), and an MCP server that exposes the graph (including read-only Cypher) to coding agents.
 
 ## Third-party tools
 GitHub GraphQL API, Jira Cloud REST API (optional), Transformers.js with the all-MiniLM-L6-v2 model, MCP TypeScript
-SDK, Cytoscape.js, zod, tsx. Demo data: public history of honojs/hono (MIT).
+SDK, Cytoscape.js, zod, tsx, esbuild, GitHub Pages. Demo and evaluation data: public histories of honojs/hono (MIT),
+vitest-dev/vitest (MIT) and relatedb/relate (Apache-2.0).
 
 ## AI tools used in development
 The code, tests and documentation were written with significant help from an AI coding assistant (Claude Code,
