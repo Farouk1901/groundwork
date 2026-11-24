@@ -82,6 +82,34 @@ async function main() {
       log(`Saved ${out} (the web view shows it).`);
       return;
     }
+    case 'predict': {
+      // groundwork predict honojs/hono vitest-dev/vitest relatedb/relate --out docs/predictions
+      if (!pos.length) throw new Error('Usage: groundwork predict owner/repo [owner/repo …] [--out docs/predictions]');
+      const { seal } = await import('./predict.js');
+      const out = flag('out', 'docs/predictions')!;
+      mkdirSync(out, { recursive: true });
+      const sealed = await seal(openStore(), pos, log);
+      writeFileSync(path.join(out, 'sealed.json'), JSON.stringify(sealed, null, 1));
+      log(`Sealed ${sealed.repos.reduce((a, r) => a + r.forecasts.length, 0)} forecasts in ${path.join(out, 'sealed.json')}. Commit it now: the commit date is the proof.`);
+      return;
+    }
+    case 'score-predictions': {
+      // Reads GitHub (needs a token), not the graph. --until freezes the score at a date (the contest deadline).
+      const { readFileSync, existsSync } = await import('node:fs');
+      const { score } = await import('./predict.js');
+      const { fixesSince } = await import('./github.js');
+      const dir = flag('dir', 'docs/predictions')!;
+      const sealed = JSON.parse(readFileSync(path.join(dir, 'sealed.json'), 'utf8'));
+      const until = flag('until');
+      const scoreFile = path.join(dir, 'score.json');
+      if (until && new Date() > new Date(until) && existsSync(scoreFile)) { log(`Frozen since ${until}: score.json is final.`); return; }
+      const fixes = (await Promise.all(sealed.repos.map((r: { repo: string }) => fixesSince(r.repo, sealed.sealedAt, log)))).flat()
+        .filter((x) => !until || x.mergedAt <= until);
+      const s = score(sealed, fixes, { frozen: !!until && new Date() > new Date(until) });
+      writeFileSync(scoreFile, JSON.stringify(s, null, 1));
+      console.log(`${s.totals.fixed} of ${s.totals.forecasts} forecast tickets fixed since ${s.sealedAt.slice(0, 10)}: Hit@5 ${s.totals.hit5}% (baseline ${s.totals.baselineHit5}%), Hit@10 ${s.totals.hit10}%`);
+      return;
+    }
     case 'export-web': {
       // groundwork export-web honojs/hono vitest-dev/vitest --out docs   (data for the in-browser demo)
       if (!pos.length) throw new Error('Usage: groundwork export-web owner/repo [owner/repo …] [--out docs]');

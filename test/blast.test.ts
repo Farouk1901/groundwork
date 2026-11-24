@@ -251,3 +251,22 @@ test('replay: a closed ticket knows when it was opened and what its fix changed'
   assert.equal(fixOf(store, 'acme/shop', 3), null); // open, no fix
   assert.deepEqual(fixOf(store, 'acme/shop', 2)!.files, ['src/cart/total.ts']); // package.json is noise
 });
+
+test('sealed predictions: forecast open tickets, score only fixes merged after the seal', async () => {
+  const { seal, score } = await import('../src/predict.ts');
+  const store = await graph();
+  const sealed = await seal(store, ['acme/shop']);
+  // Open and unfixed at seal time: #3 and #4 (#1, #2, #5 are closed).
+  assert.deepEqual(sealed.repos[0].forecasts.map((f) => f.issue), [4, 3]);
+  assert.equal(sealed.repos[0].forecasts.find((f) => f.issue === 3)!.files[0].path, 'src/http/cookie.ts');
+  const later = new Date(Date.parse(sealed.sealedAt) + 86_400_000).toISOString();
+  const s = score(sealed, [
+    { repo: 'acme/shop', issue: 3, pr: 20, mergedAt: later, files: ['src/http/cookie.ts', 'package.json'] },
+    { repo: 'acme/shop', issue: 4, pr: 21, mergedAt: '2020-01-01T00:00:00Z', files: ['src/http/session.ts'] }, // before the seal: ignored
+    { repo: 'acme/shop', issue: 99, pr: 22, mergedAt: later, files: ['x.ts'] }, // not forecast: ignored
+  ]);
+  assert.equal(s.totals.forecasts, 2);
+  assert.equal(s.totals.fixed, 1);
+  assert.equal(s.totals.hit5, 100);
+  assert.deepEqual(s.cases[0].truth, ['src/http/cookie.ts']); // package.json is noise
+});

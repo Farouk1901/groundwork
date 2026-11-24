@@ -22,7 +22,7 @@ export function githubToken(): string | null {
   try { return execFileSync('gh', ['auth', 'token'], { encoding: 'utf8', stdio: ['ignore', 'pipe', 'ignore'] }).trim() || null; } catch { return null; }
 }
 
-async function gql<T>(token: string, query: string, variables: Record<string, unknown>, tries = 4): Promise<T> {
+export async function gql<T>(token: string, query: string, variables: Record<string, unknown>, tries = 4): Promise<T> {
   for (let attempt = 1; ; attempt++) {
     try {
       const res = await fetch('https://api.github.com/graphql', {
@@ -109,4 +109,37 @@ export async function fetchRepo(repo: string, opts: { prs?: number; issues?: num
   mkdirSync(cacheDir, { recursive: true });
   writeFileSync(file, JSON.stringify(data));
   return data;
+}
+
+const RECENT = `query($owner:String!,$name:String!,$after:String){repository(owner:$owner,name:$name){
+  pullRequests(states:MERGED, first:50, after:$after, orderBy:{field:UPDATED_AT,direction:DESC}){
+    pageInfo{hasNextPage endCursor}
+    nodes{number title body mergedAt updatedAt files(first:100){nodes{path}}
+      closingIssuesReferences(first:10){nodes{number repository{nameWithOwner}}}}}}}`;
+
+/** Pull requests merged after `since` and the tickets of the same repository they close (links or "fixes #12"). */
+export async function fixesSince(repo: string, since: string, log: (s: string) => void = () => {}) {
+  const token = githubToken();
+  if (!token) throw new Error('Set GITHUB_TOKEN or sign in with `gh auth login`.');
+  const [owner, name] = repo.split('/');
+  type N = { number: number; title: string; body: string; mergedAt: string; updatedAt: string; files: { nodes: { path: string }[] } | null;
+    closingIssuesReferences: { nodes: { number: number; repository: { nameWithOwner: string } }[] } };
+  const out: { repo: string; issue: number; pr: number; mergedAt: string; files: string[] }[] = [];
+  let after: string | null = null;
+  for (let page = 0; page < 40; page++) {
+    const d: { repository: { pullRequests: { pageInfo: { hasNextPage: boolean; endCursor: string }; nodes: N[] } } } =
+      await gql(token, RECENT, { owner, name, after });
+    const conn = d.repository.pullRequests;
+    for (const p of conn.nodes) {
+      if (p.mergedAt <= since) continue;
+      const closes = new Set(p.closingIssuesReferences.nodes.filter((r) => r.repository.nameWithOwner.toLowerCase() === repo.toLowerCase()).map((r) => r.number));
+      for (const m of `${p.title}\n${p.body ?? ''}`.matchAll(/\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\s*:?\s+#(\d+)/gi)) closes.add(Number(m[1]));
+      for (const issue of closes) out.push({ repo, issue, pr: p.number, mergedAt: p.mergedAt, files: (p.files?.nodes ?? []).map((f) => f.path) });
+    }
+    // Ordered by last update: once a page is entirely older than the seal, nothing later can be newer.
+    if (!conn.pageInfo.hasNextPage || conn.nodes.every((p) => p.updatedAt <= since)) break;
+    after = conn.pageInfo.endCursor;
+  }
+  log(`  ${repo}: ${out.length} ticket fixes merged since ${since.slice(0, 10)}`);
+  return out;
 }
