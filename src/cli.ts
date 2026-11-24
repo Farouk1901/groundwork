@@ -23,7 +23,7 @@ import { backtest, evalMarkdown } from './eval.js';
 import { HOME, num, openStore } from './store.js';
 
 const [cmd, ...rest] = process.argv.slice(2);
-const BOOL = new Set(['json', 'refresh', 'staged', 'strict', 'fast']);
+const BOOL = new Set(['json', 'refresh', 'staged', 'strict', 'fast', 'dry-run']);
 const flag = (k: string, d?: string) => { const i = rest.indexOf(`--${k}`); return i >= 0 ? rest[i + 1] : d; };
 const has = (k: string) => rest.includes(`--${k}`);
 const pos = rest.filter((a, i) => !a.startsWith('--') && !(i > 0 && rest[i - 1].startsWith('--') && !BOOL.has(rest[i - 1].slice(2))));
@@ -98,12 +98,42 @@ async function main() {
     case 'predict': {
       // groundwork predict honojs/hono vitest-dev/vitest relatedb/relate --out docs/predictions
       if (!pos.length) throw new Error('Usage: groundwork predict owner/repo [owner/repo …] [--out docs/predictions]');
-      const { seal } = await import('./predict.js');
+      const { seal, sha256Hex } = await import('./predict.js');
       const out = flag('out', 'docs/predictions')!;
       mkdirSync(out, { recursive: true });
       const sealed = await seal(openStore(), pos, log);
-      writeFileSync(path.join(out, 'sealed.json'), JSON.stringify(sealed, null, 1));
-      log(`Sealed ${sealed.repos.reduce((a, r) => a + r.forecasts.length, 0)} forecasts in ${path.join(out, 'sealed.json')}. Commit it now: the commit date is the proof.`);
+      const json = JSON.stringify(sealed, null, 1) + '\n';
+      const hash = sha256Hex(json);
+      writeFileSync(path.join(out, 'sealed.json'), json);
+      writeFileSync(path.join(out, 'sealed.sha256'), `${hash}  sealed.json\n`);
+      log(`Sealed ${sealed.repos.reduce((a, r) => a + r.forecasts.length, 0)} forecasts in ${path.join(out, 'sealed.json')} (sha256 ${hash}).`);
+      return;
+    }
+    case 'seal-daily': {
+      // groundwork seal-daily honojs/hono vitest-dev/vitest relatedb/relate [--dir docs/predictions] [--date YYYY-MM-DD] [--dry-run]
+      const { existsSync, readdirSync, readFileSync } = await import('node:fs');
+      const { sealDailyNewIssues } = await import('./predict.js');
+      const repos = pos.length ? pos : ['honojs/hono', 'vitest-dev/vitest', 'relatedb/relate'];
+      const dir = flag('dir', 'docs/predictions')!;
+      const dailyDir = path.join(dir, 'daily');
+      const existing = [];
+      const baseFile = path.join(dir, 'sealed.json');
+      if (existsSync(baseFile)) existing.push(JSON.parse(readFileSync(baseFile, 'utf8')));
+      if (existsSync(dailyDir)) {
+        for (const f of readdirSync(dailyDir).filter((n) => n.endsWith('.json')).sort()) {
+          existing.push(JSON.parse(readFileSync(path.join(dailyDir, f), 'utf8')));
+        }
+      }
+      const res = await sealDailyNewIssues(openStore(), repos, existing, { date: flag('date'), log });
+      if (has('dry-run')) {
+        console.log(JSON.stringify({ date: res.daily.date, count: res.count, sha256: res.sha256, dryRun: true }, null, 2));
+        return;
+      }
+      mkdirSync(dailyDir, { recursive: true });
+      const fileName = `${res.daily.date}.json`;
+      writeFileSync(path.join(dailyDir, fileName), res.json);
+      writeFileSync(path.join(dailyDir, `${res.daily.date}.sha256`), `${res.sha256}  ${fileName}\n`);
+      log(`Daily seal ${res.daily.date}: ${res.count} new open issues, sha256 ${res.sha256}`);
       return;
     }
     case 'score-predictions': {

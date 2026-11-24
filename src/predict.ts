@@ -4,18 +4,31 @@
 //         to a JSON file committed to the repository: the commit date proves the forecast came first.
 // score() later reads the pull requests merged *after* the seal that close one of those tickets, and checks the
 //         forecast against the files they really changed. Nothing in the forecast can have seen those fixes.
+import { createHash } from 'node:crypto';
 import { NOISE, planTicket, WEIGHTS } from './analyze.js';
 import { num, type Store } from './core.js';
 
 export type Forecast = { issue: number; title: string; url: string; createdAt: string; files: { path: string; score: number }[] };
 export type SealedRepo = { repo: string; graphFetchedAt: string; popular: string[]; forecasts: Forecast[] };
 export type Sealed = { sealedAt: string; weights: typeof WEIGHTS; note: string; repos: SealedRepo[] };
+export type DailySeal = { date: string; sealedAt: string; sha256?: string; weights: typeof WEIGHTS; note: string; repos: SealedRepo[] };
 
-export async function seal(store: Store, repos: string[], log: (s: string) => void = () => {}): Promise<Sealed> {
+export function sha256Hex(content: string | Buffer): string {
+  return createHash('sha256').update(content).digest('hex');
+}
+
+export async function seal(
+  store: Store,
+  repos: string[],
+  log: (s: string) => void = () => {},
+  opts: { excludeIssues?: Map<string, Set<number>> } = {},
+): Promise<Sealed> {
   const out: SealedRepo[] = [];
   for (const repo of repos) {
+    const seen = opts.excludeIssues?.get(repo);
     const open = store.query(`MATCH (i:Issue) WHERE i.repo = $repo AND i.state = 'OPEN' AND NOT EXISTS { MATCH (i)<-[:FIXES]-(:PR) }
-        RETURN i.number AS n, i.title AS title, i.url AS url, i.createdAt AS at ORDER BY n DESC`, { repo });
+        RETURN i.number AS n, i.title AS title, i.url AS url, i.createdAt AS at ORDER BY n DESC`, { repo })
+      .filter((r) => !seen?.has(num(r.n)));
     const fetched = String(store.query('MATCH (r:Repo {name: $repo}) RETURN r.fetchedAt AS at', { repo })[0]?.at ?? '');
     // The baseline, frozen too: the files changed most often so far.
     const popular = store.query(`MATCH (x:PR)-[:TOUCHES]->(f:File) WHERE x.repo = $repo AND x.fileCount <= 40
@@ -31,9 +44,42 @@ export async function seal(store: Store, repos: string[], log: (s: string) => vo
   }
   return {
     sealedAt: new Date().toISOString(), weights: WEIGHTS,
-    note: 'Forecasts for tickets that were open, with no fix, when this file was committed. Scored only against pull requests merged after sealedAt.',
+    note: 'Forecasts for newly opened, unfixed issues only (never open PRs whose diffs are already public). Scored only against pull requests merged after sealedAt.',
     repos: out,
   };
+}
+
+/**
+ * Seal ONLY newly opened, unfixed issues that have not been sealed in sealed.json or earlier daily files.
+ * Never seals open PRs (their diffs are public at seal time, which would leak the answer).
+ */
+export async function sealDailyNewIssues(
+  store: Store,
+  repos: string[],
+  existingSeals: Sealed[],
+  opts: { date?: string; log?: (s: string) => void } = {},
+): Promise<{ daily: DailySeal; json: string; sha256: string; count: number }> {
+  const excludeIssues = new Map<string, Set<number>>();
+  for (const s of existingSeals) {
+    for (const r of s.repos) {
+      let set = excludeIssues.get(r.repo);
+      if (!set) { set = new Set<number>(); excludeIssues.set(r.repo, set); }
+      for (const f of r.forecasts) set.add(f.issue);
+    }
+  }
+  const base = await seal(store, repos, opts.log ?? (() => {}), { excludeIssues });
+  const date = opts.date ?? base.sealedAt.slice(0, 10);
+  const daily: DailySeal = {
+    date,
+    sealedAt: base.sealedAt,
+    weights: base.weights,
+    note: `Daily seal (${date}) for newly opened, unfixed issues only. Never seals open PRs.`,
+    repos: base.repos,
+  };
+  const json = JSON.stringify(daily, null, 1) + '\n';
+  const sha256 = sha256Hex(json);
+  const count = daily.repos.reduce((a, r) => a + r.forecasts.length, 0);
+  return { daily, json, sha256, count };
 }
 
 export type FixSeen = { repo: string; issue: number; pr: number; mergedAt: string; files: string[] };

@@ -109,6 +109,7 @@ footer { color: var(--muted); font-size: 12px; margin-top: 18px; }
   <header>
     <svg class="logo" viewBox="0 0 40 40" aria-hidden="true"><rect x="3" y="27" width="34" height="8" rx="2" fill="#c2410c"/><rect x="8" y="17" width="24" height="7" rx="2" fill="#0f766e" fill-opacity=".85"/><rect x="13" y="8" width="14" height="6" rx="2" fill="#5b4bc4" fill-opacity=".8"/></svg>
     <div class="brand"><h1>Groundwork</h1><p class="sub">The connected context of a ticket, before the first line of code: what similar past fixes changed, who knows that code, what to watch. Answered from a Relate graph.</p></div>
+    <span class="pill" id="wasmStatus" hidden></span>
     <span class="pill" id="stats"></span>
   </header>
 
@@ -155,7 +156,7 @@ footer { color: var(--muted); font-size: 12px; margin-top: 18px; }
   </div>
   <footer id="foot">Everything runs locally: a Relate graph on disk, embeddings computed on this machine, no API keys.</footer>
 </div>
-<script src="vendor/cytoscape.min.js"></script>
+<script defer src="vendor/cytoscape.min.js"></script>
 <script>
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
@@ -170,18 +171,30 @@ const api = (path) => (STATIC ? gw.api(path) : fetch(path).then((x) => x.json())
 
 async function boot() {
   if (STATIC) {
-    $('go').disabled = true;
     try {
       gw = await import('./app.js');
-      await gw.ready((s) => { $('status').textContent = s; });
+      await gw.ready((s, state) => {
+        const el = $('wasmStatus');
+        el.textContent = s;
+        el.hidden = false;
+        el.style.borderColor = state === 'ready' ? 'var(--good)' : state === 'error' ? 'var(--bad)' : 'var(--teal)';
+        el.style.color = state === 'ready' ? 'var(--good)' : state === 'error' ? 'var(--bad)' : 'var(--teal)';
+      });
     } catch (e) { $('status').textContent = 'Could not start Relate in this browser: ' + e.message; return; }
-    $('go').disabled = false;
-    $('foot').textContent = 'Running entirely in your browser: Relate compiled to WebAssembly, the graph built in this tab, the same analysis code as the CLI. Free-text questions download a small embedding model on first use.';
+    $('foot').textContent = 'Instant pre-baked first paint + live Relate WebAssembly running in a dedicated Web Worker (zero main-thread blocking). Free-text questions download a small embedding model on first use.';
   }
   loadSealed();
-  await loadRepoView(new URLSearchParams(location.search).get('repo') || undefined);
   const qs = new URLSearchParams(location.search);
-  if (qs.get('q')) { $('q').value = qs.get('q'); run(qs.get('replay') === '1'); }
+  const def = STATIC && !qs.get('q') && gw?.defaultInstantView ? gw.defaultInstantView() : null;
+  const initRepo = qs.get('repo') || def?.repo || undefined;
+  await loadRepoView(initRepo);
+  if (qs.get('q')) {
+    $('q').value = qs.get('q');
+    run(qs.get('replay') === '1');
+  } else if (def) {
+    $('q').value = def.q;
+    run(def.replay);
+  }
 }
 
 async function loadRepoView(repoName) {
@@ -230,16 +243,20 @@ async function loadProof() {
   const e = await api(`/api/eval?repo=${encodeURIComponent($('repo').value)}`).catch(() => null);
   $('proof').hidden = true;
   if (!e || !e.results) return;
-  const full = e.results.find((x) => x.name.startsWith('Groundwork')), base = e.results.find((x) => x.name.startsWith('Baseline'));
+  const full = e.results.find((x) => x.name === 'Groundwork (full)') || e.results.find((x) => x.name.startsWith('Groundwork'));
+  const fused = e.results.find((x) => x.name.startsWith('Groundwork + grep'));
+  const grep = e.results.find((x) => x.name.includes('grep the code'));
+  const base = e.results.find((x) => x.name.includes('most-changed')) || e.results.find((x) => x.name.startsWith('Baseline'));
   const pct = (v) => (Number.isNaN(v) || v == null ? '–' : v + '%');
-  $('proof').innerHTML = `<div class="big">${full.hit5}% <small>vs ${base.hit5}%</small></div>
+  const hero = fused || full;
+  $('proof').innerHTML = `<div class="big">${hero.hit5}% <small>vs ${base.hit5}%</small></div>
     <p>${e.mode === 'prs'
-      ? `<b>Backtested on ${fmt(e.cases)} merged PRs of ${esc(e.repo)}${e.split === 'newer' ? ', the newest half' : ''}, each predicted from its title alone.</b> This repository rarely links PRs to tickets, so each PR title stands in for a ticket; the graph is replayed as of its merge, with the PR itself hidden. A file it really changed was in Groundwork's top 5 for ${full.hit5}% of them; the most-changed files get ${base.hit5}%.`
-      : `<b>Backtested on ${fmt(e.cases)} real tickets of ${esc(e.repo)}${e.split === 'newer' ? ', the newest half, never used to tune a weight' : ''}.</b> Each one replayed as of the moment it was opened, with its fix hidden: a file the real fix changed was in Groundwork's top 5 for ${full.hit5}% of them. Ranking the repository's most-changed files, which is all a tool that needs a starting file can do before any code exists, gets ${base.hit5}%.`}</p>
+      ? `<b>Backtested on ${fmt(e.cases)} merged PRs of ${esc(e.repo)}${e.split === 'newer' ? ', the newest half' : ''}, each predicted from its title alone.</b> Groundwork gets <b>${full.hit5}%</b> Hit@5${fused && grep ? ` (<b>${fused.hit5}%</b> fused with grep, MRR <b>${fused.mrr}</b> vs ${grep.mrr} for grep alone)` : ''}; most-changed files get ${base.hit5}%.`
+      : `<b>Backtested on ${fmt(e.cases)} real tickets of ${esc(e.repo)}${e.split === 'newer' ? ', the newest half, never used to tune a weight' : ''}.</b> Each ticket is replayed as of the moment it opened, fix hidden: Groundwork hits Top-5 on <b>${full.hit5}%</b>${fused && grep ? ` (<b>${fused.hit5}%</b> fused with grep vs <b>${grep.hit5}%</b> for grep alone)` : ''}; most-changed files get ${base.hit5}%.`}</p>
     <span></span>
-    <details><summary>Full results and ablations</summary><table><thead><tr><th>Method</th><th>Hit@5</th><th>Hit@10</th><th>Recall@5</th><th>Recall@10</th><th>MRR</th></tr></thead><tbody>
+    <details><summary>Full results and baselines</summary><table><thead><tr><th>Method</th><th>Hit@5</th><th>Hit@10</th><th>Recall@5</th><th>Recall@10</th><th>MRR</th></tr></thead><tbody>
     ${e.results.map((x) => `<tr class="${x.name.startsWith('Groundwork') ? 'main' : x.name.startsWith('Baseline') || x.name.startsWith('Ceiling') ? 'base' : ''}"><td>${esc(x.name.trim())}</td><td>${pct(x.hit5)}</td><td>${pct(x.hit10)}</td><td>${pct(x.recall5)}</td><td>${pct(x.recall10)}</td><td>${x.mrr == null || Number.isNaN(x.mrr) ? '–' : x.mrr}</td></tr>`).join('')}
-    </tbody></table><p class="hint">Hit@k: at least one file the fix changed is in the top k. Recall@k: share of the fix's files in the top k. Ceiling: share of fixed files that any earlier PR had touched (a brand-new file cannot be predicted from history). Reproduce with <code>npx tsx src/cli.ts eval ${esc(e.repo)}</code>.</p></details>`;
+    </tbody></table><p class="hint">Hit@k: at least one file the fix changed is in the top k. Recall@k: share of the fix's files in the top k. Ceiling: share of fixed files that any earlier PR had touched. Reproduce with <code>npx tsx src/cli.ts eval ${esc(e.repo)}</code>.</p></details>`;
   $('proof').hidden = false;
 }
 
@@ -290,7 +307,8 @@ function render(r) {
   $('experts').innerHTML = r.experts.map((e) => `<li><a href="https://github.com/${esc(e.login)}" target="_blank" rel="noopener">@${esc(e.login)}</a><small>${e.changes} merged PRs in these files · last ${esc(e.last)}</small></li>`).join('') || '<li class="empty">No history yet.</li>';
   $('risks').innerHTML = r.risks.map((x) => `<li><a href="${esc(x.url)}" target="_blank" rel="noopener">#${x.number}</a> ${esc(x.title)}<small>${esc(x.why)}</small></li>`).join('') || '<li class="empty">Nothing open in these files.</li>';
   $('similar').innerHTML = r.similar.slice(0, 7).map((x) => `<li><a href="${esc(x.url || gh(r.repo, x.kind, x.number))}" target="_blank" rel="noopener">${x.kind === 'pr' ? 'PR' : 'Ticket'} #${x.number}</a> ${esc(x.title)}<small>${x.state ? esc(x.state.toLowerCase()) + ' · ' : ''}similarity ${Math.round(x.sim * 100)}%</small></li>`).join('');
-  drawGraph(r);
+  // Defer Cytoscape layout to the next macrotask so initial DOM paint stays < 100 ms with zero >200 ms long tasks.
+  setTimeout(() => drawGraph(r), 0);
 }
 
 $('files').addEventListener('click', (e) => { const li = e.target.closest('[data-file]'); if (li) focusFile(li.dataset.file); });
@@ -312,6 +330,7 @@ function focusFile(path) {
 }
 
 function drawGraph(r) {
+  if (typeof cytoscape === 'undefined') { setTimeout(() => drawGraph(r), 60); return; }
   const dark = matchMedia('(prefers-color-scheme: dark)').matches && document.documentElement.dataset.theme !== 'light';
   const color = { target: '#c2410c', issue: '#5b4bc4', pr: '#8a6ad8', file: '#0f766e', module: '#9aa6b5', person: '#c98a1b' };
   const elements = [

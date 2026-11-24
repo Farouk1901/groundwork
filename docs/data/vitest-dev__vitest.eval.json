@@ -1,6 +1,6 @@
 {
   "repo": "vitest-dev/vitest",
-  "at": "2026-11-24T10:35:20.588Z",
+  "at": "2026-11-24T18:41:05.990Z",
   "split": "newer",
   "mode": "tickets",
   "cases": 220,
@@ -10,62 +10,32 @@
     {
       "name": "Groundwork (full)",
       "cases": 220,
-      "hit5": 60.5,
-      "hit10": 72.3,
-      "recall5": 25.3,
-      "recall10": 34,
-      "mrr": 0.47,
-      "ms": 800
-    },
-    {
-      "name": "  without similar tickets",
-      "cases": 220,
-      "hit5": 61.8,
-      "hit10": 69.5,
-      "recall5": 26.8,
-      "recall10": 33.7,
-      "mrr": 0.461,
-      "ms": 635
-    },
-    {
-      "name": "  without similar PRs",
-      "cases": 220,
-      "hit5": 51.4,
-      "hit10": 58.6,
-      "recall5": 21.8,
-      "recall10": 27.7,
-      "mrr": 0.414,
-      "ms": 603
-    },
-    {
-      "name": "  without co-change",
-      "cases": 220,
-      "hit5": 61.4,
+      "hit5": 62.7,
       "hit10": 71.8,
-      "recall5": 25.4,
-      "recall10": 33.1,
-      "mrr": 0.459,
-      "ms": 596
+      "recall5": 26.4,
+      "recall10": 33.2,
+      "mrr": 0.461,
+      "ms": 697
     },
     {
-      "name": "  vector only (no full-text)",
+      "name": "Baseline: grep the code for the ticket’s words",
       "cases": 220,
-      "hit5": 56.4,
-      "hit10": 69.1,
-      "recall5": 22.5,
-      "recall10": 32.1,
-      "mrr": 0.402,
-      "ms": 179
+      "hit5": 33.6,
+      "hit10": 50.9,
+      "recall5": 12.7,
+      "recall10": 21.4,
+      "mrr": 0.244,
+      "ms": 1923
     },
     {
-      "name": "  full-text only (no vector)",
+      "name": "Groundwork + grep (fused)",
       "cases": 220,
-      "hit5": 60.5,
-      "hit10": 71.4,
-      "recall5": 25.2,
-      "recall10": 33.1,
-      "mrr": 0.446,
-      "ms": 559
+      "hit5": 64.1,
+      "hit10": 71.8,
+      "recall5": 27,
+      "recall10": 33.2,
+      "mrr": 0.45,
+      "ms": 0
     },
     {
       "name": "Baseline: most-changed files",
@@ -75,7 +45,7 @@
       "recall5": 3.7,
       "recall10": 6,
       "mrr": 0.077,
-      "ms": 35
+      "ms": 36
     },
     {
       "name": "Ceiling (files seen before)",
@@ -115,10 +85,10 @@
         "docs/guide/cli.md"
       ],
       "top": [
-        "packages/vitest/src/node/core.ts",
+        "packages/vitest/src/node/config/resolveConfig.ts",
         "packages/vitest/src/node/environments/transformService.ts",
-        "test/e2e/test/watch/file-watching.test.ts",
-        "packages/vitest/src/node/cache/fsModuleCache.ts",
+        "packages/vitest/src/node/core.ts",
+        "packages/vitest/src/node/cli/cli-config.ts",
         "packages/vitest/src/node/affected-modules.ts"
       ]
     },
@@ -130,11 +100,11 @@
         "packages/vitest/src/node/core.ts"
       ],
       "top": [
-        "test/test-utils/index.ts",
         "packages/vitest/src/node/core.ts",
-        "test/e2e/test/global-setup.test.ts",
-        "docs/guide/common-errors.md",
-        "packages/vitest/src/node/config/resolveConfig.ts"
+        "packages/vitest/src/runtime/rpc.ts",
+        "test/test-utils/index.ts",
+        "test/cli/test/reporters/reporter-error.test.ts",
+        "test/cli/fixtures/reporters/reporter-error/basic.test.ts"
       ]
     },
     {
@@ -189,11 +159,11 @@
         "docs/guide/common-errors.md"
       ],
       "top": [
-        "packages/vitest/src/node/core.ts",
-        "test/e2e/test/list.test.ts",
-        "test/e2e/test/__snapshots__/list.test.ts.snap",
+        "packages/coverage-v8/src/provider.ts",
         "packages/vitest/src/node/plugins/runnerTransform.ts",
-        "packages/vitest/src/node/plugins/testConfig.ts"
+        "packages/vitest/src/node/plugins/testConfig.ts",
+        "packages/vitest/src/node/ast-collect.ts",
+        "test/cli/test/static-collect.test.ts"
       ]
     },
     {
@@ -206,9 +176,9 @@
       "top": [
         "docs/guide/reporters.md",
         "packages/vitest/src/node/reporters/json.ts",
-        "test/e2e/test/reporters/merge-reports.test.ts",
         "packages/vitest/src/node/core.ts",
-        "packages/vitest/src/runtime/rpc.ts"
+        "packages/vitest/src/runtime/rpc.ts",
+        "test/test-utils/index.ts"
       ]
     },
     {
@@ -238,10 +208,10 @@
       ],
       "top": [
         "packages/vitest/src/runtime/moduleRunner/moduleRunner.ts",
-        "packages/vitest/src/public/browser.ts",
-        "packages/vitest/browser/context.d.ts",
-        "packages/browser/context.d.ts",
-        "packages/vitest/config.d.ts"
+        "packages/browser/src/node/plugin.ts",
+        "test/core/vite.config.ts",
+        "test/core/test/imports.test.ts",
+        "test/core/deps/dep-esm-non-existing/index.mts"
       ]
     },
     {
@@ -255,11 +225,11 @@
         "docs/guide/test-context.md"
       ],
       "top": [
-        "packages/vitest/src/node/core.ts",
         "packages/vitest/src/runtime/runner/run.ts",
-        "packages/vitest/src/runtime/runner/context.ts",
         "test/e2e/test/retry.test.ts",
-        "test/e2e/test/watch/file-watching.test.ts"
+        "packages/vitest/src/runtime/runner/context.ts",
+        "packages/vitest/src/runtime/runner/types.ts",
+        "test/unit/test/repeats.test.ts"
       ]
     },
     {
@@ -275,9 +245,9 @@
       "top": [
         "packages/vitest/src/node/coverage.ts",
         "packages/coverage-v8/src/provider.ts",
-        "test/e2e/test/reporters/merge-reports.test.ts",
-        "packages/vitest/src/node/types/coverage.ts",
-        "docs/config/coverage.md"
+        "packages/coverage-v8/src/commands.ts",
+        "test/coverage-test/test/include-exclude.unit.test.ts",
+        "test/coverage-test/vitest.config.ts"
       ]
     }
   ]

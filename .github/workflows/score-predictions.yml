@@ -1,5 +1,6 @@
-# Scores the sealed forecasts (docs/predictions/sealed.json) every day against the pull requests merged since the
-# seal, and commits docs/predictions/score.json. It freezes at the contest deadline: after that the score is final.
+# Scores the sealed forecasts (docs/predictions/sealed.json) every day against pull requests merged since the
+# seal, seals newly opened unfixed issues only (never open PRs) with a daily SHA-256 digest, and freezes at
+# the contest deadline (2026-12-11 18:00 PST).
 name: Score sealed predictions
 
 on:
@@ -25,9 +26,22 @@ jobs:
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx tsx src/cli.ts score-predictions --until 2026-12-12T02:00:00Z
-      - name: Commit the score if it changed
+      - name: Seal newly opened unfixed issues for today (with SHA-256)
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          if [ "$(date -u +%s)" -le "$(date -u -d '2026-12-12T02:00:00Z' +%s)" ]; then
+            npx tsx src/cli.ts ingest --from docs/data/honojs__hono.json.gz
+            npx tsx src/cli.ts ingest --from docs/data/vitest-dev__vitest.json.gz
+            npx tsx src/cli.ts ingest --from docs/data/relatedb__relate.json.gz
+            npx tsx src/cli.ts ingest honojs/hono --prs 100 --issues 100 --refresh
+            npx tsx src/cli.ts ingest vitest-dev/vitest --prs 100 --issues 100 --refresh
+            npx tsx src/cli.ts ingest relatedb/relate --prs 100 --issues 50 --refresh
+            npx tsx src/cli.ts seal-daily honojs/hono vitest-dev/vitest relatedb/relate
+          fi
+      - name: Commit the score and daily seal if changed
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/predictions/score.json
-          git diff --cached --quiet || git commit -m "Score sealed predictions ($(date -u +%F))" && git push
+          git add docs/predictions/score.json docs/predictions/daily/
+          git diff --cached --quiet || (git commit -m "Score sealed predictions & daily issue seal ($(date -u +%F))" && git push)

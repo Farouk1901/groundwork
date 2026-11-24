@@ -1,98 +1,102 @@
-// Groundwork in the browser: Relate compiled to WebAssembly, the graph built in the page from a snapshot of the
-// repository (with its embeddings precomputed), and the very same planTicket / checkChange code as the CLI.
-// It answers the same /api/* calls as the local server, so public/index.html works unchanged on top of it.
-import init, { RelateDb } from '@relate/relate-wasm';
-import { SCHEMA, type Row, type Store, num } from '../src/core.js';
-import { ingest } from '../src/ingest.js';
-import { fixOf, planTicket } from '../src/analyze.js';
-import { checkChange } from '../src/check.js';
-import { targetOf } from '../src/target.js';
-import { decodeVectors } from '../src/vectors.js';
-import type { RepoData } from '../src/github.js';
-
+// Groundwork in the browser: instant pre-baked startup (< 200 ms, zero main-thread long tasks)
+// backed by a dedicated Relate WebAssembly Web Worker for live free-text queries and full graph access.
+export { wasmStore } from './wasm-store.js';
 export type DemoRepo = { name: string; file: string; eval?: string; issues: number; prs: number; note?: string };
-type Snapshot = { data: RepoData; dim: number; vectors: string; scale: number };
 
-let store: Store | null = null;
+type InstantBundle = {
+  generatedAt: string;
+  defaultView: { repo: string; q: string; replay: boolean };
+  repos: Record<string, unknown>;
+  plans: Record<string, unknown>;
+};
+
+let instant: InstantBundle | null = null;
 let manifest: DemoRepo[] = [];
-const loaded = new Map<string, Promise<void>>();
-let status: (s: string) => void = () => {};
+let worker: Worker | null = null;
+let reqId = 0;
+const pending = new Map<number, (data: unknown) => void>();
+let statusCb: (s: string, state?: 'loading' | 'ready' | 'error') => void = () => {};
 
-export function wasmStore(db: RelateDb): Store {
-  const query = (cypher: string, params?: Record<string, unknown>): Row[] => {
-    const p = params && Object.fromEntries(Object.entries(params).filter(([, v]) => v !== undefined));
-    const r = JSON.parse(db.execute(cypher, p ? JSON.stringify(p) : null)) as { rows: Row[]; error: unknown };
-    if (r.error) throw new Error(typeof r.error === 'string' ? r.error : (r.error as { message?: string }).message ?? JSON.stringify(r.error));
-    return r.rows;
-  };
-  for (const s of SCHEMA) query(s);
-  return { query, close: () => db.free(), path: 'relate-wasm (in this tab)', nativeHybrid: false };
+function startWorker(initialRepo?: string) {
+  if (worker) return;
+  worker = new Worker(new URL('./worker.js', import.meta.url), { type: 'module' });
+  worker.addEventListener('message', (ev: MessageEvent) => {
+    const msg = ev.data as { type?: string; id?: number; data?: unknown; text?: string; state?: 'loading' | 'ready' | 'error' };
+    if (msg.type === 'status' && msg.text) {
+      statusCb(msg.text, msg.state ?? 'loading');
+    } else if (msg.type === 'result' && msg.id != null) {
+      const resolve = pending.get(msg.id);
+      if (resolve) {
+        pending.delete(msg.id);
+        resolve(msg.data);
+      }
+    }
+  });
+  worker.addEventListener('error', (err) => {
+    statusCb(`WASM worker error: ${err.message}`, 'error');
+  });
+  worker.postMessage({ type: 'warmup', repo: initialRepo });
 }
 
-async function gunzipJson<T>(url: string): Promise<T> {
-  const res = await fetch(url);
-  if (!res.ok) throw new Error(`${url}: HTTP ${res.status}`);
-  const body = url.endsWith('.gz') ? res.body!.pipeThrough(new DecompressionStream('gzip')) : res.body!;
-  return JSON.parse(await new Response(body).text()) as T;
+function askWorker(path: string): Promise<unknown> {
+  startWorker();
+  const id = ++reqId;
+  return new Promise((resolve) => {
+    pending.set(id, resolve);
+    worker!.postMessage({ type: 'api', id, path });
+  });
 }
 
-async function loadRepo(name: string) {
-  if (!loaded.has(name)) loaded.set(name, (async () => {
-    const r = manifest.find((x) => x.name === name);
-    if (!r) throw new Error(`No demo data for ${name}`);
-    status(`Downloading ${name} (${r.issues.toLocaleString('en-US')} tickets, ${r.prs.toLocaleString('en-US')} PRs)…`);
-    const snap = await gunzipJson<Snapshot>(r.file);
-    const vectors = decodeVectors(snap.vectors, snap.dim, snap.scale);
-    status(`Building the Relate graph for ${name} in this tab…`);
-    await new Promise((ok) => setTimeout(ok, 30));
-    const t0 = performance.now();
-    await ingest(store!, snap.data, (s) => status(s.trim()), { vectors });
-    status(`Graph for ${name} built in ${((performance.now() - t0) / 1000).toFixed(1)} s, all in this browser tab.`);
-  })());
-  return loaded.get(name)!;
+export function defaultInstantView(): { repo: string; q: string; replay: boolean } | null {
+  return instant?.defaultView ?? null;
 }
 
-export async function ready(onStatus: (s: string) => void) {
-  status = onStatus;
-  status('Starting Relate (WebAssembly)…');
-  await init({ module_or_path: new URL('./relate_bg.wasm', import.meta.url) });
-  store = wasmStore(new RelateDb());
-  manifest = await (await fetch('data/index.json')).json();
-  await loadRepo(manifest[0].name);
+export async function ready(onStatus: (s: string, state?: 'loading' | 'ready' | 'error') => void) {
+  statusCb = onStatus;
+  // Fetch the tiny pre-baked bundle + repo manifest in parallel so first render completes in < 200 ms.
+  const [mRes, iRes] = await Promise.all([
+    fetch('data/index.json').then((r) => r.json()).catch(() => []),
+    fetch('data/instant.json').then((r) => (r.ok ? r.json() : null)).catch(() => null),
+  ]);
+  manifest = mRes;
+  instant = iRes;
+  const initialRepo = new URLSearchParams(location.search).get('repo') || manifest[0]?.name;
+  onStatus('Instant demo ready · Relate WASM warming up in Web Worker…', 'loading');
+  // Boot the Relate WASM Web Worker on the next frame so initial paint stays completely unblocked.
+  requestAnimationFrame(() => startWorker(initialRepo));
 }
 
 export async function api(path: string): Promise<unknown> {
   const url = new URL(path, location.href);
   const p = (k: string) => (url.searchParams.get(k) ?? '').trim();
-  try {
-    if (url.pathname.endsWith('/api/repos')) {
-      const repo = p('repo') || manifest[0].name;
-      await loadRepo(repo);
-      const s = store!;
-      const examples = s.query(`MATCH (i:Issue) WHERE i.repo = $repo AND i.state = 'OPEN' RETURN i.number AS number, i.title AS title ORDER BY i.number DESC LIMIT 8`, { repo })
-        .map((r) => ({ number: num(r.number), title: String(r.title) }));
-      const counts = Object.fromEntries(s.query('MATCH (n) RETURN labels(n)[0] AS l, count(*) AS n').map((r) => [String(r.l), num(r.n)]));
-      const rels = num(s.query('MATCH ()-[r]->() RETURN count(r) AS n')[0]?.n);
-      return { repos: manifest.map((m) => ({ name: m.name, issues: m.issues, prs: m.prs, fetchedAt: '' })), examples, counts, rels, inBrowser: true };
-    }
-    if (url.pathname.endsWith('/api/plan')) {
-      await loadRepo(p('repo'));
-      const target = targetOf(p('q'));
-      const fix = 'issue' in target ? fixOf(store!, p('repo'), target.issue) : null;
-      if (p('replay') && fix) return { ...(await planTicket(store!, p('repo'), target, { files: 12, asOf: fix.createdAt })), replay: fix };
-      return { ...(await planTicket(store!, p('repo'), target, { files: 12 })), canReplay: !!fix };
-    }
-    if (url.pathname.endsWith('/api/check')) {
-      await loadRepo(p('repo'));
-      const r = await checkChange(store!, p('repo'), targetOf(p('q')), p('files').split(/[\s,]+/).filter(Boolean));
-      return { covered: r.covered, missing: r.missing, unexpected: r.unexpected, ok: r.ok };
-    }
-    if (url.pathname.endsWith('/api/eval')) {
-      const r = manifest.find((x) => x.name === p('repo'));
-      return r?.eval ? await (await fetch(r.eval)).json() : null;
-    }
-    return { error: 'not found' };
-  } catch (e) {
-    return { error: (e as Error).message };
+
+  if (url.pathname.endsWith('/api/eval')) {
+    const repo = p('repo') || manifest[0]?.name;
+    const r = manifest.find((x) => x.name === repo);
+    return r?.eval ? await (await fetch(r.eval)).json() : null;
   }
+
+  if (url.pathname.endsWith('/api/repos')) {
+    const repo = p('repo') || manifest[0]?.name;
+    if (instant?.repos?.[repo]) {
+      // Also trigger background preload for the chosen repo in the worker.
+      worker?.postMessage({ type: 'warmup', repo });
+      return instant.repos[repo];
+    }
+    return askWorker(path);
+  }
+
+  if (url.pathname.endsWith('/api/plan')) {
+    const repo = p('repo') || manifest[0]?.name;
+    const q = p('q');
+    const replay = p('replay') === '1' ? '1' : '0';
+    const key = `${repo}|${q}|${replay}`;
+    if (instant?.plans?.[key]) {
+      return instant.plans[key];
+    }
+    return askWorker(path);
+  }
+
+  // Free-text queries, non-cached tickets, and /api/check execute live in the Relate WASM Web Worker.
+  return askWorker(path);
 }

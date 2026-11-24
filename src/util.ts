@@ -11,7 +11,8 @@ export { targetOf } from './target.js';
  */
 export function readSnapshot(file: string): { data: RepoData; vectors?: number[][] } {
   const buf = readFileSync(file);
-  const j = JSON.parse((file.endsWith('.gz') ? gunzipSync(buf) : buf).toString('utf8')) as RepoData | { data: RepoData; vectors: string; dim: number; scale: number };
+  const isGzip = buf.length >= 2 && buf[0] === 0x1f && buf[1] === 0x8b;
+  const j = JSON.parse((isGzip ? gunzipSync(buf) : buf).toString('utf8')) as RepoData | { data: RepoData; vectors: string; dim: number; scale: number };
   if ('vectors' in j && 'data' in j) return { data: j.data, vectors: decodeVectors(j.vectors, j.dim, j.scale) };
   return { data: j as RepoData };
 }

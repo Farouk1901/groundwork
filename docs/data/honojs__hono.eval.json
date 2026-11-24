@@ -1,7 +1,8 @@
 {
   "repo": "honojs/hono",
-  "at": "2026-11-24T08:47:15.809Z",
+  "at": "2026-11-24T18:30:56.787Z",
   "split": "newer",
+  "mode": "tickets",
   "cases": 200,
   "skipped": 29,
   "k": 10,
@@ -9,62 +10,32 @@
     {
       "name": "Groundwork (full)",
       "cases": 200,
-      "hit5": 77.5,
-      "hit10": 83.5,
-      "recall5": 56.6,
-      "recall10": 66.3,
-      "mrr": 0.639,
-      "ms": 244
-    },
-    {
-      "name": "  without similar tickets",
-      "cases": 200,
-      "hit5": 77,
-      "hit10": 83,
-      "recall5": 55.3,
-      "recall10": 65.5,
-      "mrr": 0.668,
-      "ms": 259
-    },
-    {
-      "name": "  without similar PRs",
-      "cases": 200,
-      "hit5": 69,
-      "hit10": 74,
-      "recall5": 48.3,
-      "recall10": 57.7,
-      "mrr": 0.578,
-      "ms": 247
-    },
-    {
-      "name": "  without co-change",
-      "cases": 200,
       "hit5": 78,
-      "hit10": 83.5,
-      "recall5": 56.3,
-      "recall10": 65.4,
-      "mrr": 0.658,
-      "ms": 211
+      "hit10": 82.5,
+      "recall5": 57.4,
+      "recall10": 65.7,
+      "mrr": 0.634,
+      "ms": 730
     },
     {
-      "name": "  vector only (no full-text)",
+      "name": "Baseline: grep the code for the ticket’s words",
       "cases": 200,
-      "hit5": 74,
-      "hit10": 82,
-      "recall5": 51.2,
-      "recall10": 62.9,
-      "mrr": 0.592,
-      "ms": 100
+      "hit5": 58.5,
+      "hit10": 74.5,
+      "recall5": 36.7,
+      "recall10": 54.7,
+      "mrr": 0.39,
+      "ms": 1027
     },
     {
-      "name": "  full-text only (no vector)",
+      "name": "Groundwork + grep (fused)",
       "cases": 200,
-      "hit5": 78,
-      "hit10": 81.5,
-      "recall5": 57.2,
-      "recall10": 65.1,
-      "mrr": 0.657,
-      "ms": 229
+      "hit5": 81,
+      "hit10": 82.5,
+      "recall5": 62.2,
+      "recall10": 65.8,
+      "mrr": 0.66,
+      "ms": 0
     },
     {
       "name": "Baseline: most-changed files",
@@ -74,7 +45,7 @@
       "recall5": 8.2,
       "recall10": 12.2,
       "mrr": 0.106,
-      "ms": 19
+      "ms": 29
     },
     {
       "name": "Ceiling (files seen before)",
@@ -102,7 +73,7 @@
         "src/utils/types.test.ts",
         "src/client/client.test.ts",
         "src/types.test.ts",
-        "src/client/client.ts"
+        "src/client/types.ts"
       ]
     },
     {
@@ -123,7 +94,7 @@
         "src/adapter/aws-lambda/handler.test.ts",
         "src/adapter/lambda-edge/handler.ts",
         "src/adapter/lambda-edge/handler.test.ts",
-        "runtime_tests/lambda-edge/index.test.ts"
+        "adapters/aws-lambda/src/handler.ts"
       ]
     },
     {
@@ -137,8 +108,8 @@
         "src/jsx/index.test.tsx",
         "src/jsx/streaming.test.tsx",
         "src/jsx/context.ts",
-        "src/utils/html.ts",
-        "src/jsx/streaming.ts"
+        "src/jsx/dom/render.ts",
+        "src/jsx/index.ts"
       ]
     },
     {
@@ -167,8 +138,8 @@
       "top": [
         "src/client/client.ts",
         "src/client/client.test.ts",
-        "src/helper/proxy/index.ts",
         "src/client/utils.ts",
+        "src/helper/proxy/index.ts",
         "src/helper/proxy/index.test.ts"
       ]
     },
@@ -181,9 +152,9 @@
       ],
       "top": [
         "src/middleware/secure-headers/secure-headers.ts",
+        "src/middleware/secure-headers/index.test.ts",
         "src/context.ts",
         "src/middleware/cache/index.ts",
-        "src/middleware/cors/index.ts",
         "src/middleware/cache/index.test.ts"
       ]
     },

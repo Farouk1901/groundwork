@@ -27,7 +27,7 @@ export async function gql<T>(token: string, query: string, variables: Record<str
     try {
       const res = await fetch('https://api.github.com/graphql', {
         method: 'POST',
-        headers: { Authorization: `bearer ${token}`, 'Content-Type': 'application/json', 'User-Agent': 'blast-radius' },
+        headers: { Authorization: `bearer ${token}`, 'Content-Type': 'application/json', 'User-Agent': 'groundwork' },
         body: JSON.stringify({ query, variables }),
         signal: AbortSignal.timeout(60_000),
       });

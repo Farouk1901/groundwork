@@ -1,6 +1,6 @@
 {
   "repo": "relatedb/relate",
-  "at": "2026-11-24T10:51:59.717Z",
+  "at": "2026-11-24T18:53:08.723Z",
   "split": "newer",
   "mode": "prs",
   "cases": 283,
@@ -10,62 +10,32 @@
     {
       "name": "Groundwork (full)",
       "cases": 283,
-      "hit5": 53.4,
-      "hit10": 61.5,
-      "recall5": 12.2,
-      "recall10": 17.9,
-      "mrr": 0.405,
-      "ms": 608
+      "hit5": 50.9,
+      "hit10": 61.1,
+      "recall5": 11.7,
+      "recall10": 17.5,
+      "mrr": 0.406,
+      "ms": 678
     },
     {
-      "name": "  without similar tickets",
+      "name": "Baseline: grep the code for the ticket’s words",
       "cases": 283,
-      "hit5": 59.4,
-      "hit10": 67.5,
-      "recall5": 13.7,
-      "recall10": 20,
-      "mrr": 0.441,
-      "ms": 640
+      "hit5": 60.4,
+      "hit10": 72.1,
+      "recall5": 19.3,
+      "recall10": 29.3,
+      "mrr": 0.418,
+      "ms": 1755
     },
     {
-      "name": "  without similar PRs",
+      "name": "Groundwork + grep (fused)",
       "cases": 283,
-      "hit5": 3.5,
-      "hit10": 4.2,
-      "recall5": 0.3,
-      "recall10": 0.5,
-      "mrr": 0.024,
-      "ms": 731
-    },
-    {
-      "name": "  without co-change",
-      "cases": 283,
-      "hit5": 52.7,
+      "hit5": 56.2,
       "hit10": 62.2,
-      "recall5": 12.2,
-      "recall10": 17.9,
-      "mrr": 0.394,
-      "ms": 638
-    },
-    {
-      "name": "  vector only (no full-text)",
-      "cases": 283,
-      "hit5": 43.1,
-      "hit10": 53,
-      "recall5": 10.1,
-      "recall10": 15.4,
-      "mrr": 0.344,
-      "ms": 166
-    },
-    {
-      "name": "  full-text only (no vector)",
-      "cases": 283,
-      "hit5": 53.4,
-      "hit10": 63.3,
-      "recall5": 13.5,
-      "recall10": 20,
-      "mrr": 0.407,
-      "ms": 630
+      "recall5": 14.1,
+      "recall10": 18.2,
+      "mrr": 0.478,
+      "ms": 0
     },
     {
       "name": "Baseline: most-changed files",
@@ -75,7 +45,7 @@
       "recall5": 1.8,
       "recall10": 3.6,
       "mrr": 0.11,
-      "ms": 40
+      "ms": 37
     },
     {
       "name": "Ceiling (files seen before)",
@@ -119,8 +89,8 @@
       "top": [
         "relate/relate-front/src/call_scope/mod.rs",
         "relate/relate-executor/src/overlay/reads.rs",
-        "relate/relate-executor/src/exec/mod.rs",
         "relate/relate/tests/call_in_transactions.rs",
+        "relate/relate-executor/src/exec/mod.rs",
         "relate/relate-executor/src/exec/scope.rs"
       ]
     },
@@ -172,11 +142,11 @@
         ".changes/758-seek-bound-readiness.md"
       ],
       "top": [
-        "relate/relate-executor/src/pattern_walk/candidates/tests.rs",
-        "relate/relate-executor/src/pattern_walk/candidates/mod.rs",
         "relate/relate-executor/src/exec/gpm/shortest_route/route.rs",
-        "relate/relate-executor/src/overlay/seek.rs",
-        "relate/relate-executor/src/exec/project.rs"
+        "relate/relate-executor/src/exec/gpm/shortest_route/anchor.rs",
+        "relate/relate-executor/src/exec/gpm/shortest_route/mod.rs",
+        "relate/relate-executor/src/pattern_walk/candidates/tests.rs",
+        "relate/relate-executor/src/pattern_walk/candidates/mod.rs"
       ]
     },
     {
@@ -301,11 +271,11 @@
         ".changes/729-existence-subquery-short-bodies.md"
       ],
       "top": [
-        "docs/api/extensions/spec.md",
         "docs/api/cli/spec.md",
         "README.md",
         "relate/relate-planner/src/agg/mod.rs",
-        "surfaces/relate-cli/src/skill/bundle/references/operations.md"
+        "surfaces/relate-cli/src/skill/bundle/references/operations.md",
+        "AGENTS.md"
       ]
     },
     {
@@ -337,9 +307,9 @@
       "top": [
         "relate/relate-executor/src/exec/agg_fold/one_hop.rs",
         "relate/relate-executor/src/exec/agg_fold/mod.rs",
+        "relate/relate-executor/src/distinct_set.rs",
         "relate/relate-executor/src/lib.rs",
-        "relate/relate-executor/src/exec/dispatch.rs",
-        "relate/relate-executor/src/exec/project.rs"
+        "relate/relate-executor/src/exec/dispatch.rs"
       ]
     },
     {
@@ -373,9 +343,9 @@
       ],
       "top": [
         "surfaces/relate-http/src/reply.rs",
+        "surfaces/relate-http/src/query_api.rs",
         "relate/relate-error/src/classification.rs",
         "relate/relate-error/src/lib.rs",
-        "surfaces/relate-http/src/query_api.rs",
         "docs/api/cli/spec.md"
       ]
     },

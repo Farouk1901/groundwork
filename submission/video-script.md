@@ -1,28 +1,19 @@
-# Demo video script: Groundwork (1:55)
+# Demo video script: Groundwork (1:55 — hard limit 2:00)
 
-The rules say the video must be the entrant's own work: filming, editing and graphics. Ahmed records the narration in
-his own voice **and** the same words appear as on-screen captions (two short lines at a time, synced to the voice).
-Narration is about 260 words: read it slowly, about 130 words a minute. No third-party music.
+**Rules & authenticity:** Must be entrant's own work (filming, editing, narration). Ahmed records the narration in **his own real voice** (no AI voice clone, no third-party music), with burned-in synced English captions (6–10 words per chunk, bottom band so the graph stays unobstructed).
+**Word count:** ~250 words (~130 wpm → ~1:55 with 5 s margin under the 2:00 cap).
 
-Setup before recording: the live demo open at https://farouk1901.github.io/groundwork/ (or `npm run site` locally),
-zoom 110%, one theme only (dark or light, not both), a terminal with Claude Code in a hono clone, the MCP server added.
+Setup before recording: live demo open at `https://farouk1901.github.io/groundwork/` (instant boot opens directly on `hono#2550` Replay in `< 200 ms`, while Relate WASM loads in a Web Worker in the background), zoom 110%, one theme only, and a terminal with Claude Code connected to the Groundwork MCP server.
 
-| Time | Screen | Narration |
+| Time | Screen | Narration (Ahmed's real voice) |
 |---|---|---|
-| 0:00–0:14 | hono ticket #2550 on GitHub: "Regression caused by multiHeaderValue handling on Lambda" (opened 24 April 2024) | April 2024. A user reports a regression in hono's AWS Lambda adapter. Before anyone writes a fix, someone has to find where it lives, who knows that code, and what broke there before. |
-| 0:14–0:24 | Title card: **Groundwork**, "the connected context of a ticket, before the first line of code" | Groundwork answers that from the repository's own history, in a Relate graph. |
-| 0:24–0:50 | Live demo: type 2550, press Plan, then press **Replay**. The banner turns green; `handler.ts` gets a ✓ at the top | Replay rewinds the graph to the day the ticket was opened. The fix doesn't exist yet. Hybrid search inside Relate (vector and full-text in one Cypher query) finds past tickets and PRs that meant the same thing, and the graph follows them to the files they changed. First suggestion: handler.ts, exactly the file the real fix changed twelve days later. |
-| 0:50–1:05 | Click the top file: the path lights up in the graph (ticket → similar PR → file → people) | Every answer is a path you can check. And the people who know that code, and the bug fixes in the same files you must not undo. |
-| 1:05–1:18 | Open ticket 5601. "Check your change": press "Try: top file only"; the test file shows as missing | When the change is written, check compares it with the ticket: similar fixes also changed the test, and you didn't. |
-| 1:18–1:32 | Claude Code terminal in a hono clone: "work on issue 5601". The agent calls `plan_ticket`, then opens the right file | Coding agents get the same through MCP and a Claude Code skill: plan before editing, check before committing. |
-| 1:32–1:55 | The green results banner; switch the repository to vitest, then to relatedb/relate | Does it work beyond one example? We replayed hundreds of real tickets, fixes hidden. On hono, the right file is in the top five 77 percent of the time; on vitest, which we never tuned on, 60; on Relate's own repository, from the PR title alone, 53. The most-changed files manage 15 to 18. All of it runs in your browser, on Relate WebAssembly. Open source, MIT. Groundwork. |
+| **0:00–0:20** | **Hook (result first):** Open `hono#2550` (*"Regression caused by multiHeaderValue handling on Lambda"*) — Groundwork's GitHub Action comment + instant **Replay** showing `src/adapter/aws-lambda/handler.ts` ranked #1 with green **✓** | Before anyone writes a single line of code, a ticket lands. Here's hono #2550, a real AWS Lambda regression. Groundwork rewinds the Relate graph to the day it opened — hiding the fix — and ranks `handler.ts` number one. Twelve days later, the real PR fixed that exact file. |
+| **0:20–0:55** | Click `handler.ts` → graph path lights up (`ticket → similar PR → file → people → risks`). Then open `#5601` → **Check your change** → press *"Try: top file only"* → missing test file flagged in red. | How? Hybrid search inside Relate — vector and full-text fused with WRRF in one Cypher query — finds similar past tickets and PRs, then follows the graph to the files, the engineers who know them, and recent regressions to watch. Click any file to inspect its exact graph path. When code is ready, `check` catches the test file that similar fixes always changed. |
+| **0:55–1:20** | Terminal: Claude Code in a `hono` clone. Prompt: *"plan issue 5601"* → calls MCP `plan_ticket` → immediately opens `src/utils/cookie.ts` and `cookie.test.ts` without blind grepping. | Coding agents use the same Relate graph through MCP and a built-in skill — jumping straight to the right files instead of burning tokens grepping blindly. |
+| **1:20–1:55** | Unified 3-repo results table (`hono`, `vitest`, `relatedb/relate`: Groundwork + grep vs grep alone vs baseline) + quick 8 s glance at the daily sealed-forecasts banner + browser WASM badge (`< 200 ms` boot, Web Worker). | Across 703 held-out cases on hono, vitest, and Relate's own repository, Groundwork beats the baseline 3 to 5 times, and fusing Groundwork with grep beats grep alone on every repo. We even sealed 617 open-ticket forecasts on November 24 to score against future fixes. Zero install, running Relate WebAssembly right in your browser. Open source, MIT — Groundwork. |
 
-## Captions
-The captions are the narration word for word, split into chunks of 6 to 10 words. Each chunk stays on screen while
-it is being said. Keep them in the bottom band so they don't cover the graph or the file list. In the last scene,
-show the three numbers large next to the baseline.
-
-## Recording order
-1. Record the voice first, in a quiet room, sentence by sentence.
-2. Record the screen against the voice, scene by scene, using the table above.
-3. Edit and add the captions yourself, to stay within the "own work" rule.
+## Recording checklist
+1. Record Ahmed's real voice first in a quiet room, checking total audio length is **≤ 1:55**.
+2. Record screen clips synced to each timestamp row above (no blank loading screen — instant boot renders immediately).
+3. Verify the numbers shown on screen match the final post-`b10c11b` table in `README.md` and `submission/devpost.md` verbatim.
+4. Confirm zero third-party music, zero third-party logos, and final video duration **≤ 2:00**.

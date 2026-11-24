@@ -294,3 +294,20 @@ test('with the code at hand: grep for the ticket words and fuse with the graph',
   assert.equal(extra.reasons[0].kind, 'grep');
   assert.equal(fused.files[0].path, 'src/http/cookie.ts'); // found by both: first
 });
+
+test('daily seal: seals only newly opened unfixed issues with SHA-256, skipping already-sealed ones', async () => {
+  const { seal, sealDailyNewIssues, sha256Hex } = await import('../src/predict.ts');
+  const store = await graph();
+  const initial = await seal(store, ['acme/shop']);
+  // Excluding issue #4 only leaves issue #3 to be sealed on the daily run.
+  const partial = { ...initial, repos: [{ ...initial.repos[0], forecasts: initial.repos[0].forecasts.filter((f) => f.issue === 4) }] };
+  const daily = await sealDailyNewIssues(store, ['acme/shop'], [partial], { date: '2026-11-25' });
+  assert.equal(daily.daily.date, '2026-11-25');
+  assert.equal(daily.count, 1);
+  assert.deepEqual(daily.daily.repos[0].forecasts.map((f) => f.issue), [3]);
+  assert.equal(daily.sha256, sha256Hex(daily.json));
+  assert.equal(daily.sha256.length, 64);
+  // Running again with both existing seals produces 0 new issues.
+  const empty = await sealDailyNewIssues(store, ['acme/shop'], [initial], { date: '2026-11-26' });
+  assert.equal(empty.count, 0);
+});

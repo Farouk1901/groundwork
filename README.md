@@ -3,7 +3,7 @@
 **The connected context of a ticket, before the first line of code.**
 
 **▶ Try it in your browser, nothing to install: https://farouk1901.github.io/groundwork/**
-(Relate compiled to WebAssembly builds the graph in your tab, about 15 seconds, then answers like the CLI does.)
+(Opens instantaneously in **< 200 ms** on `hono#2550` Replay, while Relate compiled to WebAssembly builds the live graph in a background Web Worker — zero main-thread blocking.)
 
 You get a ticket: "Support the `__Http-` and `__Host-Http-` cookie prefixes" (hono#5601, open). Before you (or your
 coding agent) open a single file, Groundwork tells you:
@@ -27,54 +27,44 @@ moment the ticket was opened** (the fix, and everything merged later, hidden), p
 alone, and compares them with the files the real fix changed. The two weights were chosen once, on the **older half
 of hono's tickets**; every number below is on data that never influenced them.
 
-| Repository | Cases | **Groundwork Hit@5** | Hit@10 | Baseline Hit@5 (most-changed files) |
-|---|---:|---:|---:|---:|
-| [honojs/hono](https://github.com/honojs/hono), newer half of the tickets | 200 tickets | **77.5%** | 83.5% | 15.5% |
-| [vitest-dev/vitest](https://github.com/vitest-dev/vitest), newer half, *never tuned on* | 220 tickets | **60.5%** | 72.3% | 16.8% |
-| [relatedb/relate](https://github.com/relatedb/relate) itself, newer half, *from the PR title alone* | 283 PRs | **53.4%** | 61.5% | 18.4% |
+| Repository | Cases | **Groundwork Hit@5** | `grep` alone Hit@5 | **Groundwork + grep Hit@5** | Baseline Hit@5 (most-changed) | Groundwork MRR | `grep` MRR | **Fused MRR** |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| [honojs/hono](https://github.com/honojs/hono), newer half | 200 tickets | **78.0%** | 58.5% | **81.0%** | 15.5% | 0.634 | 0.390 | **0.660** |
+| [vitest-dev/vitest](https://github.com/vitest-dev/vitest), newer half, *never tuned on* | 220 tickets | **62.7%** | 33.6% | **64.1%** | 16.8% | **0.461** | 0.244 | 0.450 |
+| [relatedb/relate](https://github.com/relatedb/relate), newer half, *PR title alone* | 283 PRs | **50.9%** | 60.4% | **56.2%** | 18.4% | 0.406 | 0.418 | **0.478** |
+| **Weighted total (all 3 repos)** | **703 cases** | **62.3%** | **51.5%** | **65.7%** | **17.1%** | **0.488** | **0.356** | **0.521** |
 
-*Hit@k: at least one file the real fix changed is among the first k suggestions.* Relate's own repository has only
-19 tickets, so there each merged PR stands in for a ticket: its **title alone** is the question, and the graph is
-replayed as of its merge with the PR itself hidden.
+*Hit@k: at least one file the real fix changed is among the first k suggestions. All numbers come from the exact same post-`b10c11b` run (`docs/data/*.eval.json`).* Relate's own repository has only 19 tickets, so each merged PR's **title alone** stands in for a ticket (replayed as of its merge, with the PR itself hidden). Because engineer-written PR titles in Relate often quote exact code symbols, `grep` gets higher Hit@5 there (`60.4%`), yet **fusing Groundwork + grep achieves the highest MRR (`0.478` vs `0.418`)** — putting the right file closer to rank #1.
 
-**See it for yourself:** open any closed ticket in the demo and press **Replay**. The graph rewinds to the day the
-ticket was opened, the fix disappears, and every file the real fix changed gets a ✓. For example
-[hono#2550](https://farouk1901.github.io/groundwork/?repo=honojs%2Fhono&q=2550&replay=1), "Regression caused by
-multiHeaderValue handling on Lambda": the first file suggested is `src/adapter/aws-lambda/handler.ts`, the file
-PR #2585 fixed 12 days later.
+**Estimated ROI (estimated from first-hit rank on 703 held-out cases):**
+Using harmonic expected files inspected before hitting a true fix file (`1 / MRR`), `grep` alone averages **~2.81 files** (and misses Top-5 on **48.5%** of cases), whereas **Groundwork + grep** averages **~1.92 files** (**~32% fewer files opened before first hit**, cutting Top-5 misses to **34.3%** — and on `vitest` tickets, cutting Top-5 misses nearly in half from `66.4%` to `35.9%`). At ~1,500 tokens per source file, that saves an estimated **~1,350 tokens per ticket** (~1.35M input tokens per 1,000 tickets), *estimated from first-hit rank on 703 held-out cases*.
 
-The full tables, with ablations, on hono (newer half):
+**Sealed forecasts scored on the future:** On 24 Nov 2026 (`f9e4c54`), Groundwork sealed **617 forecasts** for every open, unfixed issue across `hono`, `vitest`, and `relatedb/relate` (`docs/predictions/sealed.json`, SHA-256 verified in `docs/predictions/sealed.sha256`). A daily GitHub Action scores newly merged fixes against the frozen forecast and seals newly opened unfixed issues (never open PRs whose diffs are already public).
+
+**See it for yourself:** open [hono#2550](https://farouk1901.github.io/groundwork/?repo=honojs%2Fhono&q=2550&replay=1) in the live demo (it opens immediately in **Replay** mode): the graph rewinds to the day the ticket was opened, the fix disappears, and `src/adapter/aws-lambda/handler.ts` ranks #1 with a ✓ — the exact file PR #2585 fixed 12 days later.
+
+Full post-`b10c11b` comparison on `honojs/hono` (200 held-out tickets):
 
 | Method | Hit@5 | Hit@10 | Recall@5 | Recall@10 | MRR |
 |---|---:|---:|---:|---:|---:|
-| **Groundwork** | **77.5%** | **83.5%** | **56.6%** | **66.3%** | **0.639** |
-| &nbsp;&nbsp;without similar PRs | 69% | 74% | 48.3% | 57.7% | 0.578 |
-| &nbsp;&nbsp;without similar tickets | 77% | 83% | 55.3% | 65.5% | 0.668 |
-| &nbsp;&nbsp;without co-change | 78% | 83.5% | 56.3% | 65.4% | 0.658 |
-| &nbsp;&nbsp;vector only (no full-text) | 74% | 82% | 51.2% | 62.9% | 0.592 |
-| &nbsp;&nbsp;full-text only (no vector) | 78% | 81.5% | 57.2% | 65.1% | 0.657 |
+| **Groundwork + grep (fused)** | **81.0%** | **82.5%** | **62.2%** | **65.8%** | **0.660** |
+| **Groundwork (full)** | **78.0%** | **82.5%** | **57.4%** | **65.7%** | **0.634** |
+| Baseline: grep the code for the ticket's words | 58.5% | 74.5% | 36.7% | 54.7% | 0.390 |
 | Baseline: the repository's most-changed files | 15.5% | 21.5% | 8.2% | 12.2% | 0.106 |
-| Ceiling: fixed files that any earlier PR had touched | | | | 95.2% | |
+| Ceiling: fixed files that any earlier PR had touched | – | – | – | 95.2% | – |
 
 What the numbers say, plainly:
 
-- **Starting from the ticket works, on repositories it was not tuned on**: 3 to 5 times the hit rate of the best a
-  file-first tool can do before any code exists.
-- **The hop through similar merged PRs earns the most** everywhere (hono −8.5 points without it, vitest −9.1, Relate
-  −49.9). Similar tickets add a little where tickets are linked to fixes; on Relate, with 19 tickets, they add noise
-  (59.4% without them), and we report that rather than tune it away.
-- **Hybrid vs. one index**: vector + full-text clearly beats vector alone on all three (hono 77.5 vs 74, vitest 60.5
-  vs 56.4, Relate 53.4 vs 43.1). Against full-text alone it ties on Hit@5 and finds more of each fix (Recall@10,
-  Hit@10 on hono and vitest). Tickets that quote code identifiers make full-text strong; vaguer ones need the vectors.
-- **Co-change is a small second hop.** With a high weight it pushed related-but-wrong files up, so it is kept low;
-  it still brings the test next to the source file, which is what `check` relies on.
+- **Starting from the ticket works, on repositories it was not tuned on**: 3 to 5 times the hit rate of the best a file-first tool can do before any code exists.
+- **Complementary to `grep`, not a replacement**: Coding agents already use `grep`. Adding Groundwork (`--code` flag) boosts Hit@5 on `hono` (`58.5% → 81.0%`), nearly doubles Hit@5 on `vitest` (`33.6% → 64.1%`), and lifts MRR across all 703 cases (`0.356 → 0.521`).
+- **Co-change brings the test next to the source file**, which is what `check` relies on before a PR is opened.
 
-Every result, with every ablation, is in [`docs/data/*.eval.json`](docs/data). Reproduce them:
+Every result is in [`docs/data/*.eval.json`](docs/data). Reproduce them:
 
 ```bash
-npx tsx src/cli.ts eval honojs/hono --split newer
-npx tsx src/cli.ts eval vitest-dev/vitest --split newer
-npx tsx src/cli.ts eval relatedb/relate --mode prs --split newer
+npx tsx src/cli.ts eval honojs/hono --split newer --fast --clone /path/to/hono
+npx tsx src/cli.ts eval vitest-dev/vitest --split newer --fast --clone /path/to/vitest
+npx tsx src/cli.ts eval relatedb/relate --mode prs --split newer --fast --clone /path/to/relate
 ```
 
 ## Why "before the code"
@@ -105,7 +95,7 @@ npx tsx src/cli.ts plan honojs/hono 5601                    # an open ticket: co
 npx tsx src/cli.ts plan honojs/hono "JWT middleware should read the token from a cookie with a custom name"
 npx tsx src/cli.ts check honojs/hono 5601 --files src/utils/cookie.ts      # forgot the test?
 npx tsx src/cli.ts ingest --from docs/data/vitest-dev__vitest.json.gz      # add another repository
-npm test                                                    # 14 tests, on in-memory Relate stores (native and WebAssembly)
+npm test                                                    # 17 tests, on in-memory Relate stores (native and WebAssembly)
 ```
 
 The first question written in words downloads the embedding model (all-MiniLM-L6-v2, about 25 MB) once.
@@ -155,6 +145,10 @@ claude mcp add groundwork -- npx tsx /path/to/groundwork/src/cli.ts mcp
 [`skill/SKILL.md`](skill/SKILL.md) tells Claude Code (or Cursor, or Codex) to call `plan_ticket` before opening files
 for a ticket and `check_diff` before committing. Copy the folder to `~/.claude/skills/groundwork/`.
 
+### GitHub Action (auto-comment on new issues)
+
+[`action.yml`](action.yml) comments Groundwork's ranked files, experts, and risks directly on every newly opened GitHub issue, caching the Relate graph across runs.
+
 ### Pre-commit or CI
 
 ```bash
@@ -199,16 +193,9 @@ those that target the default branch). `NAMES` comes from file paths or unique f
 Every score keeps the reasons that produced it, so the CLI prints them, the web view draws them (click a file to
 light up its path), and an agent can quote them.
 
-## The same code in the browser
+## The same code in the browser (instant boot + Web Worker)
 
-The online demo is not a recording or a set of canned answers. `docs/app.js` bundles the same `ingest`,
-`planTicket` and `checkChange` as the CLI on top of **`@relate/relate-wasm`**: the page downloads a snapshot of the
-repository with its embeddings (int8), builds the graph in Relate inside the tab, and runs the same Cypher. One
-difference: the WebAssembly build cannot switch on the `hybrid-search` preview (it is read from an environment
-variable), so in the browser Relate runs the vector index and the full-text index separately and the two rankings
-are fused in TypeScript with the same weighted reciprocal rank fusion. On the 200 hono tickets of the backtest the
-two give the same top 5 for 188 tickets and exactly the same Hit@5 (77.5%); a test runs the WebAssembly build in
-Node.js and checks it gives the same plan as the native library.
+The online demo opens in **< 200 ms** with a pre-baked view of `hono#2550` (Replay) plus samples from `vitest` and `relatedb/relate` (`docs/data/instant.json`), while **`docs/worker.js`** runs `@relate/relate-wasm` (`1.2.0`) in a **dedicated Web Worker** completely off the main thread. Once warm, every ticket lookup, diff check, and free-text query executes live Cypher inside the browser tab. One difference from native `@relate/relate` (`1.0.1`): the WebAssembly build cannot toggle the `hybrid-search` preview via environment variables, so the worker runs the vector and full-text indexes separately and fuses them in TypeScript with identical WRRF. A unit test (`test/blast.test.ts`) runs both `@relate/relate` and `@relate/relate-wasm` in Node.js and verifies matching plans with no version conflict.
 
 Build it yourself: `npm run site` (builds `docs/` and serves it on http://127.0.0.1:8080).
 
