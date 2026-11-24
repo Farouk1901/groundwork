@@ -1,16 +1,29 @@
 {
-  "name": "blast-radius",
+  "name": "groundwork-relate",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "The connected context of a ticket, before the first line of code: hybrid search over past tickets and fixes in a Relate graph, with the graph path behind every answer.",
   "scripts": {
     "test": "tsx --test test/*.test.ts",
+    "typecheck": "tsc -p .",
+    "demo:ingest": "tsx src/cli.ts ingest --from examples/honojs__hono.json.gz",
+    "demo": "tsx src/cli.ts ingest --from examples/honojs__hono.json.gz && tsx src/cli.ts serve",
     "start": "tsx src/cli.ts serve",
     "mcp": "tsx src/cli.ts mcp",
+    "eval": "tsx src/cli.ts eval honojs/hono",
     "cli": "tsx src/cli.ts"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "relate",
+    "neo4j",
+    "graph",
+    "mcp",
+    "coding-agents",
+    "github",
+    "jira",
+    "hybrid-search",
+    "code-review"
+  ],
+  "author": "Ahmed Farouk",
   "license": "MIT",
   "type": "module",
   "dependencies": {
@@ -24,5 +37,12 @@
     "@types/node": "26.6.6",
     "tsx": "4.23.15",
     "typescript": "7.0.2"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/Farouk1901/groundwork"
+  },
+  "engines": {
+    "node": ">=20"
   }
 }

@@ -1,12 +1,20 @@
 import { test } from 'node:test';
 import assert from 'node:assert/strict';
-import { keywords, blastRadius } from '../src/analyze.ts';
+import { gzipSync } from 'node:zlib';
+import { writeFileSync, mkdtempSync } from 'node:fs';
+import { tmpdir } from 'node:os';
+import path from 'node:path';
+import { keywords, planTicket, toMarkdown } from '../src/analyze.ts';
 import { ingest, mentionedIssues, moduleOf, namedFiles } from '../src/ingest.ts';
-import { openStore } from '../src/store.ts';
-import { readOnlyCypher } from '../src/mcp.ts';
+import { openStore, type Store } from '../src/store.ts';
+import { readOnlyCypher, whoKnows } from '../src/mcp.ts';
+import { checkChange, checkMarkdown } from '../src/check.ts';
+import { backtest, cases, evalMarkdown } from '../src/eval.ts';
+import { adfText, fromJiraJson, ingestJira, jiraKeys } from '../src/jira.ts';
+import { readSnapshot, targetOf } from '../src/util.ts';
 import type { RepoData } from '../src/github.ts';
 
-test('helpers: modules, named files, mentions, keywords', () => {
+test('helpers: modules, named files, mentions, keywords, targets', () => {
   assert.equal(moduleOf('src/middleware/cors/index.ts'), 'src/middleware');
   assert.equal(moduleOf('README.md'), '(root)');
   assert.equal(moduleOf('docs/guide.md'), 'docs');
@@ -16,52 +24,168 @@ test('helpers: modules, named files, mentions, keywords', () => {
   assert.deepEqual(namedFiles('look at src/b/index.ts please', files), ['src/b/index.ts']);
   assert.deepEqual(mentionedIssues('dup of #12, related (#30) and #7', 7), [12, 30]);
   assert.equal(keywords('The CORS middleware fails when origin is a function!'), 'cors middleware origin function');
+  assert.deepEqual(targetOf('#42'), { issue: 42 });
+  assert.deepEqual(targetOf('SHOP-7'), { issue: 'SHOP-7' });
+  assert.deepEqual(targetOf('cookie values get cut'), { text: 'cookie values get cut' });
 });
+
+const iss = (number: number, title: string, body: string, state: 'OPEN' | 'CLOSED', createdAt: string, author: string, labels: string[] = []) =>
+  ({ number, title, body, state, url: `https://github.com/acme/shop/issues/${number}`, createdAt, closedAt: state === 'CLOSED' ? createdAt : null, author, labels });
+const pr = (number: number, title: string, body: string, mergedAt: string, author: string, files: string[], closes: number[] = []) =>
+  ({ number, title, body, url: `https://github.com/acme/shop/pull/${number}`, mergedAt, author, labels: [], closes, files: files.map((path) => ({ path, additions: 3, deletions: 1 })) });
 
 const data: RepoData = {
   repo: 'acme/shop', fetchedAt: '2026-11-14T00:00:00Z',
   issues: [
-    { number: 1, title: 'Cookie parser drops values with equals sign', body: 'cookie.ts splits on =', state: 'CLOSED', url: 'u1', createdAt: '2026-01-01', closedAt: '2026-01-03', author: 'ann', labels: ['bug'] },
-    { number: 2, title: 'Cart total wrong with discount codes', body: 'checkout shows the old total', state: 'CLOSED', url: 'u2', createdAt: '2026-02-01', closedAt: '2026-02-04', author: 'bob', labels: ['bug'] },
-    { number: 3, title: 'Cookie with equals in value breaks session', body: 'Session cookie value contains = and gets cut', state: 'OPEN', url: 'u3', createdAt: '2026-03-01', closedAt: null, author: 'cy', labels: [] },
-    { number: 4, title: 'Session expires too early', body: 'related to #3, see session.ts', state: 'OPEN', url: 'u4', createdAt: '2026-03-02', closedAt: null, author: 'dee', labels: [] },
+    iss(1, 'Cookie parser drops values with equals sign', 'cookie.ts splits on =', 'CLOSED', '2026-01-01T00:00:00Z', 'ann', ['bug']),
+    iss(2, 'Cart total wrong with discount codes', 'checkout shows the old total', 'CLOSED', '2026-02-01T00:00:00Z', 'bob', ['bug']),
+    iss(3, 'Cookie with equals in value breaks session', 'Session cookie value contains = and gets cut', 'OPEN', '2026-03-01T00:00:00Z', 'cy'),
+    iss(4, 'Session expires too early', 'related to #3, see session.ts', 'OPEN', '2026-03-02T00:00:00Z', 'dee'),
+    iss(5, 'Cookie value with equals sign is truncated again', 'A cookie value containing = is cut after the first =', 'CLOSED', '2026-04-01T00:00:00Z', 'eve', ['bug']),
   ],
   prs: [
-    { number: 10, title: 'fix(cookie): keep = in cookie values', body: 'Fixes #1', url: 'p10', mergedAt: '2026-01-03', author: 'ann', labels: [], closes: [1],
-      files: [{ path: 'src/http/cookie.ts', additions: 4, deletions: 1 }, { path: 'src/http/cookie.test.ts', additions: 20, deletions: 0 }, { path: 'src/http/session.ts', additions: 1, deletions: 1 }] },
-    { number: 11, title: 'cookie: support quoted values', body: '', url: 'p11', mergedAt: '2026-01-20', author: 'ann', labels: [], closes: [],
-      files: [{ path: 'src/http/cookie.ts', additions: 6, deletions: 2 }, { path: 'src/http/cookie.test.ts', additions: 10, deletions: 0 }] },
-    { number: 12, title: 'fix(cart): apply discount before tax', body: 'closes #2', url: 'p12', mergedAt: '2026-02-04', author: 'bob', labels: [], closes: [],
-      files: [{ path: 'src/cart/total.ts', additions: 5, deletions: 5 }, { path: 'package.json', additions: 1, deletions: 1 }] },
+    pr(10, 'fix(cookie): keep = in cookie values', 'Fixes #1', '2026-01-03T00:00:00Z', 'ann', ['src/http/cookie.ts', 'src/http/cookie.test.ts', 'src/http/session.ts'], [1]),
+    pr(11, 'cookie: support quoted values', '', '2026-01-20T00:00:00Z', 'ann', ['src/http/cookie.ts', 'src/http/cookie.test.ts']),
+    pr(12, 'fix(cart): apply discount before tax', 'closes #2', '2026-02-04T00:00:00Z', 'bob', ['src/cart/total.ts', 'package.json']),
+    // The fix of #5 merged after #5 was opened: a replay of #5 must not see it.
+    pr(13, 'fix: cookie values truncated at second equals', 'fixes #5', '2026-04-03T00:00:00Z', 'fay', ['src/http/cookie.ts', 'src/http/cookie.test.ts', 'src/http/parse-header.ts']),
   ],
 };
 
-test('ingest + blast radius on a small graph', async () => {
+let shared: Store | undefined;
+async function graph() {
+  if (!shared) { shared = openStore(':memory:'); await ingest(shared, data); }
+  return shared;
+}
+
+test('ingest + groundwork on a small graph', async () => {
   const store = openStore(':memory:');
   const r = await ingest(store, data);
-  assert.equal(r.issues, 4);
-  assert.equal(r.fixes, 2); // closingIssuesReferences + "closes #2" in the body
-  assert.equal(r.coChange, 1); // cookie.ts + cookie.test.ts changed together twice
+  assert.equal(r.issues, 5);
+  assert.equal(r.fixes, 3); // closingIssuesReferences + "closes #2" / "fixes #5" in the body
+  assert.equal(r.coChange, 1); // cookie.ts + cookie.test.ts changed together 3 times
 
-  const b = await blastRadius(store, 'acme/shop', { issue: 3 });
+  const b = await planTicket(store, 'acme/shop', { issue: 3 });
   assert.equal(b.files[0].path, 'src/http/cookie.ts');
   assert.ok(b.files.some((f) => f.path === 'src/http/cookie.test.ts'));
   assert.ok(!b.files.slice(0, 2).some((f) => f.path.startsWith('src/cart')));
   assert.ok(b.files[0].reasons.some((x) => x.kind === 'similar-issue' && x.text.includes('#1')));
-  assert.equal(b.experts[0].login, 'ann');
+  assert.ok(['ann', 'fay'].includes(b.experts[0].login));
   assert.ok(b.similar.some((s) => s.kind === 'issue' && s.number === 1));
-  assert.ok(b.graph.nodes.some((n) => n.type === 'target') && b.graph.edges.length > 0);
+  assert.equal(b.target.kind === 'issue' && b.target.ref, '#3');
+  // The explanation is a real path: target -SIMILAR-> ticket <-FIXES- PR -TOUCHES-> file.
+  const e = (from: string, to: string) => b.graph.edges.some((x) => x.from === from && x.to === to);
+  assert.ok(e('issue:3', 'issue:1') && e('pr:10', 'issue:1') && e('pr:10', 'file:src/http/cookie.ts'));
+  assert.match(toMarkdown(b), /Files most likely to change/);
 
-  const t = await blastRadius(store, 'acme/shop', { text: 'discount total is wrong at checkout' });
+  const t = await planTicket(store, 'acme/shop', { text: 'discount total is wrong at checkout' });
   assert.equal(t.files[0].path, 'src/cart/total.ts');
   assert.ok(!t.files.slice(0, 1).some((f) => f.path === 'package.json'));
 
-  await assert.rejects(blastRadius(store, 'acme/shop', { issue: 999 }), /not in the graph/);
+  await assert.rejects(planTicket(store, 'acme/shop', { issue: 999 }), /not in the graph/);
 });
 
-test('agents get read-only Cypher', () => {
+test('a ticket with a fix reports it live, but a replay as of its creation cannot see it', async () => {
+  const store = await graph();
+  const live = await planTicket(store, 'acme/shop', { issue: 5 });
+  assert.ok(live.files.some((f) => f.reasons.some((r) => r.kind === 'fixed-by')));
+  assert.ok(live.files.some((f) => f.path === 'src/http/parse-header.ts'));
+
+  const replay = await planTicket(store, 'acme/shop', { issue: 5 }, { asOf: '2026-04-01T00:00:00Z' });
+  assert.ok(!replay.files.some((f) => f.reasons.some((r) => r.kind === 'fixed-by')));
+  assert.ok(!replay.files.some((f) => f.path === 'src/http/parse-header.ts'), 'only PR #13 ever touched it, and it merged later');
+  assert.ok(!replay.experts.some((e) => e.login === 'fay'));
+  assert.equal(replay.files[0].path, 'src/http/cookie.ts'); // still found, from the past fix of #1
+});
+
+test('ablations switch parts off', async () => {
+  const store = await graph();
+  const noCo = await planTicket(store, 'acme/shop', { issue: 3 }, { use: { coChange: false } });
+  assert.ok(!noCo.files.some((f) => f.reasons.some((r) => r.kind === 'co-change')));
+  const noIssues = await planTicket(store, 'acme/shop', { issue: 3 }, { use: { issues: false } });
+  assert.ok(!noIssues.files.some((f) => f.reasons.some((r) => r.kind === 'similar-issue')));
+  const ftOnly = await planTicket(store, 'acme/shop', { text: 'cookie equals value' }, { use: { vector: false } });
+  assert.ok(ftOnly.similar.length > 0);
+});
+
+test('check: covered, missing and unexpected files', async () => {
+  const store = await graph();
+  const r = await checkChange(store, 'acme/shop', { issue: 3 }, ['src/http/cookie.ts', 'src/admin/new-page.ts']);
+  assert.deepEqual(r.covered.map((f) => f.path), ['src/http/cookie.ts']);
+  assert.ok(r.missing.some((f) => f.path === 'src/http/cookie.test.ts' && f.test));
+  assert.deepEqual(r.unexpected, [{ path: 'src/admin/new-page.ts', seenBefore: false }]);
+  assert.equal(r.ok, false);
+  assert.match(checkMarkdown(r), /Probably missing/);
+
+  const full = await checkChange(store, 'acme/shop', { issue: 3 }, ['src/http/cookie.ts', 'src/http/cookie.test.ts', 'src/http/session.ts', 'src/http/parse-header.ts']);
+  assert.equal(full.ok, true);
+});
+
+test('backtest: cases only from tickets with history, scored against baselines', async () => {
+  const store = await graph();
+  const { cases: cs } = cases(store, 'acme/shop', { minHistory: 1 });
+  // #5 (fixed by #13, after #10-#12) and #2 (after #10, #11) have history; nothing was merged before #1.
+  assert.deepEqual(cs.map((c) => c.issue).sort(), [2, 5]);
+  const five = cs.find((c) => c.issue === 5)!;
+  assert.deepEqual(five.truth.sort(), ['src/http/cookie.test.ts', 'src/http/cookie.ts', 'src/http/parse-header.ts']);
+  assert.deepEqual(five.known.sort(), ['src/http/cookie.test.ts', 'src/http/cookie.ts']);
+
+  // Tune on the older half, report on the newer one: the two never overlap.
+  assert.deepEqual(cases(store, 'acme/shop', { minHistory: 1, split: 'newer' }).cases.map((c) => c.issue), [5]);
+  assert.deepEqual(cases(store, 'acme/shop', { minHistory: 1, split: 'older' }).cases.map((c) => c.issue), [2]);
+
+  assert.equal((await backtest(store, 'acme/shop', { ablations: false })).cases, 0); // the default needs 50 earlier PRs
+  const r = await backtest(store, 'acme/shop', { minHistory: 1 });
+  assert.equal(r.cases, 2);
+  const full = r.results.find((x) => x.name === 'Groundwork (full)')!;
+  assert.equal(full.hit5, 50); // #5: cookie.ts found from the fix of #1; #2: total.ts was never touched before
+  assert.ok(r.results.some((x) => x.name.startsWith('Baseline')));
+  assert.equal(r.results.find((x) => x.name.startsWith('Ceiling'))!.recall10, 33.3); // (2/3 + 0/1) / 2
+});
+
+test('jira: ADF text, keys in PR titles, tickets linked to the PRs that name them', async () => {
+  assert.equal(adfText({ type: 'doc', content: [{ type: 'paragraph', content: [{ type: 'text', text: 'Cookie ' }, { type: 'text', text: 'cut at =' }] }] }), 'Cookie cut at =');
+  assert.deepEqual(jiraKeys('SHOP-12: fix cookie (see SHOP-12, SHOP-3; not SHOPX-1)', 'SHOP'), ['SHOP-12', 'SHOP-3']);
+  const tickets = fromJiraJson([
+    { key: 'SHOP-12', fields: { summary: 'Cookie value cut at equals sign', description: 'in cookie.ts', status: { statusCategory: { key: 'done' } }, created: '2026-01-02T10:00:00.000+0000', resolutiondate: '2026-01-04T10:00:00.000+0000', labels: ['bug'] } },
+    { key: 'SHOP-20', fields: { summary: 'Session cookie broken after login', description: null, status: { statusCategory: { key: 'indeterminate' } }, created: '2026-05-01T10:00:00.000+0000' } },
+  ], 'acme.atlassian.net');
+  assert.equal(tickets[0].status, 'CLOSED');
+  assert.equal(tickets[1].status, 'OPEN');
+  assert.equal(tickets[0].url, 'https://acme.atlassian.net/browse/SHOP-12');
+
   const store = openStore(':memory:');
+  const d = structuredClone(data);
+  d.prs[1].title = 'SHOP-12: cookie: support quoted values';
+  await ingest(store, d);
+  const r = await ingestJira(store, 'acme/shop', tickets);
+  assert.equal(r.tickets, 2);
+  assert.equal(r.fixes, 1);
+  const p = await planTicket(store, 'acme/shop', { issue: 'SHOP-20' });
+  assert.equal(p.target.kind === 'issue' && p.target.ref, 'SHOP-20');
+  assert.ok(p.files.some((f) => f.path === 'src/http/cookie.ts'));
+});
+
+test('snapshots load plain or gzipped (judges need no GitHub token)', () => {
+  const dir = mkdtempSync(path.join(tmpdir(), 'gw-'));
+  writeFileSync(path.join(dir, 'a.json'), JSON.stringify(data));
+  writeFileSync(path.join(dir, 'a.json.gz'), gzipSync(JSON.stringify(data)));
+  assert.equal(readSnapshot(path.join(dir, 'a.json')).prs.length, 4);
+  assert.equal(readSnapshot(path.join(dir, 'a.json.gz')).issues.length, 5);
+});
+
+test('agents get read-only Cypher and who-knows', async () => {
+  const store = await graph();
   assert.throws(() => readOnlyCypher(store, 'MATCH (n) DETACH DELETE n'), /read queries/);
-  assert.throws(() => readOnlyCypher(store, "CREATE (:X)"), /read queries/);
+  assert.throws(() => readOnlyCypher(store, 'CREATE (:X)'), /read queries/);
   assert.equal(JSON.parse(readOnlyCypher(store, 'RETURN 1 + 1 AS two'))[0].two, 2);
+  assert.match(whoKnows(store, 'acme/shop', 'src/http'), /@ann: 2 merged PRs/);
+});
+
+test('eval markdown renders a table', () => {
+  const md = evalMarkdown({ repo: 'a/b', at: '', cases: 1, skipped: 0, k: 10, examples: [],
+    results: [{ name: 'Groundwork (full)', cases: 1, hit5: 100, hit10: 100, recall5: 50, recall10: 50, mrr: 1, ms: 3 },
+      { name: 'Ceiling (files seen before)', cases: 1, hit5: NaN, hit10: NaN, recall5: NaN, recall10: 80, mrr: NaN, ms: 0 }] });
+  assert.match(md, /\| Groundwork \(full\) \| 100% \| 100% \| 50% \| 50% \| 1 \| 3 \|/);
+  assert.match(md, /\| Ceiling \(files seen before\) \| – \| – \| – \| 80% \| – \| – \|/);
 });

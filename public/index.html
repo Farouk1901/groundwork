@@ -3,76 +3,114 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Blast Radius</title>
+<title>Groundwork</title>
 <style>
 :root {
-  --bg: #f6f7f9; --surface: #ffffff; --surface-2: #eef1f5; --text: #18202b; --muted: #5d6878; --line: #dde2ea;
-  --accent: #d1452b; --accent-soft: #fbe7e2; --teal: #13777f; --teal-soft: #dcf0f0; --amber: #9a5b00; --amber-soft: #fbefd9;
-  --violet: #5b4bc4; --violet-soft: #e9e6fb; --radius: 12px; color-scheme: light;
+  --bg: #f5f6f8; --surface: #ffffff; --surface-2: #eef1f5; --text: #16202c; --muted: #5b6676; --line: #dde2ea;
+  --accent: #c2410c; --accent-soft: #fdeadf; --teal: #0f766e; --teal-soft: #d7efec; --violet: #5b4bc4; --violet-soft: #e9e6fb;
+  --amber: #946200; --amber-soft: #fbefd6; --good: #15803d; --good-soft: #dcf3e3; --bad: #b42318; --bad-soft: #fde4e1;
+  --radius: 12px; --mono: ui-monospace, SFMono-Regular, Consolas, monospace; color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme="light"]) {
-    --bg: #0f1318; --surface: #171c23; --surface-2: #1f2630; --text: #e8edf3; --muted: #9aa6b5; --line: #2a333f;
-    --accent: #ff7a5c; --accent-soft: #3a211b; --teal: #5ccad1; --teal-soft: #15302f; --amber: #f0b45a; --amber-soft: #33281a;
-    --violet: #a99cff; --violet-soft: #252040; color-scheme: dark;
+    --bg: #0e1217; --surface: #161b22; --surface-2: #1e252e; --text: #e7ecf2; --muted: #98a3b3; --line: #2a323d;
+    --accent: #fb8a4c; --accent-soft: #3a2116; --teal: #4fd1c5; --teal-soft: #14302d; --violet: #a99cff; --violet-soft: #252040;
+    --amber: #f2b553; --amber-soft: #33281a; --good: #4ade80; --good-soft: #15301f; --bad: #ff8a7a; --bad-soft: #3a1b18; color-scheme: dark;
   }
+}
+:root[data-theme="dark"] {
+  --bg: #0e1217; --surface: #161b22; --surface-2: #1e252e; --text: #e7ecf2; --muted: #98a3b3; --line: #2a323d;
+  --accent: #fb8a4c; --accent-soft: #3a2116; --teal: #4fd1c5; --teal-soft: #14302d; --violet: #a99cff; --violet-soft: #252040;
+  --amber: #f2b553; --amber-soft: #33281a; --good: #4ade80; --good-soft: #15301f; --bad: #ff8a7a; --bad-soft: #3a1b18; color-scheme: dark;
 }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--bg); color: var(--text); font: 15px/1.5 system-ui, -apple-system, "Segoe UI", Roboto, sans-serif; }
-.wrap { max-width: 1280px; margin: 0 auto; padding: 20px 16px 48px; }
-header { display: flex; align-items: center; gap: 12px; margin-bottom: 14px; }
-.logo { width: 38px; height: 38px; flex: none; }
-h1 { font-size: 22px; margin: 0; letter-spacing: -.01em; }
+.wrap { max-width: 1320px; margin: 0 auto; padding: 22px 16px 48px; }
+header { display: flex; align-items: center; gap: 14px; flex-wrap: wrap; margin-bottom: 16px; }
+.logo { width: 40px; height: 40px; flex: none; }
+.brand { flex: 1 1 360px; min-width: 0; }
+h1 { font-size: 23px; margin: 0; letter-spacing: -.015em; }
 .sub { color: var(--muted); margin: 0; font-size: 14px; }
-form { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; display: grid; grid-template-columns: 220px 1fr auto; gap: 10px; }
-select, input, button { font: inherit; color: var(--text); }
-select, input { background: var(--surface-2); border: 1px solid var(--line); border-radius: 9px; padding: 9px 11px; min-width: 0; }
-button { background: var(--accent); color: #fff; border: 0; border-radius: 9px; padding: 9px 18px; font-weight: 650; cursor: pointer; }
+.pill { font-size: 12.5px; color: var(--muted); background: var(--surface); border: 1px solid var(--line); border-radius: 999px; padding: 5px 12px; white-space: nowrap; }
+.pill b { color: var(--text); font-weight: 650; }
+.proof { display: grid; grid-template-columns: auto 1fr auto; gap: 6px 18px; align-items: center; background: var(--surface); border: 1px solid var(--line);
+  border-left: 4px solid var(--good); border-radius: var(--radius); padding: 12px 16px; margin-bottom: 14px; }
+.proof .big { font-size: 28px; font-weight: 750; color: var(--good); letter-spacing: -.02em; line-height: 1; }
+.proof .big small { font-size: 13px; color: var(--muted); font-weight: 500; letter-spacing: 0; }
+.proof p { margin: 0; font-size: 14px; }
+.proof details { grid-column: 1 / -1; font-size: 13px; overflow-x: auto; min-width: 0; }
+.proof summary { cursor: pointer; color: var(--teal); }
+table { border-collapse: collapse; width: 100%; margin-top: 8px; font-variant-numeric: tabular-nums; }
+th, td { text-align: right; padding: 5px 8px; border-bottom: 1px solid var(--line); }
+th:first-child, td:first-child { text-align: left; }
+th { color: var(--muted); font-weight: 600; font-size: 12px; }
+tr.main td { font-weight: 700; }
+tr.base td { color: var(--muted); }
+.btn-link { background: none; border: 1px solid var(--line); color: var(--teal); padding: 5px 12px; font-weight: 600; font-size: 13px; border-radius: 8px; cursor: pointer; }
+form#f { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px; display: grid; grid-template-columns: 230px 1fr auto; gap: 10px; }
+select, input, textarea, button { font: inherit; color: var(--text); }
+select, input, textarea { background: var(--surface-2); border: 1px solid var(--line); border-radius: 9px; padding: 9px 11px; min-width: 0; }
+textarea { width: 100%; font-family: var(--mono); font-size: 12.5px; resize: vertical; min-height: 78px; }
+button.primary { background: var(--accent); color: #fff; border: 0; border-radius: 9px; padding: 9px 20px; font-weight: 650; cursor: pointer; }
 button:disabled { opacity: .55; cursor: wait; }
-.chips { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; }
-.chip { background: var(--surface-2); color: var(--text); border: 1px solid var(--line); border-radius: 999px; padding: 3px 10px; font-size: 13px; font-weight: 500; max-width: 420px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.chips { grid-column: 1 / -1; display: flex; flex-wrap: wrap; gap: 6px; align-items: center; }
+.chip { background: var(--surface-2); color: var(--text); border: 1px solid var(--line); border-radius: 999px; padding: 3px 11px; font-size: 13px; max-width: 380px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; cursor: pointer; }
 .chip:hover { border-color: var(--accent); }
+.chip.text { border-style: dashed; }
 :focus-visible { outline: 2px solid var(--teal); outline-offset: 2px; }
 .status { color: var(--muted); font-size: 13px; margin: 10px 2px; min-height: 20px; }
-.grid { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 14px; align-items: start; }
-.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; }
-.card h2 { font-size: 14px; text-transform: uppercase; letter-spacing: .06em; color: var(--muted); margin: 0 0 10px; }
-.target { font-size: 17px; font-weight: 650; margin: 0 0 4px; }
+.grid { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.08fr); gap: 14px; align-items: start; }
+.card { background: var(--surface); border: 1px solid var(--line); border-radius: var(--radius); padding: 14px 16px; min-width: 0; }
+.card h2 { font-size: 12.5px; text-transform: uppercase; letter-spacing: .07em; color: var(--muted); margin: 0 0 10px; }
+.target { font-size: 17px; font-weight: 650; margin: 0 0 12px; }
 .target a { color: inherit; }
-ol.files { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 10px; }
-.file { display: grid; grid-template-columns: 1fr 64px; gap: 4px 10px; }
-.path { font-family: ui-monospace, SFMono-Regular, Consolas, monospace; font-size: 13px; font-weight: 600; word-break: break-all; }
+ol.files { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 4px; counter-reset: f; }
+.file { display: grid; grid-template-columns: 22px 1fr 70px; gap: 2px 10px; padding: 8px; border-radius: 9px; cursor: pointer; border: 1px solid transparent; }
+.file:hover { background: var(--surface-2); }
+.file.on { border-color: var(--accent); background: var(--accent-soft); }
+.file::before { counter-increment: f; content: counter(f); color: var(--muted); font-size: 12px; font-variant-numeric: tabular-nums; padding-top: 1px; }
+.path { font-family: var(--mono); font-size: 13px; font-weight: 600; word-break: break-all; }
+.path .dir { color: var(--muted); font-weight: 500; }
 .bar { height: 6px; background: var(--surface-2); border-radius: 99px; overflow: hidden; align-self: center; }
 .bar i { display: block; height: 100%; background: var(--accent); }
-.why { grid-column: 1 / -1; margin: 0; padding-left: 16px; color: var(--muted); font-size: 13px; }
-.why li::marker { color: var(--line); }
+.why { grid-column: 2 / -1; margin: 0; padding: 0; list-style: none; color: var(--muted); font-size: 13px; }
 .tag { display: inline-block; font-size: 11px; font-weight: 650; border-radius: 6px; padding: 0 6px; margin-right: 6px; }
 .t-similar-issue, .t-similar-pr { background: var(--violet-soft); color: var(--violet); }
 .t-co-change { background: var(--teal-soft); color: var(--teal); }
 .t-named, .t-fixed-by { background: var(--accent-soft); color: var(--accent); }
-#cy { height: 520px; border-radius: 10px; background: var(--surface-2); }
+.graphcard { position: sticky; top: 12px; }
+#cy { height: 560px; border-radius: 10px; background: var(--surface-2); }
 .legend { display: flex; flex-wrap: wrap; gap: 12px; font-size: 12px; color: var(--muted); margin-top: 8px; }
 .legend span::before { content: ""; display: inline-block; width: 10px; height: 10px; border-radius: 50%; margin-right: 5px; vertical-align: -1px; background: var(--c); }
-.cols3 { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 14px; margin-top: 14px; }
-ul.plain { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 8px; font-size: 14px; }
+.hint { font-size: 12.5px; color: var(--muted); margin: 6px 0 0; }
+.cols { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 14px; margin-top: 14px; }
+ul.plain { list-style: none; padding: 0; margin: 0; display: flex; flex-direction: column; gap: 9px; font-size: 14px; }
 ul.plain small { color: var(--muted); display: block; }
 a { color: var(--teal); }
 .empty { color: var(--muted); font-size: 14px; }
+.res li { font-family: var(--mono); font-size: 12.5px; word-break: break-all; }
+.res .ok { color: var(--good); } .res .miss { color: var(--bad); } .res .extra { color: var(--amber); }
+.res small { font-family: system-ui, sans-serif; }
 footer { color: var(--muted); font-size: 12px; margin-top: 18px; }
-@media (max-width: 900px) { form { grid-template-columns: 1fr; } .grid, .cols3 { grid-template-columns: 1fr; } #cy { height: 380px; } }
+@media (max-width: 1100px) { .cols { grid-template-columns: repeat(2, minmax(0, 1fr)); } }
+@media (max-width: 900px) { form#f { grid-template-columns: 1fr; } .grid { grid-template-columns: 1fr; } .graphcard { position: static; } #cy { height: 400px; } .proof { grid-template-columns: 1fr; } }
+@media (max-width: 600px) { .cols { grid-template-columns: 1fr; } .pill { white-space: normal; } .chip { max-width: 100%; } form#f > * { min-width: 0; max-width: 100%; } }
 </style>
 </head>
 <body>
 <div class="wrap">
   <header>
-    <svg class="logo" viewBox="0 0 40 40" aria-hidden="true"><circle cx="20" cy="20" r="18" fill="none" stroke="currentColor" stroke-opacity=".18" stroke-width="2"/><circle cx="20" cy="20" r="11" fill="none" stroke="#d1452b" stroke-opacity=".5" stroke-width="2"/><circle cx="20" cy="20" r="4.5" fill="#d1452b"/><circle cx="33" cy="12" r="2.6" fill="#13777f"/><circle cx="8" cy="27" r="2.6" fill="#5b4bc4"/></svg>
-    <div><h1>Blast Radius</h1><p class="sub">What will this change touch? Answered from a Relate graph of the repository: past fixes, files, co-changes and people.</p></div>
+    <svg class="logo" viewBox="0 0 40 40" aria-hidden="true"><rect x="3" y="27" width="34" height="8" rx="2" fill="#c2410c"/><rect x="8" y="17" width="24" height="7" rx="2" fill="#0f766e" fill-opacity=".85"/><rect x="13" y="8" width="14" height="6" rx="2" fill="#5b4bc4" fill-opacity=".8"/></svg>
+    <div class="brand"><h1>Groundwork</h1><p class="sub">The connected context of a ticket, before the first line of code: what similar past fixes changed, who knows that code, what to watch. Answered from a Relate graph.</p></div>
+    <span class="pill" id="stats"></span>
   </header>
+
+  <section class="proof" id="proof" hidden></section>
 
   <form id="f">
     <select id="repo" aria-label="Repository"></select>
-    <input id="q" placeholder="An issue number, e.g. 5562, or describe the change you plan" aria-label="Issue number or description" autocomplete="off">
-    <button id="go">Analyse</button>
+    <input id="q" placeholder="A ticket number (e.g. 5601), a Jira key, or describe the change you plan" aria-label="Ticket number or description" autocomplete="off">
+    <button class="primary" id="go">Plan</button>
     <div class="chips" id="examples"></div>
   </form>
   <div class="status" id="status" role="status"></div>
@@ -84,98 +122,172 @@ footer { color: var(--muted); font-size: 12px; margin-top: 18px; }
         <h2>Files most likely to change</h2>
         <ol class="files" id="files"></ol>
       </section>
-      <section class="card">
-        <h2>Why: the graph behind the answer</h2>
-        <div id="cy" role="img" aria-label="Graph of the issue, similar work, files, modules and people"></div>
+      <section class="card graphcard">
+        <h2>Why: the graph paths behind the answer</h2>
+        <div id="cy" role="img" aria-label="Graph from the ticket through similar past tickets and pull requests to files, modules and people"></div>
         <div class="legend">
-          <span style="--c:#d1452b">this change</span><span style="--c:#5b4bc4">issue</span><span style="--c:#8a6ad8">pull request</span>
-          <span style="--c:#13777f">file</span><span style="--c:#9aa6b5">module</span><span style="--c:#c98a1b">person</span>
+          <span style="--c:#c2410c">this ticket</span><span style="--c:#5b4bc4">past ticket</span><span style="--c:#8a6ad8">pull request</span>
+          <span style="--c:#0f766e">file</span><span style="--c:#9aa6b5">module</span><span style="--c:#c98a1b">person</span>
         </div>
+        <p class="hint">Click a file on the left to light up the path that put it there. Click a ticket, PR or person to open it on GitHub.</p>
       </section>
     </div>
-    <div class="cols3">
+    <div class="cols">
       <section class="card"><h2>Who knows this code</h2><ul class="plain" id="experts"></ul></section>
       <section class="card"><h2>Watch out for</h2><ul class="plain" id="risks"></ul></section>
       <section class="card"><h2>Similar past work</h2><ul class="plain" id="similar"></ul></section>
+      <section class="card">
+        <h2>Check your change</h2>
+        <textarea id="changed" aria-label="Changed files, one per line" placeholder="Paste changed files (git diff --name-only)"></textarea>
+        <div style="display:flex;gap:8px;margin-top:8px"><button class="btn-link" id="checkBtn" type="button">Check against this ticket</button><button class="btn-link" id="fillTop" type="button" title="Pretend you changed only the top file">Try: top file only</button></div>
+        <ul class="plain res" id="checkOut" style="margin-top:10px"></ul>
+      </section>
     </div>
   </div>
-  <footer id="foot"></footer>
+  <footer id="foot">Everything runs locally: a Relate graph on disk, embeddings computed on this machine, no API keys.</footer>
 </div>
 <script src="/vendor/cytoscape.min.js"></script>
 <script>
 const $ = (id) => document.getElementById(id);
 const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
 const gh = (repo, kind, n) => `https://github.com/${repo}/${kind === 'pr' ? 'pull' : 'issues'}/${n}`;
-let cy;
+const fmt = (n) => Number(n).toLocaleString('en-US');
+let cy, last;
 
 async function boot() {
   const r = await fetch('/api/repos').then((x) => x.json());
-  $('repo').innerHTML = r.repos.map((x) => `<option value="${esc(x.name)}">${esc(x.name)} · ${x.issues} issues · ${x.prs} PRs</option>`).join('');
-  if (!r.repos.length) { $('status').textContent = 'The graph is empty. Run: npx tsx src/cli.ts ingest owner/repo'; return; }
-  $('examples').innerHTML = '<span class="sub" style="align-self:center">Open issues:</span>' + r.examples.slice(0, 6)
-    .map((e) => `<button type="button" class="chip" data-q="${e.number}" title="${esc(e.title)}">#${e.number} ${esc(e.title)}</button>`).join('');
+  $('repo').innerHTML = r.repos.map((x) => `<option value="${esc(x.name)}">${esc(x.name)} · ${fmt(x.issues)} tickets · ${fmt(x.prs)} PRs</option>`).join('');
+  const c = r.counts || {};
+  $('stats').innerHTML = `Relate graph · <b>${fmt(c.Issue || 0)}</b> tickets · <b>${fmt(c.PR || 0)}</b> PRs · <b>${fmt(c.File || 0)}</b> files · <b>${fmt(c.Person || 0)}</b> people · <b>${fmt(r.rels || 0)}</b> relationships`;
+  if (!r.repos.length) { $('status').textContent = 'The graph is empty. Run: npm run demo:ingest (no token needed) or npx tsx src/cli.ts ingest owner/repo'; return; }
+  $('examples').innerHTML = '<span class="sub">Open tickets:</span>' + r.examples.slice(0, 5)
+    .map((e) => `<button type="button" class="chip" data-q="${e.number}" title="${esc(e.title)}">#${e.number} ${esc(e.title)}</button>`).join('')
+    + `<button type="button" class="chip text" data-q="JWT middleware should read the token from a cookie with a custom name">or describe one: “JWT middleware should read the token from a cookie…”</button>`;
+  loadProof();
   const q = new URLSearchParams(location.search).get('q');
   if (q) { $('q').value = q; run(); }
 }
 
+async function loadProof() {
+  const e = await fetch(`/api/eval?repo=${encodeURIComponent($('repo').value)}`).then((x) => x.json()).catch(() => null);
+  if (!e || !e.results) return;
+  const full = e.results.find((x) => x.name.startsWith('Groundwork')), base = e.results.find((x) => x.name.startsWith('Baseline'));
+  const pct = (v) => (Number.isNaN(v) || v == null ? '–' : v + '%');
+  $('proof').innerHTML = `<div class="big">${full.hit5}% <small>vs ${base.hit5}%</small></div>
+    <p><b>Backtested on ${fmt(e.cases)} real tickets of ${esc(e.repo)}${e.split === 'newer' ? ', the newest half, never used to tune a weight' : ''}.</b> Each one replayed as of the moment it was opened, with its fix hidden: a file the real fix changed was in Groundwork's top 5 for ${full.hit5}% of them. Ranking the repository's most-changed files, which is all a tool that needs a starting file can do before any code exists, gets ${base.hit5}%.</p>
+    <span></span>
+    <details><summary>Full results and ablations</summary><table><thead><tr><th>Method</th><th>Hit@5</th><th>Hit@10</th><th>Recall@5</th><th>Recall@10</th><th>MRR</th></tr></thead><tbody>
+    ${e.results.map((x) => `<tr class="${x.name.startsWith('Groundwork') ? 'main' : x.name.startsWith('Baseline') || x.name.startsWith('Ceiling') ? 'base' : ''}"><td>${esc(x.name.trim())}</td><td>${pct(x.hit5)}</td><td>${pct(x.hit10)}</td><td>${pct(x.recall5)}</td><td>${pct(x.recall10)}</td><td>${x.mrr == null || Number.isNaN(x.mrr) ? '–' : x.mrr}</td></tr>`).join('')}
+    </tbody></table><p class="hint">Hit@k: at least one file the fix changed is in the top k. Recall@k: share of the fix's files in the top k. Ceiling: share of fixed files that any earlier PR had touched (a brand-new file cannot be predicted from history). Reproduce with <code>npx tsx src/cli.ts eval ${esc(e.repo)}</code>.</p></details>`;
+  $('proof').hidden = false;
+}
+
 $('examples').addEventListener('click', (e) => { const b = e.target.closest('[data-q]'); if (b) { $('q').value = b.dataset.q; run(); } });
 $('f').addEventListener('submit', (e) => { e.preventDefault(); run(); });
+$('checkBtn').addEventListener('click', check);
+$('fillTop').addEventListener('click', () => { if (last?.files[0]) { $('changed').value = last.files[0].path; check(); } });
 
 async function run() {
   const repo = $('repo').value, q = $('q').value.trim();
   if (!q) return;
-  $('go').disabled = true; $('status').textContent = 'Walking the graph…';
+  $('go').disabled = true; $('status').textContent = 'Searching past tickets and walking the graph…';
   try {
-    const r = await fetch(`/api/blast?repo=${encodeURIComponent(repo)}&q=${encodeURIComponent(q)}`).then((x) => x.json());
+    const r = await fetch(`/api/plan?repo=${encodeURIComponent(repo)}&q=${encodeURIComponent(q)}`).then((x) => x.json());
     if (r.error) throw new Error(r.error);
     history.replaceState(null, '', `?q=${encodeURIComponent(q)}`);
-    render(r);
-    $('status').textContent = `${r.files.length} files · ${r.graph.nodes.length} nodes in the explanation · answered from Relate in ${r.tookMs} ms`;
+    last = r; render(r);
+    $('status').textContent = `${r.files.length} files · ${r.similar.length} similar tickets and PRs · ${r.graph.nodes.length} nodes in the explanation · answered from Relate in ${r.tookMs} ms`;
   } catch (e) { $('status').textContent = e.message; }
   $('go').disabled = false;
 }
 
+function pathHtml(p) { const i = p.lastIndexOf('/'); return i < 0 ? esc(p) : `<span class="dir">${esc(p.slice(0, i + 1))}</span>${esc(p.slice(i + 1))}`; }
+
 function render(r) {
   $('out').hidden = false;
+  $('checkOut').innerHTML = '';
   $('target').innerHTML = r.target.kind === 'issue'
-    ? `<a href="${esc(r.target.url)}" target="_blank" rel="noopener">#${r.target.number}</a> ${esc(r.target.title)} <small class="sub">(${esc(r.target.state.toLowerCase())})</small>`
+    ? `<a href="${esc(r.target.url)}" target="_blank" rel="noopener">${esc(r.target.ref)}</a> ${esc(r.target.title)} <small class="sub">(${esc(r.target.state.toLowerCase())})</small>`
     : `“${esc(r.target.text)}”`;
-  $('files').innerHTML = r.files.map((f) => `<li class="file">
-      <span class="path">${esc(f.path)}</span><span class="bar" title="${Math.round(f.score * 100)}%"><i style="width:${Math.round(f.score * 100)}%"></i></span>
+  $('files').innerHTML = r.files.map((f) => `<li class="file" data-file="${esc(f.path)}" tabindex="0">
+      <span class="path">${pathHtml(f.path)}</span><span class="bar" title="${Math.round(f.score * 100)}%"><i style="width:${Math.round(f.score * 100)}%"></i></span>
       <ul class="why">${f.reasons.slice(0, 2).map((x) => `<li><span class="tag t-${x.kind}">${x.kind.replace('-', ' ')}</span>${esc(x.text)}</li>`).join('')}</ul></li>`).join('')
-    || '<li class="empty">Nothing found. Try describing the change in more words.</li>';
-  $('experts').innerHTML = r.experts.map((e) => `<li><a href="https://github.com/${esc(e.login)}" target="_blank" rel="noopener">@${esc(e.login)}</a><small>${e.changes} merged PRs here · last ${esc(e.last)}</small></li>`).join('') || '<li class="empty">No history yet.</li>';
+    || '<li class="empty">Nothing similar was fixed before. Describe the change in more words, or this is new ground.</li>';
+  $('experts').innerHTML = r.experts.map((e) => `<li><a href="https://github.com/${esc(e.login)}" target="_blank" rel="noopener">@${esc(e.login)}</a><small>${e.changes} merged PRs in these files · last ${esc(e.last)}</small></li>`).join('') || '<li class="empty">No history yet.</li>';
   $('risks').innerHTML = r.risks.map((x) => `<li><a href="${esc(x.url)}" target="_blank" rel="noopener">#${x.number}</a> ${esc(x.title)}<small>${esc(x.why)}</small></li>`).join('') || '<li class="empty">Nothing open in these files.</li>';
-  $('similar').innerHTML = r.similar.slice(0, 8).map((x) => `<li><a href="${esc(x.url || gh(r.repo, x.kind, x.number))}" target="_blank" rel="noopener">${x.kind === 'pr' ? 'PR' : 'Issue'} #${x.number}</a> ${esc(x.title)}<small>${x.state ? esc(x.state.toLowerCase()) + ' · ' : ''}hybrid score ${x.score}</small></li>`).join('');
+  $('similar').innerHTML = r.similar.slice(0, 7).map((x) => `<li><a href="${esc(x.url || gh(r.repo, x.kind, x.number))}" target="_blank" rel="noopener">${x.kind === 'pr' ? 'PR' : 'Ticket'} #${x.number}</a> ${esc(x.title)}<small>${x.state ? esc(x.state.toLowerCase()) + ' · ' : ''}similarity ${Math.round(x.sim * 100)}%</small></li>`).join('');
   drawGraph(r);
 }
 
+$('files').addEventListener('click', (e) => { const li = e.target.closest('[data-file]'); if (li) focusFile(li.dataset.file); });
+$('files').addEventListener('keydown', (e) => { if (e.key === 'Enter') { const li = e.target.closest('[data-file]'); if (li) focusFile(li.dataset.file); } });
+
+function focusFile(path) {
+  document.querySelectorAll('.file').forEach((x) => x.classList.toggle('on', x.dataset.file === path));
+  if (!cy) return;
+  const root = cy.nodes('[type = "target"]')[0], goal = cy.getElementById('file:' + path);
+  cy.elements().removeClass('hl faded');
+  if (!goal.nonempty()) return;
+  const p = cy.elements().aStar({ root, goal, directed: false });
+  if (!p.found) return;
+  // Also show the file's module and the people who changed it.
+  const around = goal.connectedEdges().filter((e) => ['IN', 'CHANGED'].includes(e.data('type')));
+  const lit = p.path.union(around).union(around.connectedNodes());
+  cy.elements().not(lit).addClass('faded');
+  lit.addClass('hl');
+}
+
 function drawGraph(r) {
-  const dark = matchMedia('(prefers-color-scheme: dark)').matches;
-  const color = { target: '#d1452b', issue: '#5b4bc4', pr: '#8a6ad8', file: '#13777f', module: '#9aa6b5', person: '#c98a1b' };
+  const dark = matchMedia('(prefers-color-scheme: dark)').matches && document.documentElement.dataset.theme !== 'light';
+  const color = { target: '#c2410c', issue: '#5b4bc4', pr: '#8a6ad8', file: '#0f766e', module: '#9aa6b5', person: '#c98a1b' };
   const elements = [
-    ...r.graph.nodes.map((n) => ({ data: { id: n.id, label: n.label, type: n.type, size: n.type === 'target' ? 46 : n.type === 'file' ? 18 + 26 * (n.score ?? 0.3) : n.type === 'module' ? 30 : 20 } })),
+    ...r.graph.nodes.map((n) => ({ data: { id: n.id, label: n.label, type: n.type, size: n.type === 'target' ? 48 : n.type === 'file' ? 18 + 26 * (n.score ?? 0.3) : n.type === 'module' ? 28 : 20 } })),
     ...r.graph.edges.map((e, i) => ({ data: { id: 'e' + i, source: e.from, target: e.to, type: e.type } })),
   ];
   cy?.destroy();
+  const ink = dark ? '#e7ecf2' : '#16202c', halo = dark ? '#1e252e' : '#eef1f5', edge = dark ? '#3a4452' : '#c5ccd6';
   cy = cytoscape({
     container: $('cy'), elements, wheelSensitivity: 0.25,
     style: [
       { selector: 'node', style: { 'background-color': (n) => color[n.data('type')] || '#888', width: 'data(size)', height: 'data(size)', label: 'data(label)',
-        'font-size': 10, color: dark ? '#e8edf3' : '#18202b', 'text-valign': 'bottom', 'text-margin-y': 4, 'text-outline-width': 2, 'text-outline-color': dark ? '#1f2630' : '#eef1f5' } },
+        'font-size': 10, color: ink, 'text-valign': 'bottom', 'text-margin-y': 4, 'text-outline-width': 2, 'text-outline-color': halo } },
       { selector: 'node[type = "target"]', style: { 'font-size': 13, 'font-weight': 700 } },
-      { selector: 'edge', style: { width: 1.4, 'line-color': dark ? '#3a4452' : '#c5ccd6', 'target-arrow-color': dark ? '#3a4452' : '#c5ccd6', 'target-arrow-shape': 'triangle', 'arrow-scale': .7, 'curve-style': 'bezier',
-        label: 'data(type)', 'font-size': 7, color: dark ? '#9aa6b5' : '#5d6878', 'text-rotation': 'autorotate', 'text-background-opacity': 0 } },
-      { selector: 'edge[type = "CO_CHANGED"]', style: { 'line-style': 'dashed', 'line-color': '#13777f', 'target-arrow-color': '#13777f' } },
+      { selector: 'node[type = "module"]', style: { shape: 'round-rectangle', width: 34, height: 16 } },
+      { selector: 'edge', style: { width: 1.4, 'line-color': edge, 'target-arrow-color': edge, 'target-arrow-shape': 'triangle', 'arrow-scale': .7, 'curve-style': 'bezier',
+        label: 'data(type)', 'font-size': 7, color: dark ? '#98a3b3' : '#5b6676', 'text-rotation': 'autorotate', 'text-background-opacity': 0 } },
+      { selector: 'edge[type = "CO_CHANGED"]', style: { 'line-style': 'dashed', 'line-color': '#0f766e', 'target-arrow-color': '#0f766e' } },
       { selector: 'edge[type = "SIMILAR"]', style: { 'line-style': 'dotted', 'line-color': '#5b4bc4', 'target-arrow-color': '#5b4bc4' } },
+      { selector: '.faded', style: { opacity: 0.12 } },
+      { selector: 'edge.hl', style: { width: 3, 'line-color': '#c2410c', 'target-arrow-color': '#c2410c', 'font-size': 9, 'z-index': 9 } },
+      { selector: 'node.hl', style: { 'border-width': 3, 'border-color': '#c2410c', 'z-index': 9 } },
     ],
-    layout: { name: 'cose', animate: false, nodeRepulsion: 9000, idealEdgeLength: 70, padding: 20 },
+    layout: { name: 'grid', rows: 1 },
   });
+  // Layered from the ticket: similar tickets and PRs, then files, then modules and people. Run it once the card,
+  // hidden until now, has its real size.
+  const layered = { name: 'breadthfirst', roots: cy.nodes('[type = "target"]'), directed: false, spacingFactor: 1.1, padding: 18, animate: false, fit: true };
   cy.on('tap', 'node', (e) => {
-    const [kind, v] = e.target.id().split(':');
+    const id = e.target.id(), i = id.indexOf(':'), kind = id.slice(0, i), v = id.slice(i + 1);
+    if (kind === 'file') return focusFile(v);
     if (kind === 'issue' || kind === 'pr') window.open(gh(r.repo, kind, v), '_blank', 'noopener');
     if (kind === 'person') window.open(`https://github.com/${v}`, '_blank', 'noopener');
   });
+  requestAnimationFrame(() => { cy.resize(); cy.layout(layered).run(); });
+  cy.on('tap', (e) => { if (e.target === cy) { cy.elements().removeClass('hl faded'); document.querySelectorAll('.file').forEach((x) => x.classList.remove('on')); } });
+}
+
+async function check() {
+  const files = $('changed').value.trim();
+  if (!files || !$('q').value.trim()) return;
+  $('checkOut').innerHTML = '<li class="empty">Checking…</li>';
+  const r = await fetch(`/api/check?repo=${encodeURIComponent($('repo').value)}&q=${encodeURIComponent($('q').value.trim())}&files=${encodeURIComponent(files)}`).then((x) => x.json());
+  if (r.error) { $('checkOut').innerHTML = `<li class="empty">${esc(r.error)}</li>`; return; }
+  $('checkOut').innerHTML = [
+    ...r.covered.map((f) => `<li class="ok">✓ ${esc(f.path)}</li>`),
+    ...r.missing.map((f) => `<li class="miss">✗ ${esc(f.path)}${f.test ? ' (test)' : ''}<small>${esc(f.why)}</small></li>`),
+    ...r.unexpected.map((f) => `<li class="extra">? ${esc(f.path)}<small>${f.seenBefore ? 'outside this ticket’s usual footprint' : 'no past PR touched it: a new file?'}</small></li>`),
+    `<li class="empty" style="font-family:inherit">${r.ok ? 'Looks complete for this ticket.' : `${r.missing.length} file(s) that similar fixes also changed are not in your change.`}</li>`,
+  ].join('');
 }
 
 boot();

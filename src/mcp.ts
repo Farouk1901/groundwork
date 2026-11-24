@@ -1,9 +1,11 @@
-// MCP server (stdio): gives a coding agent the connected context of a repository before it edits code.
-// Add to Claude Code:  claude mcp add blast-radius -- npx tsx /path/to/blast-radius/src/cli.ts mcp
+// MCP server (stdio): gives a coding agent the connected context of a ticket before it edits code,
+// and a check of its diff against that context before it opens the PR.
+// Add to Claude Code:  claude mcp add groundwork -- npx tsx /path/to/groundwork/src/cli.ts mcp
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import { z } from 'zod';
-import { blastRadius, similar, toMarkdown } from './analyze.js';
+import { planTicket, similar, toMarkdown } from './analyze.js';
+import { checkChange, checkMarkdown } from './check.js';
 import { num, openStore, type Store } from './store.js';
 
 const WRITE = /\b(CREATE|MERGE|DELETE|DETACH|SET|REMOVE|DROP|LOAD|CALL\s+db\.|FOREACH)\b/i;
@@ -32,22 +34,31 @@ Relationships: (Person)-[:OPENED]->(Issue) (Person)-[:AUTHORED]->(PR) (PR)-[:FIX
 
 export async function runMcp() {
   const store = openStore();
-  const server = new McpServer({ name: 'blast-radius', version: '0.1.0' });
+  const server = new McpServer({ name: 'groundwork', version: '1.0.0' });
   const text = (t: string) => ({ content: [{ type: 'text' as const, text: t }] });
 
-  server.registerTool('blast_radius', {
-    title: 'Blast radius of an issue or a planned change',
-    description: 'Before editing code for an issue, call this. Returns the files and modules most likely to change, why (graph paths through similar past fixes, files named in the issue, co-change history), who knows that code, and open issues or recent bug fixes to watch. Pass an issue number, or describe the change in text.',
+  server.registerTool('plan_ticket', {
+    title: 'Groundwork for a ticket, before writing code',
+    description: 'Call this first when you are given a ticket or a change to make. Returns the files and modules most likely to change, why (graph paths through the fixes of similar past tickets and PRs, files the ticket names, co-change history), who knows that code, and open tickets or recent bug fixes to watch. Pass a ticket number, or describe the change in text.',
     inputSchema: { repo: z.string().describe('owner/name, already ingested'), issue: z.number().int().optional(), text: z.string().optional(), files: z.number().int().min(3).max(30).optional() },
   }, async ({ repo, issue, text: t, files }) => {
     if (!issue && !t) return text('Pass either issue or text.');
-    const r = await blastRadius(store, repo, issue ? { issue } : { text: t! }, { files });
+    const r = await planTicket(store, repo, issue ? { issue } : { text: t! }, { files });
     return text(toMarkdown(r));
   });
 
+  server.registerTool('check_diff', {
+    title: 'Check a change against its ticket',
+    description: 'Before you commit or open a PR: pass the ticket and the files you changed. Returns which expected files are covered, which ones similar past fixes also changed but you did not (often a test or a sibling module), and which changed files are outside the ticket’s usual footprint.',
+    inputSchema: { repo: z.string(), issue: z.number().int().optional(), text: z.string().optional(), changed: z.array(z.string()).min(1).describe('paths relative to the repository root') },
+  }, async ({ repo, issue, text: t, changed }) => {
+    if (!issue && !t) return text('Pass either issue or text.');
+    return text(checkMarkdown(await checkChange(store, repo, issue ? { issue } : { text: t! }, changed)));
+  });
+
   server.registerTool('similar_work', {
-    title: 'Similar past issues and pull requests',
-    description: 'Hybrid search (local embeddings + full-text, fused with reciprocal rank fusion inside Relate) over the issues and merged pull requests of a repository.',
+    title: 'Similar past tickets and pull requests',
+    description: 'Hybrid search (local embeddings + full-text, fused with reciprocal rank fusion inside Relate) over the tickets and merged pull requests of a repository.',
     inputSchema: { repo: z.string(), text: z.string(), limit: z.number().int().min(1).max(20).optional() },
   }, async ({ repo, text: t, limit }) => {
     const xs = await similar(store, repo, t, limit ?? 8);
@@ -69,5 +80,5 @@ export async function runMcp() {
   });
 
   await server.connect(new StdioServerTransport());
-  process.stderr.write(`blast-radius MCP server ready (graph: ${store.path})\n`);
+  process.stderr.write(`groundwork MCP server ready (graph: ${store.path})\n`);
 }

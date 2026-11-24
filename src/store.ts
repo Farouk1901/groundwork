@@ -7,8 +7,8 @@ import { Database } from '@relate/relate';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
-/** Data lives next to the project by default (override with BLAST_HOME), whatever folder you run it from. */
-export const HOME = process.env.BLAST_HOME || path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '.blast-radius');
+/** Data lives next to the project by default (override with GROUNDWORK_HOME), whatever folder you run it from. */
+export const HOME = process.env.GROUNDWORK_HOME || path.join(path.dirname(fileURLToPath(import.meta.url)), '..', '.groundwork');
 
 export type Row = Record<string, unknown>;
 export type Store = { query: (cypher: string, params?: Record<string, unknown>) => Row[]; close: () => void; path: string };
@@ -35,15 +35,17 @@ export const SEARCH_INDEXES = [
   'CREATE VECTOR INDEX pr_embed IF NOT EXISTS FOR (n:PR) ON n.embedding WITH [n.repo]',
 ];
 
-export function openStore(dir = process.env.BLAST_DB || path.join(HOME, 'graph')): Store {
+export function openStore(dir = process.env.GROUNDWORK_DB || path.join(HOME, 'graph')): Store {
   let db: ReturnType<typeof Database.open>;
   try { db = Database.open(dir); }
   catch (e) {
-    throw new Error(`Could not open the graph at ${dir} (${(e as Error).message}). Relate allows one process per store: stop "serve" or "mcp" if it is running, or set BLAST_DB to another folder.`);
+    throw new Error(`Could not open the graph at ${dir} (${(e as Error).message}). Relate allows one process per store: stop "serve" or "mcp" if it is running, or set GROUNDWORK_DB to another folder.`);
   }
   const conn = db.connect();
   const run = conn.query.bind(conn) as unknown as (c: string, p?: Record<string, unknown>) => { rows: Row[] };
-  const query = (cypher: string, params?: Record<string, unknown>) => run(cypher, params).rows;
+  // Undefined is not a Cypher value: drop such params, so optional ones can be passed as they are.
+  const query = (cypher: string, params?: Record<string, unknown>) =>
+    run(cypher, params && Object.fromEntries(Object.entries(params).filter(([, v]) => v !== undefined))).rows;
   for (const s of SCHEMA) query(s);
   return { query, path: dir, close: () => { try { (db as unknown as { close?: () => void }).close?.(); } catch { /* ignore */ } } };
 }
