@@ -1,6 +1,6 @@
 {
   "repo": "relatedb/relate",
-  "at": "2026-11-24T18:53:08.723Z",
+  "at": "2026-11-25T07:46:16.994Z",
   "split": "newer",
   "mode": "prs",
   "cases": 283,
@@ -15,7 +15,7 @@
       "recall5": 11.7,
       "recall10": 17.5,
       "mrr": 0.406,
-      "ms": 678
+      "ms": 758
     },
     {
       "name": "Baseline: grep the code for the ticket’s words",
@@ -25,16 +25,16 @@
       "recall5": 19.3,
       "recall10": 29.3,
       "mrr": 0.418,
-      "ms": 1755
+      "ms": 1730
     },
     {
       "name": "Groundwork + grep (fused)",
       "cases": 283,
-      "hit5": 56.2,
-      "hit10": 62.2,
-      "recall5": 14.1,
-      "recall10": 18.2,
-      "mrr": 0.478,
+      "hit5": 68.2,
+      "hit10": 77.4,
+      "recall5": 20.5,
+      "recall10": 30.4,
+      "mrr": 0.531,
       "ms": 0
     },
     {

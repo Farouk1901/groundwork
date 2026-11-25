@@ -143,3 +143,44 @@ export async function fixesSince(repo: string, since: string, log: (s: string) =
   log(`  ${repo}: ${out.length} ticket fixes merged since ${since.slice(0, 10)}`);
   return out;
 }
+
+const LINKED_PRS = `query($owner:String!,$name:String!,$after:String){repository(owner:$owner,name:$name){
+  pullRequests(states:[OPEN,MERGED], first:50, after:$after, orderBy:{field:UPDATED_AT,direction:DESC}){
+    pageInfo{hasNextPage endCursor}
+    nodes{number title body updatedAt
+      closingIssuesReferences(first:10){nodes{number repository{nameWithOwner}}}}}}}`;
+
+/**
+ * Returns issue numbers in `repo` that already have an OPEN or recently MERGED pull request referencing or closing
+ * them on GitHub, so daily sealing never forecasts an issue whose fix diff is already public.
+ */
+export async function issuesWithLinkedPRs(
+  repo: string,
+  since: string,
+  log: (s: string) => void = () => {},
+): Promise<Set<number>> {
+  const token = githubToken();
+  if (!token) throw new Error('Set GITHUB_TOKEN or sign in with `gh auth login`.');
+  const [owner, name] = repo.split('/');
+  type N = { number: number; title: string; body: string; updatedAt: string;
+    closingIssuesReferences: { nodes: { number: number; repository: { nameWithOwner: string } }[] } };
+  const linked = new Set<number>();
+  let after: string | null = null;
+  for (let page = 0; page < 10; page++) {
+    const d: { repository: { pullRequests: { pageInfo: { hasNextPage: boolean; endCursor: string }; nodes: N[] } } } =
+      await gql(token, LINKED_PRS, { owner, name, after });
+    const conn = d.repository.pullRequests;
+    for (const p of conn.nodes) {
+      for (const r of p.closingIssuesReferences.nodes) {
+        if (r.repository.nameWithOwner.toLowerCase() === repo.toLowerCase()) linked.add(r.number);
+      }
+      for (const m of `${p.title}\n${p.body ?? ''}`.matchAll(/\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?|refs?|for)\s*:?\s*#(\d+)/gi)) {
+        linked.add(Number(m[1]));
+      }
+    }
+    if (!conn.pageInfo.hasNextPage || (since && conn.nodes.every((p) => p.updatedAt < since))) break;
+    after = conn.pageInfo.endCursor;
+  }
+  log(`  ${repo}: ${linked.size} issues have open/recent PRs (excluded from daily seal)`);
+  return linked;
+}

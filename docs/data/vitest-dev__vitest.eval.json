@@ -1,6 +1,6 @@
 {
   "repo": "vitest-dev/vitest",
-  "at": "2026-11-24T18:41:05.990Z",
+  "at": "2026-11-25T07:33:58.656Z",
   "split": "newer",
   "mode": "tickets",
   "cases": 220,
@@ -15,7 +15,7 @@
       "recall5": 26.4,
       "recall10": 33.2,
       "mrr": 0.461,
-      "ms": 697
+      "ms": 698
     },
     {
       "name": "Baseline: grep the code for the ticket’s words",
@@ -25,16 +25,16 @@
       "recall5": 12.7,
       "recall10": 21.4,
       "mrr": 0.244,
-      "ms": 1923
+      "ms": 1852
     },
     {
       "name": "Groundwork + grep (fused)",
       "cases": 220,
-      "hit5": 64.1,
-      "hit10": 71.8,
-      "recall5": 27,
-      "recall10": 33.2,
-      "mrr": 0.45,
+      "hit5": 62.7,
+      "hit10": 71.4,
+      "recall5": 26.3,
+      "recall10": 32.8,
+      "mrr": 0.442,
       "ms": 0
     },
     {
@@ -45,7 +45,7 @@
       "recall5": 3.7,
       "recall10": 6,
       "mrr": 0.077,
-      "ms": 36
+      "ms": 37
     },
     {
       "name": "Ceiling (files seen before)",

@@ -4,23 +4,20 @@
     "file": "data/honojs__hono.json.gz",
     "eval": "data/honojs__hono.eval.json",
     "issues": 1896,
-    "prs": 1500,
-    "browserFile": "data/honojs__hono.gwz"
+    "prs": 1500
   },
   {
     "name": "vitest-dev/vitest",
     "file": "data/vitest-dev__vitest.json.gz",
     "eval": "data/vitest-dev__vitest.eval.json",
     "issues": 2000,
-    "prs": 1500,
-    "browserFile": "data/vitest-dev__vitest.gwz"
+    "prs": 1500
   },
   {
     "name": "relatedb/relate",
     "file": "data/relatedb__relate.json.gz",
     "eval": "data/relatedb__relate.eval.json",
     "issues": 19,
-    "prs": 644,
-    "browserFile": "data/relatedb__relate.gwz"
+    "prs": 644
   }
 ]

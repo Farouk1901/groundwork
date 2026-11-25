@@ -111,46 +111,53 @@ async function main() {
     }
     case 'seal-daily': {
       // groundwork seal-daily honojs/hono vitest-dev/vitest relatedb/relate [--dir docs/predictions] [--date YYYY-MM-DD] [--dry-run]
-      const { existsSync, readdirSync, readFileSync } = await import('node:fs');
-      const { sealDailyNewIssues } = await import('./predict.js');
+      const { existsSync } = await import('node:fs');
+      const { loadAllSeals, sealDailyNewIssues, writeDailySealFile } = await import('./predict.js');
+      const { githubToken, issuesWithLinkedPRs } = await import('./github.js');
       const repos = pos.length ? pos : ['honojs/hono', 'vitest-dev/vitest', 'relatedb/relate'];
       const dir = flag('dir', 'docs/predictions')!;
-      const dailyDir = path.join(dir, 'daily');
-      const existing = [];
-      const baseFile = path.join(dir, 'sealed.json');
-      if (existsSync(baseFile)) existing.push(JSON.parse(readFileSync(baseFile, 'utf8')));
-      if (existsSync(dailyDir)) {
-        for (const f of readdirSync(dailyDir).filter((n) => n.endsWith('.json')).sort()) {
-          existing.push(JSON.parse(readFileSync(path.join(dailyDir, f), 'utf8')));
-        }
+      const targetDate = flag('date') ?? new Date().toISOString().slice(0, 10);
+      const targetFile = path.join(dir, 'daily', `${targetDate}.json`);
+      if (!has('dry-run') && existsSync(targetFile)) {
+        throw new Error(`Daily seal ${targetDate}.json already exists (append-only: refusing to overwrite existing forecasts).`);
       }
-      const res = await sealDailyNewIssues(openStore(), repos, existing, { date: flag('date'), log });
+      const existing = loadAllSeals(dir);
+      const hasToken = !!githubToken();
+      const res = await sealDailyNewIssues(openStore(), repos, existing, {
+        date: targetDate,
+        log,
+        findLinkedPrs: hasToken ? (repo, since) => issuesWithLinkedPRs(repo, since, log) : undefined,
+      });
       if (has('dry-run')) {
-        console.log(JSON.stringify({ date: res.daily.date, count: res.count, sha256: res.sha256, dryRun: true }, null, 2));
+        console.log(JSON.stringify({ date: res.daily.date, count: res.count, sha256: res.sha256, checkedLinkedPrs: hasToken, dryRun: true }, null, 2));
         return;
       }
-      mkdirSync(dailyDir, { recursive: true });
-      const fileName = `${res.daily.date}.json`;
-      writeFileSync(path.join(dailyDir, fileName), res.json);
-      writeFileSync(path.join(dailyDir, `${res.daily.date}.sha256`), `${res.sha256}  ${fileName}\n`);
+      writeDailySealFile(dir, res.daily.date, res.json, res.sha256);
       log(`Daily seal ${res.daily.date}: ${res.count} new open issues, sha256 ${res.sha256}`);
       return;
     }
     case 'score-predictions': {
       // Reads GitHub (needs a token), not the graph. --until freezes the score at a date (the contest deadline).
       const { readFileSync, existsSync } = await import('node:fs');
-      const { score } = await import('./predict.js');
+      const { loadAllSeals, score, shouldSkipFrozenScore } = await import('./predict.js');
       const { fixesSince } = await import('./github.js');
       const dir = flag('dir', 'docs/predictions')!;
-      const sealed = JSON.parse(readFileSync(path.join(dir, 'sealed.json'), 'utf8'));
+      const seals = loadAllSeals(dir);
+      if (!seals.length) throw new Error(`No sealed forecasts found in ${dir}`);
       const until = flag('until');
       const scoreFile = path.join(dir, 'score.json');
-      if (until && new Date() > new Date(until) && existsSync(scoreFile)) { log(`Frozen since ${until}: score.json is final.`); return; }
-      const fixes = (await Promise.all(sealed.repos.map((r: { repo: string }) => fixesSince(r.repo, sealed.sealedAt, log)))).flat()
+      const existingScore = existsSync(scoreFile) ? JSON.parse(readFileSync(scoreFile, 'utf8')) : null;
+      if (shouldSkipFrozenScore(existingScore, until)) {
+        log(`Frozen since ${until}: score.json is final.`);
+        return;
+      }
+      const earliestSealedAt = seals.map((s) => s.sealedAt).sort()[0];
+      const uniqueRepos = [...new Set(seals.flatMap((s) => s.repos.map((r) => r.repo)))];
+      const fixes = (await Promise.all(uniqueRepos.map((repo) => fixesSince(repo, earliestSealedAt, log)))).flat()
         .filter((x) => !until || x.mergedAt <= until);
-      const s = score(sealed, fixes, { frozen: !!until && new Date() > new Date(until) });
+      const s = score(seals, fixes, { frozen: !!until && new Date() > new Date(until) });
       writeFileSync(scoreFile, JSON.stringify(s, null, 1));
-      console.log(`${s.totals.fixed} of ${s.totals.forecasts} forecast tickets fixed since ${s.sealedAt.slice(0, 10)}: Hit@5 ${s.totals.hit5}% (baseline ${s.totals.baselineHit5}%), Hit@10 ${s.totals.hit10}%`);
+      console.log(`${s.totals.fixed} of ${s.totals.forecasts} forecast tickets fixed since ${s.sealedAt.slice(0, 10)} (base + ${s.dailySeals ?? 0} daily seals): Hit@5 ${s.totals.hit5}% (baseline ${s.totals.baselineHit5}%), Hit@10 ${s.totals.hit10}%${s.frozen ? ' [FROZEN]' : ''}`);
       return;
     }
     case 'export-web': {

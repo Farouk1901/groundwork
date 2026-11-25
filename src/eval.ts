@@ -7,8 +7,8 @@
 //   ablations    one part switched off at a time (similar tickets, similar PRs, co-change, full-text, vector)
 //   popular      baseline: the files changed most often before that moment. This is the best a tool that has to
 //                start from a file (co-change, ownership) can do when there is only a ticket and no code yet.
-import { NOISE, fuseWrrf, planTicket, type PlanOptions } from './analyze.js';
-import { grepRank } from './code.js';
+import { NOISE, planTicket, type PlanOptions } from './analyze.js';
+import { fuseWithGrep, grepRank } from './code.js';
 import { cleanText, embedOne } from './embed.js';
 import { num, type Store } from './core.js';
 
@@ -107,6 +107,7 @@ export async function backtest(store: Store, repo: string, opts: { limit?: numbe
   const examples: EvalReport['examples'] = [];
   const variants = opts.ablations === false ? VARIANTS.slice(0, 1) : VARIANTS;
   const fullTop = new Map<number, string[]>();
+  const fullBestSim = new Map<number, number>();
   for (const v of variants) {
     const t0 = Date.now();
     const preds: { top: string[]; truth: string[] }[] = [];
@@ -116,7 +117,10 @@ export async function backtest(store: Store, repo: string, opts: { limit?: numbe
         : await planTicket(store, repo, { issue: c.issue }, { asOf: c.createdAt, files: k, use: v.use, minScore: 0 });
       const top = p.files.map((f) => f.path).filter((x) => !NOISE.test(x));
       preds.push({ top, truth: c.truth });
-      if (v === VARIANTS[0]) fullTop.set(c.issue, top);
+      if (v === VARIANTS[0]) {
+        fullTop.set(c.issue, top);
+        fullBestSim.set(c.issue, p.similar.length ? Math.max(...p.similar.map((s) => s.sim)) : 0);
+      }
       if (v === VARIANTS[0] && examples.length < 12) examples.push({ issue: c.issue, title: c.title, truth: c.truth, top: top.slice(0, 5) });
     }
     results.push(score(v.name, preds, Date.now() - t0));
@@ -131,9 +135,9 @@ export async function backtest(store: Store, repo: string, opts: { limit?: numbe
       grepTop.set(c.issue, grepRank(opts.clone, c.createdAt, text, k));
     }
     results.push(score('Baseline: grep the code for the ticket’s words', cs.map((c) => ({ top: grepTop.get(c.issue)!, truth: c.truth })), Date.now() - t1));
-    // Both together: the graph's answer and grep's, fused with the same reciprocal rank fusion.
+    // Both together: confidence-weighted WRRF (k=10), tuned strictly on the older split.
     results.push(score('Groundwork + grep (fused)', cs.map((c) => ({
-      top: fuseWrrf([[(fullTop.get(c.issue) ?? []).map((key) => ({ key })), 0.6], [(grepTop.get(c.issue) ?? []).map((key) => ({ key })), 0.4]], k).map((r) => String(r.key)),
+      top: fuseWithGrep(fullTop.get(c.issue) ?? [], grepTop.get(c.issue) ?? [], fullBestSim.get(c.issue) ?? 0, k).map((r) => String(r.key)),
       truth: c.truth })), 0));
     log('  grep: done');
   }

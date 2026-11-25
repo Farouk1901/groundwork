@@ -163,6 +163,7 @@ const esc = (s) => String(s).replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&l
 const gh = (repo, kind, n) => `https://github.com/${repo}/${kind === 'pr' ? 'pull' : 'issues'}/${n}`;
 const fmt = (n) => Number(n).toLocaleString('en-US');
 let cy, last;
+let runSeq = 0, repoSeq = 0, proofSeq = 0, checkSeq = 0;
 // Locally the page talks to `groundwork serve`; on GitHub Pages the same calls are answered by Relate (WebAssembly)
 // running in this tab, with the same analysis code.
 const STATIC = !!window.GW_STATIC;
@@ -198,16 +199,21 @@ async function boot() {
 }
 
 async function loadRepoView(repoName) {
+  const seq = ++repoSeq;
+  ++runSeq; // invalidate any in-flight plan request for the previous repository
+  if (repoName && gw?.setActiveRepo) gw.setActiveRepo(repoName);
   const r = await api('/api/repos' + (repoName ? `?repo=${encodeURIComponent(repoName)}` : ''));
+  if (seq !== repoSeq) return;
   $('repo').innerHTML = r.repos.map((x) => `<option value="${esc(x.name)}">${esc(x.name)} · ${fmt(x.issues)} tickets · ${fmt(x.prs)} PRs</option>`).join('');
   if (repoName) $('repo').value = repoName;
+  if ($('repo').value && gw?.setActiveRepo) gw.setActiveRepo($('repo').value);
   const c = r.counts || {};
   $('stats').innerHTML = `Relate graph · <b>${fmt(c.Issue || 0)}</b> tickets · <b>${fmt(c.PR || 0)}</b> PRs · <b>${fmt(c.File || 0)}</b> files · <b>${fmt(c.Person || 0)}</b> people · <b>${fmt(r.rels || 0)}</b> relationships`;
   if (!r.repos.length) { $('status').textContent = 'The graph is empty. Run: npm run demo:ingest (no token needed) or npx tsx src/cli.ts ingest owner/repo'; return; }
   $('examples').innerHTML = '<span class="sub">Open tickets:</span>' + r.examples.slice(0, 5)
     .map((e) => `<button type="button" class="chip" data-q="${e.number}" title="${esc(e.title)}">#${e.number} ${esc(e.title)}</button>`).join('')
     + (TEXT_EXAMPLE[$('repo').value] ? `<button type="button" class="chip text" data-q="${esc(TEXT_EXAMPLE[$('repo').value])}">or describe one: “${esc(TEXT_EXAMPLE[$('repo').value].slice(0, 48))}…”</button>` : '');
-  loadProof();
+  loadProof($('repo').value);
 }
 
 const TEXT_EXAMPLE = {
@@ -217,10 +223,16 @@ const TEXT_EXAMPLE = {
 };
 
 $('repo').addEventListener('change', async () => {
-  $('out').hidden = true; $('q').value = ''; history.replaceState(null, '', location.pathname);
+  const chosen = $('repo').value;
+  $('out').hidden = true; $('q').value = ''; $('status').textContent = ''; history.replaceState(null, '', location.pathname);
   $('go').disabled = true;
-  await loadRepoView($('repo').value);
-  $('go').disabled = false;
+  try {
+    await loadRepoView(chosen);
+  } catch (e) {
+    $('status').textContent = e.message;
+  } finally {
+    if ($('repo').value === chosen) $('go').disabled = false;
+  }
 });
 
 // Forecasts sealed in a commit before the fixes existed, scored every day by a GitHub Action.
@@ -239,8 +251,11 @@ async function loadSealed() {
   } catch { /* no sealed forecasts shipped */ }
 }
 
-async function loadProof() {
-  const e = await api(`/api/eval?repo=${encodeURIComponent($('repo').value)}`).catch(() => null);
+async function loadProof(repoName) {
+  const seq = ++proofSeq;
+  const targetRepo = repoName || $('repo').value;
+  const e = await api(`/api/eval?repo=${encodeURIComponent(targetRepo)}`).catch(() => null);
+  if (seq !== proofSeq) return;
   $('proof').hidden = true;
   if (!e || !e.results) return;
   const full = e.results.find((x) => x.name === 'Groundwork (full)') || e.results.find((x) => x.name.startsWith('Groundwork'));
@@ -269,6 +284,7 @@ $('fillTop').addEventListener('click', () => { if (last?.files[0]) { $('changed'
 async function run(replay = false) {
   const repo = $('repo').value, q = $('q').value.trim();
   if (!q) return;
+  const seq = ++runSeq;
   $('go').disabled = true;
   const words = !/^#?\d+$|^[A-Z][A-Z0-9]+-\d+$/.test(q);
   $('status').textContent = replay ? 'Rewinding the graph to the day the ticket was opened…'
@@ -276,13 +292,18 @@ async function run(replay = false) {
     : 'Searching past tickets and walking the graph…';
   try {
     const r = await api(`/api/plan?repo=${encodeURIComponent(repo)}&q=${encodeURIComponent(q)}${replay ? '&replay=1' : ''}`);
+    if (seq !== runSeq) return;
     if (r.error) throw new Error(r.error);
     history.replaceState(null, '', `?repo=${encodeURIComponent(repo)}&q=${encodeURIComponent(q)}${replay ? '&replay=1' : ''}`);
     last = r; render(r);
     if (words) window.__modelReady = true;
     $('status').textContent = `${r.files.length} files · ${r.similar.length} similar tickets and PRs · ${r.graph.nodes.length} nodes in the explanation · answered from Relate in ${r.tookMs} ms`;
-  } catch (e) { $('status').textContent = e.message; }
-  $('go').disabled = false;
+  } catch (e) {
+    if (seq !== runSeq) return;
+    $('status').textContent = e.message;
+  } finally {
+    if (seq === runSeq) $('go').disabled = false;
+  }
 }
 
 function pathHtml(p) { const i = p.lastIndexOf('/'); return i < 0 ? esc(p) : `<span class="dir">${esc(p.slice(0, i + 1))}</span>${esc(p.slice(i + 1))}`; }
@@ -372,15 +393,22 @@ function drawGraph(r) {
 async function check() {
   const files = $('changed').value.trim();
   if (!files || !$('q').value.trim()) return;
+  const seq = ++checkSeq;
   $('checkOut').innerHTML = '<li class="empty">Checking…</li>';
-  const r = await api(`/api/check?repo=${encodeURIComponent($('repo').value)}&q=${encodeURIComponent($('q').value.trim())}&files=${encodeURIComponent(files)}`);
-  if (r.error) { $('checkOut').innerHTML = `<li class="empty">${esc(r.error)}</li>`; return; }
-  $('checkOut').innerHTML = [
-    ...r.covered.map((f) => `<li class="ok">✓ ${esc(f.path)}</li>`),
-    ...r.missing.map((f) => `<li class="miss">✗ ${esc(f.path)}${f.test ? ' (test)' : ''}<small>${esc(f.why)}</small></li>`),
-    ...r.unexpected.map((f) => `<li class="extra">? ${esc(f.path)}<small>${f.seenBefore ? 'outside this ticket’s usual footprint' : 'no past PR touched it: a new file?'}</small></li>`),
-    `<li class="empty" style="font-family:inherit">${r.ok ? 'Looks complete for this ticket.' : `${r.missing.length} file(s) that similar fixes also changed are not in your change.`}</li>`,
-  ].join('');
+  try {
+    const r = await api(`/api/check?repo=${encodeURIComponent($('repo').value)}&q=${encodeURIComponent($('q').value.trim())}&files=${encodeURIComponent(files)}`);
+    if (seq !== checkSeq) return;
+    if (r.error) { $('checkOut').innerHTML = `<li class="empty">${esc(r.error)}</li>`; return; }
+    $('checkOut').innerHTML = [
+      ...r.covered.map((f) => `<li class="ok">✓ ${esc(f.path)}</li>`),
+      ...r.missing.map((f) => `<li class="miss">✗ ${esc(f.path)}${f.test ? ' (test)' : ''}<small>${esc(f.why)}</small></li>`),
+      ...r.unexpected.map((f) => `<li class="extra">? ${esc(f.path)}<small>${f.seenBefore ? 'outside this ticket’s usual footprint' : 'no past PR touched it: a new file?'}</small></li>`),
+      `<li class="empty" style="font-family:inherit">${r.ok ? 'Looks complete for this ticket.' : `${r.missing.length} file(s) that similar fixes also changed are not in your change.`}</li>`,
+    ].join('');
+  } catch (e) {
+    if (seq !== checkSeq) return;
+    $('checkOut').innerHTML = `<li class="empty">${esc(e.message)}</li>`;
+  }
 }
 
 boot();

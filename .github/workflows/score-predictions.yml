@@ -1,11 +1,12 @@
-# Scores the sealed forecasts (docs/predictions/sealed.json) every day against pull requests merged since the
-# seal, seals newly opened unfixed issues only (never open PRs) with a daily SHA-256 digest, and freezes at
-# the contest deadline (2026-12-11 18:00 PST).
+# Scores all sealed forecasts (docs/predictions/sealed.json + append-only docs/predictions/daily/*.json) every day
+# against pull requests merged after each seal, seals newly opened unfixed issues only (never open PRs) with a daily
+# SHA-256 digest, and runs one final scoring + freeze pass immediately after the contest deadline (2026-12-11 18:00 PST).
 name: Score sealed predictions
 
 on:
   schedule:
     - cron: '17 5 * * *'
+    - cron: '30 2 12 12 *'   # Final post-deadline freeze run (2026-12-12 02:30 UTC, 30 min after 2026-12-12T02:00:00Z)
   workflow_dispatch:
 
 permissions:
@@ -22,26 +23,38 @@ jobs:
           node-version: 22
           cache: npm
       - run: npm ci
-      - name: Score (frozen after the deadline, 2026-12-11 18:00 PST)
+      - name: Score all sealed forecasts (freezes once after 2026-12-12T02:00:00Z)
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: npx tsx src/cli.ts score-predictions --until 2026-12-12T02:00:00Z
-      - name: Seal newly opened unfixed issues for today (with SHA-256)
+      - name: Commit score.json before daily seal (so seal errors never lose today's score)
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add docs/predictions/score.json
+          git diff --cached --quiet || (git commit -m "Score sealed predictions ($(date -u +%F))" && git push)
+      - name: Seal newly opened unfixed issues for today (append-only, with SHA-256)
+        continue-on-error: true
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         run: |
           if [ "$(date -u +%s)" -le "$(date -u -d '2026-12-12T02:00:00Z' +%s)" ]; then
+            TODAY="$(date -u +%F)"
+            if [ -f "docs/predictions/daily/${TODAY}.json" ]; then
+              echo "Daily seal for ${TODAY} already exists (append-only); skipping."
+              exit 0
+            fi
             npx tsx src/cli.ts ingest --from docs/data/honojs__hono.json.gz
             npx tsx src/cli.ts ingest --from docs/data/vitest-dev__vitest.json.gz
             npx tsx src/cli.ts ingest --from docs/data/relatedb__relate.json.gz
             npx tsx src/cli.ts ingest honojs/hono --prs 100 --issues 100 --refresh
             npx tsx src/cli.ts ingest vitest-dev/vitest --prs 100 --issues 100 --refresh
             npx tsx src/cli.ts ingest relatedb/relate --prs 100 --issues 50 --refresh
-            npx tsx src/cli.ts seal-daily honojs/hono vitest-dev/vitest relatedb/relate
+            npx tsx src/cli.ts seal-daily honojs/hono vitest-dev/vitest relatedb/relate --date "${TODAY}"
           fi
-      - name: Commit the score and daily seal if changed
+      - name: Commit daily seal if added
         run: |
           git config user.name "github-actions[bot]"
           git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
-          git add docs/predictions/score.json docs/predictions/daily/
-          git diff --cached --quiet || (git commit -m "Score sealed predictions & daily issue seal ($(date -u +%F))" && git push)
+          git add docs/predictions/daily/
+          git diff --cached --quiet || (git commit -m "Daily new-issue seal ($(date -u +%F))" && git push)

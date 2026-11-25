@@ -36,16 +36,9 @@ await Promise.all([
 
 copyFileSync(require.resolve('@relate/relate-wasm/relate_bg.wasm'), path.join(out, 'relate_bg.wasm'));
 copyFileSync(require.resolve('cytoscape/dist/cytoscape.min.js'), path.join(out, 'vendor', 'cytoscape.min.js'));
-// Create .gwz aliases for browser fetch so Windows download managers (e.g. IDM) never hijack .gz URLs with HTTP 204.
+// Keep docs/data/index.json clean (referencing only the canonical .json.gz snapshots, no duplicate binaries).
 const idxPath = path.join(out, 'data', 'index.json');
-const idx = JSON.parse(readFileSync(idxPath, 'utf8'));
-for (const entry of idx) {
-  if (entry.file && entry.file.endsWith('.json.gz')) {
-    const gwzRel = entry.file.replace(/\.json\.gz$/, '.gwz');
-    copyFileSync(path.join(out, entry.file), path.join(out, gwzRel));
-    entry.browserFile = gwzRel;
-  }
-}
+const idx = JSON.parse(readFileSync(idxPath, 'utf8')).map(({ browserFile: _drop, ...entry }) => entry);
 writeFileSync(idxPath, JSON.stringify(idx, null, 2) + '\n');
 const page = readFileSync(path.join(root, 'public', 'index.html'), 'utf8')
   .replace('<head>', '<head>\n<script>window.GW_STATIC = true;</script>');

@@ -1,6 +1,6 @@
 {
   "repo": "honojs/hono",
-  "at": "2026-11-24T18:30:56.787Z",
+  "at": "2026-11-25T07:24:06.526Z",
   "split": "newer",
   "mode": "tickets",
   "cases": 200,
@@ -15,7 +15,7 @@
       "recall5": 57.4,
       "recall10": 65.7,
       "mrr": 0.634,
-      "ms": 730
+      "ms": 688
     },
     {
       "name": "Baseline: grep the code for the ticket’s words",
@@ -25,16 +25,16 @@
       "recall5": 36.7,
       "recall10": 54.7,
       "mrr": 0.39,
-      "ms": 1027
+      "ms": 1053
     },
     {
       "name": "Groundwork + grep (fused)",
       "cases": 200,
-      "hit5": 81,
-      "hit10": 82.5,
-      "recall5": 62.2,
-      "recall10": 65.8,
-      "mrr": 0.66,
+      "hit5": 79.5,
+      "hit10": 83.5,
+      "recall5": 59.6,
+      "recall10": 66.6,
+      "mrr": 0.654,
       "ms": 0
     },
     {
@@ -45,7 +45,7 @@
       "recall5": 8.2,
       "recall10": 12.2,
       "mrr": 0.106,
-      "ms": 29
+      "ms": 30
     },
     {
       "name": "Ceiling (files seen before)",

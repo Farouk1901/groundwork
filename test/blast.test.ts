@@ -295,19 +295,94 @@ test('with the code at hand: grep for the ticket words and fuse with the graph',
   assert.equal(fused.files[0].path, 'src/http/cookie.ts'); // found by both: first
 });
 
-test('daily seal: seals only newly opened unfixed issues with SHA-256, skipping already-sealed ones', async () => {
+test('daily seal: seals only newly opened unfixed issues created after last seal and without linked PRs', async () => {
   const { seal, sealDailyNewIssues, sha256Hex } = await import('../src/predict.ts');
   const store = await graph();
   const initial = await seal(store, ['acme/shop']);
-  // Excluding issue #4 only leaves issue #3 to be sealed on the daily run.
-  const partial = { ...initial, repos: [{ ...initial.repos[0], forecasts: initial.repos[0].forecasts.filter((f) => f.issue === 4) }] };
-  const daily = await sealDailyNewIssues(store, ['acme/shop'], [partial], { date: '2026-11-25' });
+  // Simulate an initial seal taken at 2026-03-01T12:00:00Z that only saw issue #3 (created 2026-03-01T00:00:00Z).
+  // Issue #4 was created 2026-03-02T00:00:00Z (strictly AFTER the prior seal).
+  const prior = {
+    ...initial,
+    sealedAt: '2026-03-01T12:00:00Z',
+    repos: [{ ...initial.repos[0], forecasts: initial.repos[0].forecasts.filter((f) => f.issue === 3) }],
+  };
+  // Issue #4 is created after 2026-03-01T12:00:00Z -> sealed. Issue #3 was already sealed AND older -> skipped.
+  const daily = await sealDailyNewIssues(store, ['acme/shop'], [prior], { date: '2026-11-25' });
   assert.equal(daily.daily.date, '2026-11-25');
   assert.equal(daily.count, 1);
-  assert.deepEqual(daily.daily.repos[0].forecasts.map((f) => f.issue), [3]);
+  assert.deepEqual(daily.daily.repos[0].forecasts.map((f) => f.issue), [4]);
   assert.equal(daily.sha256, sha256Hex(daily.json));
   assert.equal(daily.sha256.length, 64);
-  // Running again with both existing seals produces 0 new issues.
-  const empty = await sealDailyNewIssues(store, ['acme/shop'], [initial], { date: '2026-11-26' });
-  assert.equal(empty.count, 0);
+
+  // If issue #4 is older than prior.sealedAt (e.g. prior sealedAt = 2026-03-10), it is NOT sealed even if unseen.
+  const newerPrior = { ...prior, sealedAt: '2026-03-10T00:00:00Z' };
+  const skippedOld = await sealDailyNewIssues(store, ['acme/shop'], [newerPrior], { date: '2026-11-26' });
+  assert.equal(skippedOld.count, 0);
+
+  // If issue #4 has a linked open PR on GitHub, it is excluded so no public diff leaks.
+  const withLinkedPr = await sealDailyNewIssues(store, ['acme/shop'], [prior], {
+    date: '2026-11-27',
+    findLinkedPrs: async () => new Set([4]),
+  });
+  assert.equal(withLinkedPr.count, 0);
+});
+
+test('daily seal file writer is append-only and refuses to overwrite an existing date', async () => {
+  const { readFileSync } = await import('node:fs');
+  const { writeDailySealFile } = await import('../src/predict.ts');
+  const predDir = mkdtempSync(path.join(tmpdir(), 'gw-daily-ao-'));
+  const originalJson = '{"date":"2026-11-25","repos":[]}\n';
+  const written = writeDailySealFile(predDir, '2026-11-25', originalJson, 'a'.repeat(64));
+  assert.throws(
+    () => writeDailySealFile(predDir, '2026-11-25', '{"tampered":true}\n', 'b'.repeat(64)),
+    /already exists/,
+  );
+  assert.equal(readFileSync(written.jsonPath, 'utf8'), originalJson);
+});
+
+test('score-predictions scores both sealed.json and daily/*.json using each seal timestamp', async () => {
+  const { seal, sealDailyNewIssues, writeDailySealFile, loadAllSeals, score } = await import('../src/predict.ts');
+  const store = await graph();
+  const initial = await seal(store, ['acme/shop']);
+  const prior = {
+    ...initial,
+    sealedAt: '2026-03-01T12:00:00Z',
+    repos: [{ ...initial.repos[0], forecasts: initial.repos[0].forecasts.filter((f) => f.issue === 3) }],
+  };
+  const daily = await sealDailyNewIssues(store, ['acme/shop'], [prior], { date: '2026-11-25' });
+  const predDir = mkdtempSync(path.join(tmpdir(), 'gw-daily-score-'));
+  writeFileSync(path.join(predDir, 'sealed.json'), JSON.stringify(prior));
+  writeDailySealFile(predDir, '2026-11-25', daily.json, daily.sha256);
+
+  const allSeals = loadAllSeals(predDir);
+  assert.equal(allSeals.length, 2);
+  const afterBaseBeforeDaily = '2026-03-02T06:00:00Z';
+  const afterDaily = new Date(Date.parse(daily.daily.sealedAt) + 86_400_000).toISOString();
+  const s = score(allSeals, [
+    // Issue #3 sealed at 2026-03-01T12:00:00Z -> fixed at 2026-03-02T06:00:00Z: COUNTED
+    { repo: 'acme/shop', issue: 3, pr: 30, mergedAt: afterBaseBeforeDaily, files: ['src/http/cookie.ts'] },
+    // Issue #4 sealed in daily seal -> fix merged BEFORE daily seal: IGNORED
+    { repo: 'acme/shop', issue: 4, pr: 31, mergedAt: afterBaseBeforeDaily, files: ['src/http/session.ts'] },
+  ]);
+  assert.equal(s.totals.forecasts, 2);
+  assert.equal(s.dailySeals, 1);
+  assert.equal(s.totals.fixed, 1);
+  assert.equal(s.cases[0].issue, 3);
+
+  const s2 = score(allSeals, [
+    { repo: 'acme/shop', issue: 3, pr: 30, mergedAt: afterBaseBeforeDaily, files: ['src/http/cookie.ts'] },
+    { repo: 'acme/shop', issue: 4, pr: 32, mergedAt: afterDaily, files: ['src/http/session.ts'] },
+  ]);
+  assert.equal(s2.totals.fixed, 2);
+  assert.deepEqual(s2.cases.map((c) => c.issue).sort(), [3, 4]);
+});
+
+test('post-deadline freeze runs one final scoring pass after until, then skips once frozen', async () => {
+  const { shouldSkipFrozenScore } = await import('../src/predict.ts');
+  const until = '2026-12-12T02:00:00Z';
+  const afterDeadline = new Date('2026-12-12T02:30:00Z');
+  assert.equal(shouldSkipFrozenScore({ frozen: false }, until, afterDeadline), false);
+  assert.equal(shouldSkipFrozenScore(null, until, afterDeadline), false);
+  assert.equal(shouldSkipFrozenScore({ frozen: true }, until, afterDeadline), true);
+  assert.equal(shouldSkipFrozenScore({ frozen: true }, until, new Date('2026-12-11T05:17:00Z')), false);
 });

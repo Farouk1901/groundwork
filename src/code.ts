@@ -28,6 +28,25 @@ export function grepRank(clone: string, before: string, text: string, k: number,
 }
 
 
+/**
+ * Confidence-weighted reciprocal rank fusion (k=10) between Groundwork's graph ranking and code grep.
+ * When the graph finds a close past ticket/PR (`bestSim >= 0.86`), it trusts the graph more (0.65/0.35);
+ * when the graph's best match is weak (`bestSim <= 0.74`), it trusts grep more (0.35/0.65), interpolating linearly
+ * in between. Parameters were tuned strictly on the `--split older` half and never on held-out `--split newer` cases.
+ */
+export function fuseWithGrep(graphPaths: string[], grepPaths: string[], bestSim: number, k = 12) {
+  const alpha = Math.max(0, Math.min(1, (bestSim - 0.74) / (0.86 - 0.74)));
+  const wGraph = 0.35 + 0.30 * alpha;
+  return fuseWrrf(
+    [
+      [graphPaths.map((key) => ({ key })), wGraph],
+      [grepPaths.map((key) => ({ key })), 1 - wGraph],
+    ],
+    k,
+    10,
+  );
+}
+
 /** Fuse a plan with grep over a local clone (at HEAD): same files list shape, grep-only files say which words matched. */
 export function withCode(store: Store, plan: Plan, codeDir: string, k = 12): Plan {
   const text = plan.target.kind === 'text' ? plan.target.text
@@ -37,7 +56,8 @@ export function withCode(store: Store, plan: Plan, codeDir: string, k = 12): Pla
   const grep = grepRank(codeDir, new Date().toISOString(), text, k, hits);
   if (!grep.length) return plan;
   const byPath = new Map(plan.files.map((f) => [f.path, f]));
-  const fused = fuseWrrf([[plan.files.map((f) => ({ key: f.path })), 0.6], [grep.map((key) => ({ key })), 0.4]], k);
+  const bestSim = plan.similar.length ? Math.max(...plan.similar.map((s) => s.sim)) : 0;
+  const fused = fuseWithGrep(plan.files.map((f) => f.path), grep, bestSim, k);
   const max = Math.max(1e-9, ...fused.map((r) => Number(r.score)));
   const files: FileHit[] = fused.map((r) => {
     const path = String(r.key);

@@ -11,7 +11,7 @@ import { targetOf } from '../src/target.js';
 import { decodeVectors } from '../src/vectors.js';
 import type { RepoData } from '../src/github.js';
 
-type DemoRepo = { name: string; file: string; browserFile?: string; eval?: string; issues: number; prs: number; note?: string };
+type DemoRepo = { name: string; file: string; eval?: string; issues: number; prs: number; note?: string };
 type Snapshot = { data: RepoData; dim: number; vectors: string; scale: number };
 
 let store: Store | null = null;
@@ -34,7 +34,14 @@ async function fetchStep(label: string, url: string): Promise<Response> {
 }
 
 async function gunzipJson<T>(url: string): Promise<T> {
-  const res = await fetchStep('snap-fetch', url);
+  let res = await fetchStep('snap-fetch', url);
+  // Local dev fallback only: Windows download managers (e.g. IDM) intercept local .gz URLs with HTTP 204.
+  // scripts/serve-site.mjs aliases /local-snap/<stem> to the same docs/data/<stem>.json.gz with zero duplicate files.
+  const u = new URL(url);
+  if (res.status === 204 && (u.hostname === '127.0.0.1' || u.hostname === 'localhost') && u.pathname.endsWith('.json.gz')) {
+    const stem = u.pathname.split('/').pop()!.replace(/\.json\.gz$/, '');
+    res = await fetchStep('snap-fetch-local', new URL(`/local-snap/${stem}`, u.origin).href);
+  }
   if (res.status === 204) throw new Error(`[snap-204] ${url} returned HTTP 204`);
   let buf: ArrayBuffer;
   try {
@@ -94,7 +101,7 @@ async function loadRepo(name: string) {
         if (!r) throw new Error(`No demo data for ${name}`);
         postStatus(`Building ${name} Relate graph in background worker…`, 'loading', name);
         step = 'fetch-snap';
-        const snapUrl = new URL(r.browserFile || r.file, self.location.href).href;
+        const snapUrl = new URL(r.file, self.location.href).href;
         const snap = await gunzipJson<Snapshot>(snapUrl);
         step = 'decode-vec';
         const vectors = decodeVectors(snap.vectors, snap.dim, snap.scale);
@@ -155,7 +162,7 @@ self.addEventListener('message', async (ev: MessageEvent) => {
       await loadRepo(msg.repo || manifest[0].name);
     } catch (e) {
       const err = e as Error;
-      postStatus(`WASM worker error: ${err.message} | ${String(err.stack || '').slice(0, 220)}`, 'error');
+      postStatus(`WASM worker error: ${err.message} | ${String(err.stack || '').slice(0, 220)}`, 'error', msg.repo);
     }
     return;
   }
