@@ -1,12 +1,13 @@
 {
- "scoredAt": "2026-11-24T11:18:21.632Z",
+ "scoredAt": "2026-11-25T08:43:51.058Z",
  "sealedAt": "2026-11-24T11:16:45.937Z",
  "frozen": false,
+ "dailySeals": 0,
  "totals": {
   "forecasts": 617,
-  "fixed": 0,
-  "hit5": 0,
-  "hit10": 0,
+  "fixed": 3,
+  "hit5": 66.7,
+  "hit10": 100,
   "baselineHit5": 0
  },
  "repos": [
@@ -21,19 +22,115 @@
   {
    "repo": "vitest-dev/vitest",
    "forecasts": 352,
-   "fixed": 0,
-   "hit5": 0,
-   "hit10": 0,
+   "fixed": 2,
+   "hit5": 100,
+   "hit10": 100,
    "baselineHit5": 0
   },
   {
    "repo": "relatedb/relate",
    "forecasts": 2,
-   "fixed": 0,
+   "fixed": 1,
    "hit5": 0,
-   "hit10": 0,
+   "hit10": 100,
    "baselineHit5": 0
   }
  ],
- "cases": []
+ "cases": [
+  {
+   "repo": "vitest-dev/vitest",
+   "issue": 11952,
+   "title": "Browser mode: `vi.mock` of a non-JS module (svg, json, `?query` assets) is ignored with import map mocks (5.1.0)",
+   "url": "https://github.com/vitest-dev/vitest/issues/11952",
+   "pr": 11954,
+   "mergedAt": "2026-11-25T08:25:58Z",
+   "sealedAt": "2026-11-24T11:16:45.937Z",
+   "truth": [
+    "packages/browser/src/client/public/esm-client-injector.js",
+    "packages/browser/src/client/tester/mocker-interceptor.ts",
+    "packages/browser/src/client/tester/mocker.ts",
+    "packages/browser/src/client/utils.ts",
+    "packages/browser/src/node/mocks.ts",
+    "packages/browser/src/node/plugin.ts",
+    "packages/browser/src/types.ts",
+    "packages/mocker/EXPORTS.md",
+    "packages/mocker/src/browser/interceptor.ts",
+    "packages/mocker/src/browser/mocker.ts",
+    "packages/mocker/src/node/dynamicImportPlugin.ts",
+    "packages/mocker/src/registry.ts",
+    "test/browser/fixtures/mocking/mocked-assets.test.ts",
+    "test/browser/fixtures/mocking/mocked-dynamic-import.test.ts",
+    "test/browser/fixtures/mocking/src/__mocks__/settings.json",
+    "test/browser/fixtures/mocking/src/dynamic_greeting.ts",
+    "test/browser/fixtures/mocking/src/dynamic_loader.ts",
+    "test/browser/fixtures/mocking/src/logo.svg",
+    "test/browser/fixtures/mocking/src/settings.json",
+    "test/browser/fixtures/mocking/src/template.html",
+    "test/browser/specs/mocking.test.ts",
+    "test/unit/test/injector-esm.test.ts"
+   ],
+   "top5": [
+    "packages/browser-playwright/src/playwright.ts",
+    "test/browser/specs/mocking.test.ts",
+    "test/browser/fixtures/mocking/vitest.config.ts",
+    "test/browser/fixtures/mocking/src/zzz-dual-id-target.test.ts",
+    "test/browser/fixtures/mocking/src/dual-id/modal.ts"
+   ],
+   "hit5": true,
+   "hit10": true,
+   "baselineHit5": false
+  },
+  {
+   "repo": "vitest-dev/vitest",
+   "issue": 11949,
+   "title": "Browser mode: failure screenshots of multiple instances share one path, so a test failing in two browsers can hang the run",
+   "url": "https://github.com/vitest-dev/vitest/issues/11949",
+   "pr": 12042,
+   "mergedAt": "2026-11-24T20:27:45Z",
+   "sealedAt": "2026-11-24T11:16:45.937Z",
+   "truth": [
+    "packages/browser/src/client/tester/runner.ts",
+    "test/browser/specs/failure-screenshot.test.ts",
+    "test/e2e/snapshots/domain-aria-inline.test.ts",
+    "test/e2e/snapshots/domain-aria.test.ts"
+   ],
+   "top5": [
+    "packages/browser/src/client/tester/runner.ts",
+    "test/browser/specs/failure-screenshot.test.ts",
+    "packages/vitest/src/node/types/browser.ts",
+    "packages/browser/src/node/rpc.ts",
+    "test/e2e/vitest.config.ts"
+   ],
+   "hit5": true,
+   "hit10": true,
+   "baselineHit5": false
+  },
+  {
+   "repo": "relatedb/relate",
+   "issue": 717,
+   "title": "isWasmTrap misses Firefox's stack overflow and the error a dead instance throws next",
+   "url": "https://github.com/relatedb/relate/issues/717",
+   "pr": 782,
+   "mergedAt": "2026-11-24T18:46:22Z",
+   "sealedAt": "2026-11-24T11:16:45.937Z",
+   "truth": [
+    ".changes/782-wasm-trap-firefox.md",
+    "docs/api/wasm/examples/is_wasm_trap.js",
+    "docs/api/wasm/spec.md",
+    "surfaces/relate-cli/src/skill/bundle/references/client-wasm.md",
+    "surfaces/relate-wasm/js/trap.js",
+    "surfaces/relate-wasm/npm/README.md"
+   ],
+   "top5": [
+    "examples/wasm-playground/src/lib/engine.ts",
+    "relate/relate-storage/src/wal.rs",
+    "relate/relate-storage/src/wal/tests.rs",
+    "relate/relate-storage/src/wal/scan.rs",
+    "docs/api/rust/spec.md"
+   ],
+   "hit5": false,
+   "hit10": true,
+   "baselineHit5": false
+  }
+ ]
 }
