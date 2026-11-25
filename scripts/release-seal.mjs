@@ -1,6 +1,5 @@
 #!/usr/bin/env node
-// Prepares the immutable GitHub Release artifact and release notes for the 617 sealed forecasts.
-// Does NOT publish anything — the Main Session runs `gh release create` using the generated files.
+// Writes the SHA-256 file and release notes for the 617 sealed forecasts. Publishing is a separate `gh release create`.
 import { createHash } from 'node:crypto';
 import { readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';

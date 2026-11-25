@@ -1,16 +1,5 @@
-// The questions a developer (or a coding agent) asks before touching a ticket, answered from the graph.
-//
-// planTicket: which files, modules and people will this ticket reach, and why?
-//   1. seeds   files the ticket names, files its own fix touched (when there is one), and files touched by the
-//              fixes of similar past tickets and similar pull requests (hybrid search inside Relate: vector +
-//              full-text fused with WRRF)
-//   2. expand  files that historically change together with the seeds (co-change)
-//   3. people  who authored the most changes to those files
-//   4. risks   open tickets and recent bug fixes in the same files
-// Every score keeps the graph paths that produced it, so the answer can be explained and drawn.
-//
-// `asOf` replays the graph as it was at a moment in time (only PRs merged and tickets fixed before it); the
-// backtest in eval.ts uses it to predict a ticket's files without peeking at the fix.
+// planTicket: the files, people and risks a ticket is likely to reach. Every score keeps the graph paths behind it,
+// so the answer can be explained and drawn. `asOf` replays the graph at a past moment, so the backtest never sees the fix.
 import { embedOne, cleanText } from './embed.js';
 import { num, type Row, type Store } from './core.js';
 
@@ -62,8 +51,7 @@ const s = (v: unknown) => (v == null ? '' : String(v));
 const MIN_SIM = 0.65;
 const MAX_PR_FILES = 40;
 
-/** Weights. Defaults were chosen on the older half of the hono backtest and reported on the newer half (see eval). */
-// Read from the environment on Node.js only; the browser build has no process.
+// Defaults were chosen on the older half of the hono backtest. The browser build has no process, so no overrides there.
 const env: Record<string, string | undefined> = (globalThis as { process?: { env: Record<string, string | undefined> } }).process?.env ?? {};
 export const WEIGHTS = {
   vector: Number(env.GW_W_VECTOR ?? 0.5),
@@ -208,8 +196,7 @@ export async function planTicket(store: Store, repo: string, target: { issue: nu
     }
   }
 
-  // 2. Expand along co-change: files that historically move together with the strongest seeds.
-  //    Live, this reads the precomputed CO_CHANGED edges; in a replay it counts only the PRs merged before asOf.
+  // 2. Co-change with the strongest seeds. A replay recounts it from the PRs merged before asOf.
   if (use.coChange) {
     const seeds = [...files.values()].sort((a, b) => b.score - a.score).slice(0, 10);
     for (const sd of seeds) {

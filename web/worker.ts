@@ -1,6 +1,4 @@
-// Dedicated ES-module Web Worker for Relate WebAssembly.
-// Runs WASM init, gzip snapshot decompression, vector decoding, graph ingest, and Cypher queries
-// completely off the browser main thread so startup has zero >200 ms long tasks.
+// Web Worker for Relate WebAssembly: snapshot download, graph ingest and Cypher queries stay off the main thread.
 import init, { RelateDb } from '@relate/relate-wasm';
 import { type Store, num } from '../src/core.js';
 import { wasmStore } from './wasm-store.js';
@@ -35,8 +33,7 @@ async function fetchStep(label: string, url: string): Promise<Response> {
 
 async function gunzipJson<T>(url: string): Promise<T> {
   let res = await fetchStep('snap-fetch', url);
-  // Local dev fallback only: Windows download managers (e.g. IDM) intercept local .gz URLs with HTTP 204.
-  // scripts/serve-site.mjs aliases /local-snap/<stem> to the same docs/data/<stem>.json.gz with zero duplicate files.
+  // Local dev only: some Windows download managers answer local .gz URLs with HTTP 204; serve-site.mjs has an alias.
   const u = new URL(url);
   if (res.status === 204 && (u.hostname === '127.0.0.1' || u.hostname === 'localhost') && u.pathname.endsWith('.json.gz')) {
     const stem = u.pathname.split('/').pop()!.replace(/\.json\.gz$/, '');

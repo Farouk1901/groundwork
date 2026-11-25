@@ -1,12 +1,5 @@
-// Backtest: does reading the ticket really tell you which files will change?
-//
-// For every closed ticket that a merged pull request fixed, replay the graph as it was the moment the ticket was
-// opened (planTicket with asOf = ticket.createdAt: the fix, and everything merged or fixed later, is invisible),
-// predict the files, and compare with the files the real fix changed. Same cases, same graph, for:
-//   full         the whole pipeline
-//   ablations    one part switched off at a time (similar tickets, similar PRs, co-change, full-text, vector)
-//   popular      baseline: the files changed most often before that moment. This is the best a tool that has to
-//                start from a file (co-change, ownership) can do when there is only a ticket and no code yet.
+// Backtest: replay the graph as of the moment each fixed ticket was opened, predict its files, and compare with the
+// files the real fix changed. The most-changed-files baseline is what a file-first tool can do before any code exists.
 import { NOISE, planTicket, type PlanOptions } from './analyze.js';
 import { fuseWithGrep, grepRank } from './code.js';
 import { cleanText, embedOne } from './embed.js';
@@ -51,7 +44,7 @@ export function prCases(store: Store, repo: string, opts: { limit?: number; minH
   let skipped = 0;
   rows.forEach((r, i) => {
     const truth = (r.files as string[]).filter((p) => !NOISE.test(p));
-    const history = rows.length - i - 1; // PRs merged before this one
+    const history = rows.length - i - 1;
     if (history < (opts.minHistory ?? 50) || !truth.length) { skipped++; return; }
     const at = String(r.at);
     const known = store.query(`MATCH (x:PR)-[:TOUCHES]->(f:File) WHERE f.key IN $keys AND x.mergedAt < $t RETURN DISTINCT f.path AS p`,
@@ -135,7 +128,7 @@ export async function backtest(store: Store, repo: string, opts: { limit?: numbe
       grepTop.set(c.issue, grepRank(opts.clone, c.createdAt, text, k));
     }
     results.push(score('Baseline: grep the code for the ticket’s words', cs.map((c) => ({ top: grepTop.get(c.issue)!, truth: c.truth })), Date.now() - t1));
-    // Both together: confidence-weighted WRRF (k=10), tuned strictly on the older split.
+    // Confidence-weighted WRRF (k=10), tuned on the older split.
     results.push(score('Groundwork + grep (fused)', cs.map((c) => ({
       top: fuseWithGrep(fullTop.get(c.issue) ?? [], grepTop.get(c.issue) ?? [], fullBestSim.get(c.issue) ?? 0, k).map((r) => String(r.key)),
       truth: c.truth })), 0));

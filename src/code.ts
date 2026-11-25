@@ -1,15 +1,10 @@
-// Node.js only: when the code is at hand (an agent works inside the clone), search it for the ticket's words and fuse
-// that ranking with the graph's. In the backtest this lifted Hit@5 on hono from 77% to 82%: the graph knows where
-// similar work happened, grep knows where today's words are.
+// Node.js only: grep a local clone for the ticket's words and fuse that ranking with the graph's (Hit@5 on hono 77% to 82%).
 import { execFileSync } from 'node:child_process';
 import { NOISE, fuseWrrf, keywords, type FileHit, type Plan } from './analyze.js';
 import { moduleOf } from './ingest.js';
 import type { Store } from './core.js';
 
-/**
- * The baseline a coding agent already has: search the code, as it was that day, for the ticket's words. Files are
- * ranked by the summed IDF of the distinct words they contain (rare words count more), then by name length.
- */
+/** Grep the code as it was at `before` for the ticket's words; rank files by summed IDF, then by path length. */
 export function grepRank(clone: string, before: string, text: string, k: number, hits?: Map<string, string[]>): string[] {
   const git = (...a: string[]) => { try { return execFileSync('git', ['-C', clone, ...a], { encoding: 'utf8', maxBuffer: 64 << 20, stdio: ['ignore', 'pipe', 'ignore'] }); } catch (e) { return (e as { stdout?: string }).stdout ?? ''; } };
   const commit = git('rev-list', '-1', `--before=${before}`, 'HEAD').trim();
@@ -27,12 +22,9 @@ export function grepRank(clone: string, before: string, text: string, k: number,
   return [...score].filter(([f]) => !NOISE.test(f)).sort((a, b) => b[1] - a[1] || a[0].length - b[0].length).slice(0, k).map(([f]) => f);
 }
 
-
 /**
- * Confidence-weighted reciprocal rank fusion (k=10) between Groundwork's graph ranking and code grep.
- * When the graph finds a close past ticket/PR (`bestSim >= 0.86`), it trusts the graph more (0.65/0.35);
- * when the graph's best match is weak (`bestSim <= 0.74`), it trusts grep more (0.35/0.65), interpolating linearly
- * in between. Parameters were tuned strictly on the `--split older` half and never on held-out `--split newer` cases.
+ * Weighted RRF (k=10) of the graph and grep rankings. The graph's weight goes from 0.35 at bestSim <= 0.74 to 0.65 at
+ * bestSim >= 0.86, linear in between. Tuned on the `--split older` half only.
  */
 export function fuseWithGrep(graphPaths: string[], grepPaths: string[], bestSim: number, k = 12) {
   const alpha = Math.max(0, Math.min(1, (bestSim - 0.74) / (0.86 - 0.74)));

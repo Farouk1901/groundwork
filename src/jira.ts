@@ -1,7 +1,4 @@
-// Optional: add Jira tickets to a repository graph that is already ingested from GitHub.
-// Teams that track work in Jira write the ticket key in the PR title, branch or body ("SHOP-142: keep = in cookies"),
-// so a Jira ticket is linked to the PRs that mention its key, and from there to files, people and co-change.
-//
+// Optional Jira tickets for a repository already ingested from GitHub, linked to the PRs that mention their key.
 // Source: Jira Cloud (JIRA_EMAIL + JIRA_API_TOKEN, read-only search) or a JSON export of /rest/api/3/search results.
 import { readFileSync } from 'node:fs';
 import { cleanText, embed } from './embed.js';

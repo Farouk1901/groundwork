@@ -1,8 +1,4 @@
-// check: compare the change you are making with what the ticket predicts.
-//   expected + changed   covered
-//   expected, unchanged  missing: similar fixes in the past changed it too (a test, a sibling module, the docs)
-//   changed, unexpected  outside the ticket's usual footprint: fine if intended, worth a second look if not
-// Works on any list of files; gitChangedFiles reads them from a local clone.
+// Compare a list of changed files with what the ticket predicts: covered, probably missing, or outside the usual footprint.
 import { NOISE, TEST, planTicket, type Plan, type Reason } from './analyze.js';
 import type { Store } from './core.js';
 
@@ -20,14 +16,14 @@ const best = (rs: Reason[]) => rs.slice().sort((a, b) => b.score - a.score)[0]?.
 export async function checkChange(store: Store, repo: string, target: { issue: number | string } | { text: string }, changed: string[],
   opts: { threshold?: number; files?: number; refine?: (p: Plan) => Plan } = {}): Promise<CheckReport> {
   const threshold = opts.threshold ?? 0.5;
-  // refine: on Node.js, fuse in grep over the local clone (code.ts); the browser build has no clone.
+  // refine fuses in grep over a local clone (code.ts); the browser has no clone.
   const raw = await planTicket(store, repo, target, { files: opts.files ?? 15 });
   const plan = opts.refine ? opts.refine(raw) : raw;
   const ch = new Set(changed.map((p) => p.replace(/\\/g, '/')));
   const predicted = plan.files.filter((f) => !NOISE.test(f.path));
   const covered = predicted.filter((f) => ch.has(f.path)).map((f) => ({ path: f.path, score: f.score }));
   const missing = predicted.filter((f) => !ch.has(f.path) && f.score >= threshold)
-    // When the change already touches a file's own fix, its sibling test is the classic miss: keep tests in.
+    // Tests stay in: a forgotten sibling test is the most common miss.
     .map((f) => ({ path: f.path, score: f.score, why: best(f.reasons), test: TEST.test(f.path) }));
   const known = new Set(predicted.map((f) => f.path));
   const extra = [...ch].filter((p) => !known.has(p) && !NOISE.test(p));

@@ -61,8 +61,7 @@ export function serve(port = 7474) {
         return json(res, 200, { covered: r.covered, missing: r.missing, unexpected: r.unexpected, ok: r.ok });
       }
       if (url.pathname === '/api/eval') {
-        // Your own run first; else the result shipped with the example snapshot.
-        // The held-out half (never used to choose a default) is the honest headline; fall back to the full run.
+        // Your own run first, else the one shipped with the snapshot; the held-out half before the full run.
         const base = p('repo').replace('/', '__');
         const f = [...[`${base}.newer.json`, `${base}.json`, `${base}.prs.newer.json`, `${base}.prs.json`].map((n) => path.join(HOME, 'eval', n)),
           path.join(here, '..', 'docs', 'data', `${base}.eval.json`)].find((x) => existsSync(x));

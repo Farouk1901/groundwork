@@ -1,7 +1,6 @@
 #!/usr/bin/env node
-// Reproducible instant-boot & Web Worker benchmark for docs/ (GitHub Pages build).
-// Measures navigationStart -> first paint, FCP, instant hono#2550 Replay render time, and main-thread long tasks
-// via headless Chrome DevTools Protocol, then cleans up Chrome and the local server.
+// Startup benchmark of docs/ in headless Chrome (DevTools Protocol): first paint, FCP, the hono#2550 Replay render
+// time and main-thread long tasks.
 import { createServer } from 'node:http';
 import { readFile } from 'node:fs/promises';
 import { existsSync, mkdtempSync, rmSync } from 'node:fs';
@@ -145,7 +144,7 @@ try {
       if (done) break;
       await sleep(100);
     }
-    // Let Cytoscape layout + worker warmup settle briefly to catch any startup long tasks
+    // Let the graph layout and worker warmup settle, so their long tasks are counted.
     await sleep(600);
     const m = await cdp.eval(`(() => {
       const paints = performance.getEntriesByType('paint');

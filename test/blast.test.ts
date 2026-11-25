@@ -175,7 +175,7 @@ test('jira: ADF text, keys in PR titles, tickets linked to the PRs that name the
   assert.ok(p.files.some((f) => f.path === 'src/http/cookie.ts'));
 });
 
-test('snapshots load plain or gzipped (judges need no GitHub token)', () => {
+test('snapshots load plain or gzipped (no GitHub token needed)', () => {
   const dir = mkdtempSync(path.join(tmpdir(), 'gw-'));
   writeFileSync(path.join(dir, 'a.json'), JSON.stringify(data));
   writeFileSync(path.join(dir, 'a.json.gz'), gzipSync(JSON.stringify(data)));
@@ -299,14 +299,13 @@ test('daily seal: seals only newly opened unfixed issues created after last seal
   const { seal, sealDailyNewIssues, sha256Hex } = await import('../src/predict.ts');
   const store = await graph();
   const initial = await seal(store, ['acme/shop']);
-  // Simulate an initial seal taken at 2026-03-01T12:00:00Z that only saw issue #3 (created 2026-03-01T00:00:00Z).
-  // Issue #4 was created 2026-03-02T00:00:00Z (strictly AFTER the prior seal).
+  // A prior seal at 2026-03-01T12:00:00Z that saw only #3; #4 was opened on 2026-03-02, after it.
   const prior = {
     ...initial,
     sealedAt: '2026-03-01T12:00:00Z',
     repos: [{ ...initial.repos[0], forecasts: initial.repos[0].forecasts.filter((f) => f.issue === 3) }],
   };
-  // Issue #4 is created after 2026-03-01T12:00:00Z -> sealed. Issue #3 was already sealed AND older -> skipped.
+  // #4 is sealed; #3 was sealed already.
   const daily = await sealDailyNewIssues(store, ['acme/shop'], [prior], { date: '2026-11-25' });
   assert.equal(daily.daily.date, '2026-11-25');
   assert.equal(daily.count, 1);
@@ -314,12 +313,12 @@ test('daily seal: seals only newly opened unfixed issues created after last seal
   assert.equal(daily.sha256, sha256Hex(daily.json));
   assert.equal(daily.sha256.length, 64);
 
-  // If issue #4 is older than prior.sealedAt (e.g. prior sealedAt = 2026-03-10), it is NOT sealed even if unseen.
+  // Opened before the last seal: skipped even though it was never sealed.
   const newerPrior = { ...prior, sealedAt: '2026-03-10T00:00:00Z' };
   const skippedOld = await sealDailyNewIssues(store, ['acme/shop'], [newerPrior], { date: '2026-11-26' });
   assert.equal(skippedOld.count, 0);
 
-  // If issue #4 has a linked open PR on GitHub, it is excluded so no public diff leaks.
+  // A linked open PR means the diff is public: skipped.
   const withLinkedPr = await sealDailyNewIssues(store, ['acme/shop'], [prior], {
     date: '2026-11-27',
     findLinkedPrs: async () => new Set([4]),
@@ -359,9 +358,9 @@ test('score-predictions scores both sealed.json and daily/*.json using each seal
   const afterBaseBeforeDaily = '2026-03-02T06:00:00Z';
   const afterDaily = new Date(Date.parse(daily.daily.sealedAt) + 86_400_000).toISOString();
   const s = score(allSeals, [
-    // Issue #3 sealed at 2026-03-01T12:00:00Z -> fixed at 2026-03-02T06:00:00Z: COUNTED
+    // #3, fixed after its seal: counted.
     { repo: 'acme/shop', issue: 3, pr: 30, mergedAt: afterBaseBeforeDaily, files: ['src/http/cookie.ts'] },
-    // Issue #4 sealed in daily seal -> fix merged BEFORE daily seal: IGNORED
+    // #4, fixed before its daily seal: ignored.
     { repo: 'acme/shop', issue: 4, pr: 31, mergedAt: afterBaseBeforeDaily, files: ['src/http/session.ts'] },
   ]);
   assert.equal(s.totals.forecasts, 2);

@@ -1,12 +1,11 @@
-# Scores all sealed forecasts (docs/predictions/sealed.json + append-only docs/predictions/daily/*.json) every day
-# against pull requests merged after each seal, seals newly opened unfixed issues only (never open PRs) with a daily
-# SHA-256 digest, and runs one final scoring + freeze pass immediately after the contest deadline (2026-12-11 18:00 PT).
+# Daily: score every sealed forecast against PRs merged after its seal, then seal the day's new unfixed issues.
+# One last run after the deadline (2026-12-11 18:00 PT) freezes the score.
 name: Score sealed predictions
 
 on:
   schedule:
     - cron: '17 5 * * *'
-    - cron: '30 2 12 12 *'   # Final post-deadline freeze run (2026-12-12 02:30 UTC, 30 min after the deadline)
+    - cron: '30 2 12 12 *'   # 2026-12-12 02:30 UTC, 30 min after the deadline
   workflow_dispatch:
 
 permissions:

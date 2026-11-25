@@ -1,4 +1,4 @@
-// Pure Store wrapper around RelateDb (type-only import so browser.ts stays free of WASM runtime).
+// Store over RelateDb. The import is type-only, so browser.ts does not pull in the WASM runtime.
 import type { RelateDb } from '@relate/relate-wasm';
 import { SCHEMA, type Row, type Store } from '../src/core.js';
 

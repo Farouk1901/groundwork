@@ -7,7 +7,8 @@ import type { RepoData } from './github.js';
 import { cleanText, embed } from './embed.js';
 import { ensureSearchIndexes, num, type Store } from './core.js';
 
-const MAX_FILES_FOR_COCHANGE = 30; // huge PRs (renames, formatting) say little about which files belong together
+// Huge PRs (renames, formatting) say little about which files belong together.
+const MAX_FILES_FOR_COCHANGE = 30;
 
 export function moduleOf(file: string): string {
   const parts = file.split('/');
@@ -48,16 +49,12 @@ function chunks<T>(xs: T[], n: number): T[][] {
   return out;
 }
 
-/**
- * Build or update a repository's graph. `vectors` (one per issue, then one per PR, in data order) skips computing
- * embeddings: the browser demo ships them precomputed.
- */
+/** Build or update a repository's graph. Precomputed `vectors` (issues, then PRs, in data order) skip embedding. */
 export async function ingest(store: Store, data: RepoData, log: (s: string) => void = () => {}, opts: { vectors?: number[][] } = {}) {
   const repo = data.repo;
   const q = store.query;
   q('MERGE (r:Repo {name: $repo}) SET r.fetchedAt = $at', { repo, at: data.fetchedAt });
 
-  // ---------- text + embeddings ----------
   const issueText = data.issues.map((i) => cleanText(i.title, i.body));
   const prText = data.prs.map((p) => cleanText(p.title, p.body));
   let vectors = opts.vectors;
@@ -67,7 +64,6 @@ export async function ingest(store: Store, data: RepoData, log: (s: string) => v
   }
   const iv = vectors.slice(0, issueText.length), pv = vectors.slice(issueText.length);
 
-  // ---------- nodes ----------
   for (const batch of chunks(data.issues.map((i, k) => ({
     key: `${repo}#${i.number}`, number: i.number, title: i.title, body: issueText[k], state: i.state, url: i.url,
     createdAt: i.createdAt, closedAt: i.closedAt ?? '', author: i.author ?? '', labels: i.labels, embedding: iv[k],
@@ -92,7 +88,6 @@ export async function ingest(store: Store, data: RepoData, log: (s: string) => v
   }
   log(`  ${data.prs.length} pull requests`);
 
-  // ---------- files, modules, touches ----------
   const allFiles = [...new Set(data.prs.flatMap((p) => p.files.map((f) => f.path)))];
   for (const batch of chunks(allFiles.map((f) => ({ key: `${repo}:${f}`, path: f, module: moduleOf(f) })), 500)) {
     q(`UNWIND $rows AS r MERGE (f:File {key: r.key}) SET f.repo = $repo, f.path = r.path
@@ -105,25 +100,22 @@ export async function ingest(store: Store, data: RepoData, log: (s: string) => v
   }
   log(`  ${allFiles.length} files, ${touches.length} file changes`);
 
-  // ---------- PR fixes issue ----------
   const issueNumbers = new Set(data.issues.map((i) => i.number));
   const fixes = data.prs.flatMap((p) => {
     const closes = new Set(p.closes);
-    // Also "Fixes #12" written in the PR body, which GitHub links only for the default branch.
+    // GitHub links "Fixes #12" only for the default branch, so read it from the body too.
     for (const m of `${p.title}\n${p.body}`.matchAll(/\b(?:close[sd]?|fix(?:e[sd])?|resolve[sd]?)\s*:?\s+#(\d+)/gi)) closes.add(Number(m[1]));
     return [...closes].filter((n) => issueNumbers.has(n)).map((n) => ({ pr: `${repo}!${p.number}`, issue: `${repo}#${n}` }));
   });
   for (const batch of chunks(fixes, 500)) q(`UNWIND $rows AS r MATCH (x:PR {key: r.pr}), (i:Issue {key: r.issue}) MERGE (x)-[:FIXES]->(i)`, { rows: batch });
   log(`  ${fixes.length} pull request → issue fixes`);
 
-  // ---------- issue text names files, mentions other issues ----------
   const names = data.issues.flatMap((i) => namedFiles(`${i.title}\n${i.body}`, allFiles).map((f) => ({ issue: `${repo}#${i.number}`, file: `${repo}:${f}` })));
   for (const batch of chunks(names, 500)) q(`UNWIND $rows AS r MATCH (i:Issue {key: r.issue}), (f:File {key: r.file}) MERGE (i)-[:NAMES]->(f)`, { rows: batch });
   const mentions = data.issues.flatMap((i) => mentionedIssues(i.body, i.number).filter((n) => issueNumbers.has(n)).map((n) => ({ a: `${repo}#${i.number}`, b: `${repo}#${n}` })));
   for (const batch of chunks(mentions, 500)) q(`UNWIND $rows AS r MATCH (a:Issue {key: r.a}), (b:Issue {key: r.b}) MERGE (a)-[:MENTIONS]->(b)`, { rows: batch });
   log(`  ${names.length} issue → file names, ${mentions.length} issue mentions`);
 
-  // ---------- co-change ----------
   const pairs = new Map<string, number>();
   for (const p of data.prs) {
     const fs = [...new Set(p.files.map((f) => f.path))].sort();

@@ -4,7 +4,7 @@
 Groundwork
 
 ## Tagline (max 200 characters)
-Ticket-first blast radius & future-verified pre-code forecast: Relate hybrid search + Cypher paths predict files, experts & risks before code exists — proved on 703 held-out cases & 617 sealed forecasts.
+Ticket-first blast radius: Relate hybrid search and Cypher paths predict the files, experts and risks of a ticket before any code exists. Checked on 703 held-out cases and 617 sealed forecasts.
 
 ## Links
 - **Live demo (runs in the browser, nothing to install):** https://farouk1901.github.io/groundwork/
@@ -22,7 +22,7 @@ caught a missing test. But that knowledge is spread across closed tickets, merge
 and grep cannot connect "cookie value gets cut at =" to the PR that fixed it last year.
 
 Impact tools that start from code (call graphs, co-change, ownership) need a starting file. When work starts from
-a ticket, finding that file *is* the work. That gap is where Groundwork lives.
+a ticket, finding that file *is* the work. Groundwork starts there.
 
 ## What it does
 
@@ -38,9 +38,9 @@ Give Groundwork a ticket (a GitHub issue number, a Jira key, or a sentence) and 
 And when the change is written, `check` compares the diff with the ticket: covered files, files that similar
 fixes also changed but you did not (usually the test), and files outside the ticket's usual footprint.
 
-It works as a CLI, a **GitHub Action** (`action.yml`) that automatically comments Groundwork's ranked files, experts and risks on newly opened issues, an **MCP server** for Claude Code / Cursor / Codex (`plan_ticket`, `check_diff`, `similar_work`, `who_knows`, read-only `graph_query`), a **Claude Code skill**, a pre-commit / CI gate (`check --strict`), a local web view, a **ready-to-inspect single-file Relate store committed directly in the repo** (`examples/relatedb__relate.rl`, 3,581 nodes & 15,469 relationships of `relatedb/relate` itself), and a **live browser demo** that opens in `133 ms` median (measured via `npm run bench:instant`, zero `> 200 ms` main-thread long tasks) with pre-baked Replay samples while **Relate WebAssembly runs live in a background Web Worker** on `hono`, `vitest` and `relatedb/relate`.
+It works as a CLI, a **GitHub Action** (`action.yml`) that comments the ranked files, experts and risks on newly opened issues, an **MCP server** for Claude Code / Cursor / Codex (`plan_ticket`, `check_diff`, `similar_work`, `who_knows`, read-only `graph_query`), a **Claude Code skill**, a pre-commit / CI gate (`check --strict`), a local web view, a **single-file Relate store committed in the repo** (`examples/relatedb__relate.rl`, 3,581 nodes and 15,469 relationships of `relatedb/relate` itself), and a **live browser demo** on `hono`, `vitest` and `relatedb/relate`. The demo opens in `133 ms` median (`npm run bench:instant`, zero `> 200 ms` main-thread long tasks) with pre-baked Replay samples, while **Relate WebAssembly runs live in a Web Worker**.
 
-**Does it work? We measured it, on three repositories (703 held-out cases).** `eval` replays history: for each closed ticket that a merged PR fixed, it rebuilds the graph *as of the moment the ticket was opened* (the fix and everything later hidden), predicts the files from the ticket alone, and compares them with the real fix — alongside both a `grep` baseline (what coding agents do today) and a most-changed-files baseline. All numbers below come from the exact same held-out `--split newer` run (`docs/data/*.eval.json`):
+**Does it work? We measured it on three repositories (703 held-out cases).** `eval` replays history: for each closed ticket that a merged PR fixed, it rebuilds the graph *as of the moment the ticket was opened* (the fix and everything later hidden), predicts the files from the ticket alone, and compares them with the real fix. It runs two baselines on the same cases: `grep` (what coding agents do today) and the most-changed files. All numbers below come from the same held-out `--split newer` run (`docs/data/*.eval.json`):
 
 | Repository | Cases | Groundwork Hit@5 | `grep` alone Hit@5 | **Groundwork + grep Hit@5** | Baseline Hit@5 | Fused MRR (vs `grep`) |
 |---|---:|---:|---:|---:|---:|---:|
@@ -49,11 +49,11 @@ It works as a CLI, a **GitHub Action** (`action.yml`) that automatically comment
 | relatedb/relate itself, newer half, **PR title alone** | 283 PRs | **50.9%** | 60.4% | **68.2%** | 18.4% | **0.531** (vs 0.418) |
 | **Weighted total (all 3 repos)** | **703 cases** | **62.3%** | **51.5%** | **69.7%** | **17.1%** | **0.538** (vs 0.356) |
 
-Hit@5: a file the real fix changed is among the first five suggestions (**2.8× to 5.0×** the file-first baseline standalone; **3.7× to 5.1×** fused with `grep`). Because coding agents already use `grep`, fusing Groundwork with `grep` (`--code`, confidence-weighted WRRF tuned strictly on `--split older`) beats `grep` alone on every single repository: **79.5%** vs 58.5% on `hono`, **62.7%** vs 33.6% on `vitest`, and **68.2%** vs 60.4% on `relatedb/relate` (MRR **0.531** vs 0.418).
+Hit@5: a file the real fix changed is among the first five suggestions (**2.8× to 5.0×** the file-first baseline on its own; **3.7× to 5.1×** fused with `grep`). Coding agents already use `grep`, and fusing Groundwork with it (`--code`, confidence-weighted WRRF tuned on `--split older` only) beats `grep` alone on every repository: **79.5%** vs 58.5% on `hono`, **62.7%** vs 33.6% on `vitest`, and **68.2%** vs 60.4% on `relatedb/relate` (MRR **0.531** vs 0.418).
 
-**Estimated ROI (estimated from first-hit rank on 703 held-out cases):** Based on `1 / MRR` across the 703 held-out cases, `grep` alone inspects ~2.81 files before hitting a true fix file (missing Top-5 on 48.5% of cases), while Groundwork + grep inspects ~1.86 files (~34% fewer files opened before first hit, cutting Top-5 misses to 30.3% — an estimated ~1,400 tokens saved per ticket, *estimated from first-hit rank on 703 held-out cases*).
+**Estimated ROI (from first-hit rank on 703 held-out cases):** taking `1 / MRR` as the files opened before reaching one the fix changed, `grep` alone opens ~2.81 files and misses the top 5 on 48.5% of cases. Groundwork + grep opens ~1.86 files (~34% fewer files opened before first hit) and misses on 30.3%, an estimated ~1,400 tokens saved per ticket.
 
-**Sealed forecasts scored on the future:** On 24 Nov 2026 (`f9e4c54`), we sealed **617 forecasts** for open, unfixed issues (never open PRs whose diffs are public) with a SHA-256 digest (`docs/predictions/sealed.sha256`). A daily GitHub Action scores both `sealed.json` and append-only `daily/*.json` seals against fixes merged after each seal, seals newly opened unfixed issues created after the last seal with no linked PRs, and runs one final freeze pass immediately after the contest deadline (`2026-12-12T02:00:00Z` / Dec 11, 2026 6:00 PM PT).
+**Sealed forecasts scored on the future:** on 24 Nov 2026 (`f9e4c54`), we sealed **617 forecasts** for open, unfixed issues with a SHA-256 digest (`docs/predictions/sealed.sha256`). Open PRs are never sealed, since their diffs are public. A daily GitHub Action scores `sealed.json` and the append-only `daily/*.json` seals against fixes merged after each seal, seals issues opened since the last seal that are unfixed and have no linked PR, and freezes the score with one last run right after the contest deadline (`2026-12-12T02:00:00Z` / Dec 11, 2026 6:00 PM PT).
 
 **See it yourself:** in the live demo, open a closed ticket and press **Replay**. The graph rewinds to the day the
 ticket was opened, the fix disappears, and every file the real fix changed gets a ✓. hono#2550, a Lambda header
@@ -71,11 +71,11 @@ regression: the first suggestion is `src/adapter/aws-lambda/handler.ts`, the fil
 - **Graph hops do the rest**: each similar ticket is followed to the PR that fixed it and the files that PR touched;
   each similar PR to its files; then co-change edges bring in the test and the sibling module; then `AUTHORED` gives
   the people and labelled bug fixes give the risks. Every score keeps the path that produced it.
-- **Time travel for honest evaluation**: `planTicket(…, { asOf })` filters every hop by merge date and recounts
+- **Time travel for a fair evaluation**: `planTicket(…, { asOf })` filters every hop by merge date and recounts
   co-change from earlier PRs only, so the backtest never sees the answer.
 - **Ingest** from the GitHub GraphQL API (merged PRs with files and closing references, tickets), cached on disk;
   optional **Jira** import links tickets to PRs that mention their key.
-- **The same code in the browser (instant 133 ms median boot + Web Worker).** The live demo opens immediately on `hono#2550` Replay via a tiny pre-baked bundle (`docs/data/instant.json`, measured 133 ms median plan render & zero main-thread long tasks > 200 ms via `npm run bench:instant`), while `docs/worker.js` downloads the int8 snapshot and builds the live `@relate/relate-wasm` (`1.2.0`) graph in a dedicated Web Worker off the main thread. Because the WASM build cannot toggle the `hybrid-search` preview via environment variables, it runs vector and full-text indexes separately in Relate and fuses them with identical WRRF.
+- **The same code in the browser.** The live demo opens on `hono#2550` Replay from a small pre-baked bundle (`docs/data/instant.json`; 133 ms median plan render and zero main-thread long tasks > 200 ms in `npm run bench:instant`), while `docs/worker.js` downloads the int8 snapshot and builds the live `@relate/relate-wasm` (`1.2.0`) graph in a Web Worker, off the main thread. The WASM build cannot switch on the `hybrid-search` preview through environment variables, so it queries the vector and full-text indexes separately in Relate and fuses them with the same WRRF.
 - TypeScript on Node.js with tsx, the MCP TypeScript SDK, Cytoscape.js for the web view, esbuild for the browser and worker bundles, `node:test` for the tests (20 tests, including a native `@relate/relate 1.0.1` vs `@relate/relate-wasm 1.2.0` parity test, append-only daily new-issue sealing with SHA-256, multi-seal scoring, and post-deadline freeze verification).
 
 ## Challenges we ran into

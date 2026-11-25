@@ -1,6 +1,4 @@
-// Reads a public (or private, with access) GitHub repository through the GraphQL API:
-// merged pull requests with their changed files and the issues they close, plus issues (open and closed).
-// Raw responses are cached on disk, so a re-run or a demo works offline.
+// Merged PRs, their files and closed issues, and all issues, read through the GitHub GraphQL API and cached on disk.
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
@@ -150,10 +148,7 @@ const LINKED_PRS = `query($owner:String!,$name:String!,$after:String){repository
     nodes{number title body updatedAt
       closingIssuesReferences(first:10){nodes{number repository{nameWithOwner}}}}}}}`;
 
-/**
- * Returns issue numbers in `repo` that already have an OPEN or recently MERGED pull request referencing or closing
- * them on GitHub, so daily sealing never forecasts an issue whose fix diff is already public.
- */
+/** Issues that an open or recently merged PR already references, so the daily seal skips fixes that are public. */
 export async function issuesWithLinkedPRs(
   repo: string,
   since: string,

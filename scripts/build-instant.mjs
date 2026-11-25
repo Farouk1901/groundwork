@@ -1,7 +1,6 @@
 #!/usr/bin/env node
-// Generates docs/data/instant.json from the real Relate graph so the browser demo renders
-// hono#2550 (Replay) + vitest + relatedb/relate samples in < 200 ms while Relate WASM builds
-// in a background Web Worker.
+// Builds docs/data/instant.json from the real graph, so the demo shows hono#2550 (Replay) and samples from vitest and
+// relatedb/relate in < 200 ms while the worker loads Relate WASM.
 import { readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -51,16 +50,15 @@ for (const m of manifest) {
     inBrowser: true,
   };
 
-  // Pre-bake top open example for every repo.
+  // The first open example of every repo.
   if (examples[0]) await cachePlan(repo, String(examples[0].number), false);
 }
 
-// Pre-bake hono#2550 (Replay + Live) and hono#5601.
 await cachePlan('honojs/hono', '2550', true);
 await cachePlan('honojs/hono', '2550', false);
 await cachePlan('honojs/hono', '5601', false);
 
-// Pre-bake a vitest closed ticket Replay if present, plus vitest text example.
+// The newest small vitest fix, replayed and live.
 const vitestClosed = store.query(
   `MATCH (p:PR)-[:FIXES]->(i:Issue) WHERE i.repo = 'vitest-dev/vitest' AND p.fileCount <= 10 RETURN i.number AS n ORDER BY i.createdAt DESC LIMIT 1`,
 )[0];
@@ -70,7 +68,6 @@ if (vitestClosed) {
 }
 await cachePlan('vitest-dev/vitest', 'Coverage report is missing files that are only imported inside worker threads', false);
 
-// Pre-bake relatedb/relate text example.
 await cachePlan('relatedb/relate', 'Full-text index ignores accented characters when matching words', false);
 
 const out = {

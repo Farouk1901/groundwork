@@ -183,7 +183,7 @@ async function boot() {
         el.style.color = state === 'ready' ? 'var(--good)' : state === 'error' ? 'var(--bad)' : 'var(--teal)';
       });
     } catch (e) { $('status').textContent = 'Could not start Relate in this browser: ' + e.message; return; }
-    $('foot').textContent = 'Instant pre-baked first paint + live Relate WebAssembly running in a dedicated Web Worker (zero main-thread blocking). Free-text questions download a small embedding model on first use.';
+    $('foot').textContent = 'A pre-baked first view, then Relate WebAssembly running live in a Web Worker, off the main thread. Free-text questions download a small embedding model on first use.';
   }
   loadSealed();
   const qs = new URLSearchParams(location.search);
@@ -329,7 +329,7 @@ function render(r) {
   $('experts').innerHTML = r.experts.map((e) => `<li><a href="https://github.com/${esc(e.login)}" target="_blank" rel="noopener">@${esc(e.login)}</a><small>${e.changes} merged PRs in these files · last ${esc(e.last)}</small></li>`).join('') || '<li class="empty">No history yet.</li>';
   $('risks').innerHTML = r.risks.map((x) => `<li><a href="${esc(x.url)}" target="_blank" rel="noopener">#${x.number}</a> ${esc(x.title)}<small>${esc(x.why)}</small></li>`).join('') || '<li class="empty">Nothing open in these files.</li>';
   $('similar').innerHTML = r.similar.slice(0, 7).map((x) => `<li><a href="${esc(x.url || gh(r.repo, x.kind, x.number))}" target="_blank" rel="noopener">${x.kind === 'pr' ? 'PR' : 'Ticket'} #${x.number}</a> ${esc(x.title)}<small>${x.state ? esc(x.state.toLowerCase()) + ' · ' : ''}similarity ${Math.round(x.sim * 100)}%</small></li>`).join('');
-  // Defer Cytoscape layout to the next macrotask so initial DOM paint stays < 100 ms with zero >200 ms long tasks.
+  // Lay out the graph in the next task, after the lists have painted.
   setTimeout(() => drawGraph(r), 0);
 }
 

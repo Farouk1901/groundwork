@@ -1,7 +1,4 @@
-// Builds the static, in-browser demo into docs/ (served by GitHub Pages):
-// - docs/app.js: lightweight main-thread loader (instant pre-baked boot < 200 ms)
-// - docs/worker.js: dedicated Web Worker running Relate WebAssembly off the main thread
-// - docs/relate_bg.wasm, docs/vendor/cytoscape.min.js, docs/index.html
+// Builds the static demo into docs/ for GitHub Pages: app.js on the main thread, worker.js running Relate WebAssembly.
 import { build } from 'esbuild';
 import { copyFileSync, mkdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
@@ -36,7 +33,7 @@ await Promise.all([
 
 copyFileSync(require.resolve('@relate/relate-wasm/relate_bg.wasm'), path.join(out, 'relate_bg.wasm'));
 copyFileSync(require.resolve('cytoscape/dist/cytoscape.min.js'), path.join(out, 'vendor', 'cytoscape.min.js'));
-// Keep docs/data/index.json clean (referencing only the canonical .json.gz snapshots, no duplicate binaries).
+// index.json lists only the .json.gz snapshots.
 const idxPath = path.join(out, 'data', 'index.json');
 const idx = JSON.parse(readFileSync(idxPath, 'utf8')).map(({ browserFile: _drop, ...entry }) => entry);
 writeFileSync(idxPath, JSON.stringify(idx, null, 2) + '\n');

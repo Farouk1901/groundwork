@@ -1,5 +1,4 @@
-// Groundwork in the browser: instant pre-baked startup backed by a dedicated
-// Relate WebAssembly Web Worker for live free-text queries and full graph access.
+// Groundwork in the browser: a pre-baked first view, then a Relate WebAssembly worker for everything else.
 export { wasmStore } from './wasm-store.js';
 export type DemoRepo = { name: string; file: string; eval?: string; issues: number; prs: number; note?: string };
 
@@ -119,7 +118,7 @@ export function defaultInstantView(): { repo: string; q: string; replay: boolean
 
 export async function ready(onStatus: (s: string, state?: 'loading' | 'ready' | 'error') => void) {
   statusCb = onStatus;
-  // Fetch the tiny pre-baked bundle + repo manifest in parallel so first render stays fast and unblocked.
+  // The pre-baked bundle and the manifest are small; load both before the first render.
   const [mRes, iRes] = await Promise.all([
     fetch('data/index.json').then((r) => r.json()).catch(() => []),
     fetch('data/instant.json').then((r) => (r.ok ? r.json() : null)).catch(() => null),
@@ -130,7 +129,7 @@ export async function ready(onStatus: (s: string, state?: 'loading' | 'ready' | 
   activeRepo = initialRepo;
   globalStatus = { text: 'Instant demo ready · Relate WASM warming up in Web Worker…', state: 'loading' };
   emitActiveStatus();
-  // Boot the Relate WASM Web Worker on the next frame so initial paint stays completely unblocked.
+  // Start the worker on the next frame so it does not delay the first paint.
   requestAnimationFrame(() => startWorker(initialRepo));
 }
 
@@ -148,7 +147,7 @@ export async function api(path: string): Promise<unknown> {
     const repo = p('repo') || manifest[0]?.name;
     if (repo) setActiveRepo(repo);
     if (instant?.repos?.[repo]) {
-      // Also trigger background preload for the chosen repo in the worker.
+      // Let the worker start loading this repo meanwhile.
       worker?.postMessage({ type: 'warmup', repo });
       return instant.repos[repo];
     }
@@ -166,6 +165,6 @@ export async function api(path: string): Promise<unknown> {
     return askWorker(path);
   }
 
-  // Free-text queries, non-cached tickets, and /api/check execute live in the Relate WASM Web Worker.
+  // Anything not pre-baked runs live in the worker.
   return askWorker(path);
 }

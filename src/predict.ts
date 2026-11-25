@@ -1,9 +1,5 @@
-// Sealed predictions: a forecast on the future, not a backtest on the past.
-//
-// seal()  runs planTicket on every ticket that is still open and has no fix yet, and writes the top files per ticket
-//         to a JSON file committed to the repository: the commit date proves the forecast came first.
-// score() later reads the pull requests merged *after* the seal that close one of those tickets, and checks the
-//         forecast against the files they really changed. Nothing in the forecast can have seen those fixes.
+// Sealed predictions: forecast the files of every open, unfixed ticket and commit them, so the date proves they came
+// first; score() later checks them against the PRs merged after the seal.
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import path from 'node:path';
@@ -58,10 +54,7 @@ export async function seal(
   };
 }
 
-/**
- * Seal ONLY newly opened, unfixed issues created strictly after the latest prior seal, not previously sealed,
- * and with no linked open/merged PR on GitHub. Never seals open PRs (their diffs are public at seal time).
- */
+/** Seal issues opened after the latest seal that are unfixed, unsealed and have no linked PR (its diff would be public). */
 export async function sealDailyNewIssues(
   store: Store,
   repos: string[],
@@ -109,10 +102,7 @@ export async function sealDailyNewIssues(
   return { daily, json, sha256, count };
 }
 
-/**
- * Append-only writer for daily seal files: refuses to overwrite an existing YYYY-MM-DD.json file
- * so original sealed predictions can never be replaced retroactively.
- */
+/** Refuses to overwrite an existing day, so a sealed forecast cannot be replaced later. */
 export function writeDailySealFile(dir: string, date: string, json: string, sha256: string): { jsonPath: string; shaPath: string } {
   const dailyDir = path.join(dir, 'daily');
   const fileName = `${date}.json`;
@@ -127,7 +117,7 @@ export function writeDailySealFile(dir: string, date: string, json: string, sha2
   return { jsonPath, shaPath };
 }
 
-/** Load base sealed.json plus all append-only daily/*.json seal files in chronological order. */
+/** sealed.json, then daily/*.json in date order. */
 export function loadAllSeals(dir: string): Sealed[] {
   const seals: Sealed[] = [];
   const baseFile = path.join(dir, 'sealed.json');
@@ -141,12 +131,7 @@ export function loadAllSeals(dir: string): Sealed[] {
   return seals;
 }
 
-/**
- * Freeze rule for post-deadline scoring:
- * - Before `until`: always run (`frozen: false`).
- * - After `until`: run ONE final pass (filtering `mergedAt <= until`) and write `frozen: true`.
- * - Skip only once `score.json` already exists with `frozen === true`.
- */
+/** After `until`, one last pass writes `frozen: true`; every run after that is skipped. */
 export function shouldSkipFrozenScore(existingScore: { frozen?: boolean } | null, until: string | undefined, now: Date = new Date()): boolean {
   if (!until) return false;
   return now > new Date(until) && existingScore?.frozen === true;
@@ -161,17 +146,14 @@ export type Score = {
   cases: ScoredCase[];
 };
 
-/**
- * Compare one or more sealed forecast snapshots (base `sealed.json` + optional `daily/*.json`) with fixes merged
- * after each issue's own seal timestamp. Pure: GitHub reading is done by the caller.
- */
+/** Score sealed forecasts against fixes merged after each issue's own seal. The caller reads GitHub. */
 export function score(sealedOrList: Sealed | Sealed[], fixes: FixSeen[], opts: { scoredAt?: string; frozen?: boolean } = {}): Score {
   const seals = (Array.isArray(sealedOrList) ? sealedOrList : [sealedOrList])
     .slice()
     .sort((a, b) => a.sealedAt.localeCompare(b.sealedAt));
   const earliestSealedAt = seals[0]?.sealedAt ?? new Date().toISOString();
 
-  // Merge forecasts across base + daily seals per repo, preserving each forecast's own sealedAt and popular baseline.
+  // The first seal of an issue wins, with its own sealedAt and popular baseline.
   const repoOrder: string[] = [];
   const byRepo = new Map<string, Map<number, { forecast: Forecast; sealedAt: string; popular: string[] }>>();
   for (const s of seals) {
@@ -187,8 +169,7 @@ export function score(sealedOrList: Sealed | Sealed[], fixes: FixSeen[], opts: {
   const cases: ScoredCase[] = [];
   for (const repo of repoOrder) {
     const byIssue = byRepo.get(repo)!;
-    // A ticket may be closed by several PRs: their files together are the truth.
-    // Every fix MUST be merged strictly after the specific seal that forecast that issue.
+    // A ticket may be closed by several PRs: their files together are the truth. Only fixes merged after its seal count.
     const truth = new Map<number, { pr: number; mergedAt: string; files: Set<string> }>();
     for (const x of fixes) {
       if (x.repo !== repo) continue;
