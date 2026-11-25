@@ -4,7 +4,7 @@
 Groundwork
 
 ## Tagline (max 200 characters)
-Before the first line of code: Groundwork reads a ticket, finds how similar tickets were fixed, and shows the files, people and risks, each with the Relate graph path behind it.
+Ticket-first blast radius & future-verified pre-code forecast: Relate hybrid search + Cypher paths predict files, experts & risks before code exists — proved on 703 held-out cases & 617 sealed forecasts.
 
 ## Links
 - **Live demo (runs in the browser, nothing to install):** https://farouk1901.github.io/groundwork/
@@ -38,7 +38,7 @@ Give Groundwork a ticket (a GitHub issue number, a Jira key, or a sentence) and 
 And when the change is written, `check` compares the diff with the ticket: covered files, files that similar
 fixes also changed but you did not (usually the test), and files outside the ticket's usual footprint.
 
-It works as a CLI, a **GitHub Action** (`action.yml`) that automatically comments Groundwork's ranked files, experts and risks on newly opened issues, an **MCP server** for Claude Code / Cursor / Codex (`plan_ticket`, `check_diff`, `similar_work`, `who_knows`, read-only `graph_query`), a **Claude Code skill**, a pre-commit / CI gate (`check --strict`), a local web view, and a **live browser demo** that opens in `180 ms` median (measured via `npm run bench:instant`, zero `> 200 ms` main-thread long tasks) with pre-baked Replay samples while **Relate WebAssembly runs live in a background Web Worker** on `hono`, `vitest` and `relatedb/relate`.
+It works as a CLI, a **GitHub Action** (`action.yml`) that automatically comments Groundwork's ranked files, experts and risks on newly opened issues, an **MCP server** for Claude Code / Cursor / Codex (`plan_ticket`, `check_diff`, `similar_work`, `who_knows`, read-only `graph_query`), a **Claude Code skill**, a pre-commit / CI gate (`check --strict`), a local web view, a **ready-to-inspect single-file Relate store committed directly in the repo** (`examples/relatedb__relate.rl`, 3,581 nodes & 15,469 relationships of `relatedb/relate` itself), and a **live browser demo** that opens in `133 ms` median (measured via `npm run bench:instant`, zero `> 200 ms` main-thread long tasks) with pre-baked Replay samples while **Relate WebAssembly runs live in a background Web Worker** on `hono`, `vitest` and `relatedb/relate`.
 
 **Does it work? We measured it, on three repositories (703 held-out cases).** `eval` replays history: for each closed ticket that a merged PR fixed, it rebuilds the graph *as of the moment the ticket was opened* (the fix and everything later hidden), predicts the files from the ticket alone, and compares them with the real fix — alongside both a `grep` baseline (what coding agents do today) and a most-changed-files baseline. All numbers below come from the exact same held-out `--split newer` run (`docs/data/*.eval.json`):
 
@@ -53,7 +53,7 @@ Hit@5: a file the real fix changed is among the first five suggestions (**2.8× 
 
 **Estimated ROI (estimated from first-hit rank on 703 held-out cases):** Based on `1 / MRR` across the 703 held-out cases, `grep` alone inspects ~2.81 files before hitting a true fix file (missing Top-5 on 48.5% of cases), while Groundwork + grep inspects ~1.86 files (~34% fewer files opened before first hit, cutting Top-5 misses to 30.3% — an estimated ~1,400 tokens saved per ticket, *estimated from first-hit rank on 703 held-out cases*).
 
-**Sealed forecasts scored on the future:** On 24 Nov 2026 (`f9e4c54`), we sealed **617 forecasts** for open, unfixed issues (never open PRs whose diffs are public) with a SHA-256 digest (`docs/predictions/sealed.sha256`). A daily GitHub Action scores both `sealed.json` and append-only `daily/*.json` seals against fixes merged after each seal, seals newly opened unfixed issues created after the last seal with no linked PRs, and runs one final freeze pass immediately after the contest deadline (`2026-12-12T02:00:00Z`).
+**Sealed forecasts scored on the future:** On 24 Nov 2026 (`f9e4c54`), we sealed **617 forecasts** for open, unfixed issues (never open PRs whose diffs are public) with a SHA-256 digest (`docs/predictions/sealed.sha256`). A daily GitHub Action scores both `sealed.json` and append-only `daily/*.json` seals against fixes merged after each seal, seals newly opened unfixed issues created after the last seal with no linked PRs, and runs one final freeze pass immediately after the contest deadline (`2026-12-04T08:00:00Z` / Dec 3, 2026 11:59 PM PT).
 
 **See it yourself:** in the live demo, open a closed ticket and press **Replay**. The graph rewinds to the day the
 ticket was opened, the fix disappears, and every file the real fix changed gets a ✓. hono#2550, a Lambda header
@@ -75,7 +75,7 @@ regression: the first suggestion is `src/adapter/aws-lambda/handler.ts`, the fil
   co-change from earlier PRs only, so the backtest never sees the answer.
 - **Ingest** from the GitHub GraphQL API (merged PRs with files and closing references, tickets), cached on disk;
   optional **Jira** import links tickets to PRs that mention their key.
-- **The same code in the browser (instant 180 ms median boot + Web Worker).** The live demo opens immediately on `hono#2550` Replay via a tiny pre-baked bundle (`docs/data/instant.json`, measured 180 ms median plan render & zero main-thread long tasks > 200 ms via `npm run bench:instant`), while `docs/worker.js` downloads the int8 snapshot and builds the live `@relate/relate-wasm` (`1.2.0`) graph in a dedicated Web Worker off the main thread. Because the WASM build cannot toggle the `hybrid-search` preview via environment variables, it runs vector and full-text indexes separately in Relate and fuses them with identical WRRF.
+- **The same code in the browser (instant 133 ms median boot + Web Worker).** The live demo opens immediately on `hono#2550` Replay via a tiny pre-baked bundle (`docs/data/instant.json`, measured 133 ms median plan render & zero main-thread long tasks > 200 ms via `npm run bench:instant`), while `docs/worker.js` downloads the int8 snapshot and builds the live `@relate/relate-wasm` (`1.2.0`) graph in a dedicated Web Worker off the main thread. Because the WASM build cannot toggle the `hybrid-search` preview via environment variables, it runs vector and full-text indexes separately in Relate and fuses them with identical WRRF.
 - TypeScript on Node.js with tsx, the MCP TypeScript SDK, Cytoscape.js for the web view, esbuild for the browser and worker bundles, `node:test` for the tests (20 tests, including a native `@relate/relate 1.0.1` vs `@relate/relate-wasm 1.2.0` parity test, append-only daily new-issue sealing with SHA-256, multi-seal scoring, and post-deadline freeze verification).
 
 ## Challenges we ran into

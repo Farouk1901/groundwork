@@ -1,9 +1,22 @@
 # Groundwork
 
-**The connected context of a ticket, before the first line of code.**
+**Ticket-first blast radius & future-verified pre-code forecast — answered from an embedded Relate graph before the first line of code.**
 
 **▶ Try it in your browser, nothing to install: https://farouk1901.github.io/groundwork/**
-(Opens instantaneously — measured **180 ms median** instant-plan render with zero `> 200 ms` main-thread long tasks via `npm run bench:instant` — on `hono#2550` Replay, while Relate compiled to WebAssembly builds the live graph in a background Web Worker.)
+(Opens instantaneously — measured **133 ms median** instant-plan render with zero `> 200 ms` main-thread long tasks via `npm run bench:instant` — on `hono#2550` Replay, while Relate compiled to WebAssembly builds the live graph in a background Web Worker.)
+
+## How we use Relate, and why *(Relate Hackathon Quick Summary)*
+
+- **Why Relate:** Predicting which files a ticket will change *before* any file is opened requires two things in one embedded engine: **hybrid retrieval** (vector + full-text search over past tickets and merged PRs via `SEARCH … COMBINE … USING WRRF`) to find semantically similar history, and **multi-hop Cypher traversal** (`Issue ←[:FIXES]- PR -[:TOUCHES]→ File -[:CO_CHANGED]- File`, `Person -[:AUTHORED]→ PR`) to turn meaning into ranked files, people, risks, and explainable paths — with zero external server, zero API keys, and identical logic running in the browser via `@relate/relate-wasm`.
+- **Storage mode:** **Single file** (`.rl`).
+- **Where the persistent Relate store lives in this repo:**
+  - **[`examples/relatedb__relate.rl`](examples/relatedb__relate.rl)** — a ready-to-inspect single-file Relate graph of **`relatedb/relate` itself** (3,581 nodes, 15,469 relationships, 644 PRs, 19 issues, 2,880 files, 4,119 co-change links, with 384-d embeddings). Inspect it in 1 second without ingesting anything:
+    ```bash
+    GROUNDWORK_DB=examples/relatedb__relate.rl npx tsx src/cli.ts stats
+    GROUNDWORK_DB=examples/relatedb__relate.rl npx tsx src/cli.ts plan relatedb/relate "Full-text index ignores accented characters"
+    ```
+  - Running `npm run demo` builds a local single-file store at `.groundwork/graph.rl` from `docs/data/honojs__hono.json.gz` (~30 s, no GitHub token needed).
+- **What distinguishes Groundwork:** Not generic agent chat memory — Groundwork is a **ticket-first pre-code forecast** rigorously measured on **703 held-out historical replays** across 3 real repositories (beating `grep` alone on every repo, including **`relatedb/relate` itself: 68.2% vs 60.4%**) plus **617 SHA-256 sealed future forecasts** scored daily against real GitHub merges.
 
 You get a ticket: "Support the `__Http-` and `__Host-Http-` cookie prefixes" (hono#5601, open). Before you (or your
 coding agent) open a single file, Groundwork tells you:
@@ -39,7 +52,7 @@ of hono's tickets**; every number below is on data that never influenced them.
 **Estimated ROI (estimated from first-hit rank on 703 held-out cases):**
 Using harmonic expected files inspected before hitting a true fix file (`1 / MRR`), `grep` alone averages **~2.81 files** (and misses Top-5 on **48.5%** of cases), whereas **Groundwork + grep** averages **~1.86 files** (**~34% fewer files opened before first hit**, cutting Top-5 misses to **30.3%** — and on `vitest` tickets, cutting Top-5 misses from `66.4%` to `37.3%`). At ~1,500 tokens per source file, that saves an estimated **~1,400 tokens per ticket** (~1.4M input tokens per 1,000 tickets), *estimated from first-hit rank on 703 held-out cases*.
 
-**Sealed forecasts scored on the future:** On 24 Nov 2026 (`f9e4c54`), Groundwork sealed **617 forecasts** for every open, unfixed issue across `hono`, `vitest`, and `relatedb/relate` (`docs/predictions/sealed.json`, SHA-256 verified in `docs/predictions/sealed.sha256`). A daily GitHub Action scores both `sealed.json` and append-only `daily/*.json` forecasts against fixes merged after each seal, seals newly opened unfixed issues created after the last seal (with no linked PRs, never open PRs), and runs one final freeze pass immediately after the contest deadline (`2026-12-12T02:00:00Z`).
+**Sealed forecasts scored on the future:** On 24 Nov 2026 (`f9e4c54`), Groundwork sealed **617 forecasts** for every open, unfixed issue across `hono`, `vitest`, and `relatedb/relate` (`docs/predictions/sealed.json`, SHA-256 verified in `docs/predictions/sealed.sha256`). A daily GitHub Action scores both `sealed.json` and append-only `daily/*.json` forecasts against fixes merged after each seal, seals newly opened unfixed issues created after the last seal (with no linked PRs, never open PRs), and runs one final freeze pass immediately after the contest deadline (`2026-12-04T08:00:00Z` / Dec 3, 2026 11:59 PM PT).
 
 **See it for yourself:** open [hono#2550](https://farouk1901.github.io/groundwork/?repo=honojs%2Fhono&q=2550&replay=1) in the live demo (it opens immediately in **Replay** mode): the graph rewinds to the day the ticket was opened, the fix disappears, and `src/adapter/aws-lambda/handler.ts` ranks #1 with a ✓ — the exact file PR #2585 fixed 12 days later.
 
@@ -195,7 +208,7 @@ light up its path), and an agent can quote them.
 
 ## The same code in the browser (instant boot + Web Worker)
 
-The online demo opens in **180 ms median** (measured locally via `npm run bench:instant` with Chrome DevTools Protocol: 132 ms FCP, 180 ms instant plan render, zero `> 200 ms` main-thread long tasks) with a pre-baked view of `hono#2550` (Replay) plus samples from `vitest` and `relatedb/relate` (`docs/data/instant.json`), while **`docs/worker.js`** runs `@relate/relate-wasm` (`1.2.0`) in a **dedicated Web Worker** completely off the main thread. Once warm, every ticket lookup, diff check, and free-text query executes live Cypher inside the browser tab. One difference from native `@relate/relate` (`1.0.1`): the WebAssembly build cannot toggle the `hybrid-search` preview via environment variables, so the worker runs the vector and full-text indexes separately and fuses them in TypeScript with identical WRRF. A unit test (`test/blast.test.ts`) runs both `@relate/relate` and `@relate/relate-wasm` in Node.js and verifies matching plans with no version conflict.
+The online demo opens in **133 ms median** (measured locally via `npm run bench:instant` with Chrome DevTools Protocol: 92 ms FCP, 133 ms instant plan render, zero `> 200 ms` main-thread long tasks) with a pre-baked view of `hono#2550` (Replay) plus samples from `vitest` and `relatedb/relate` (`docs/data/instant.json`), while **`docs/worker.js`** runs `@relate/relate-wasm` (`1.2.0`) in a **dedicated Web Worker** completely off the main thread. Once warm, every ticket lookup, diff check, and free-text query executes live Cypher inside the browser tab. One difference from native `@relate/relate` (`1.0.1`): the WebAssembly build cannot toggle the `hybrid-search` preview via environment variables, so the worker runs the vector and full-text indexes separately and fuses them in TypeScript with identical WRRF. A unit test (`test/blast.test.ts`) runs both `@relate/relate` and `@relate/relate-wasm` in Node.js and verifies matching plans with no version conflict.
 
 Build it yourself: `npm run site` (builds `docs/` and serves it on http://127.0.0.1:8080).
 

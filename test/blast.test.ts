@@ -379,10 +379,10 @@ test('score-predictions scores both sealed.json and daily/*.json using each seal
 
 test('post-deadline freeze runs one final scoring pass after until, then skips once frozen', async () => {
   const { shouldSkipFrozenScore } = await import('../src/predict.ts');
-  const until = '2026-12-12T02:00:00Z';
-  const afterDeadline = new Date('2026-12-12T02:30:00Z');
+  const until = '2026-12-04T08:00:00Z';
+  const afterDeadline = new Date('2026-12-04T08:30:00Z');
   assert.equal(shouldSkipFrozenScore({ frozen: false }, until, afterDeadline), false);
   assert.equal(shouldSkipFrozenScore(null, until, afterDeadline), false);
   assert.equal(shouldSkipFrozenScore({ frozen: true }, until, afterDeadline), true);
-  assert.equal(shouldSkipFrozenScore({ frozen: true }, until, new Date('2026-12-11T05:17:00Z')), false);
+  assert.equal(shouldSkipFrozenScore({ frozen: true }, until, new Date('2026-12-03T05:17:00Z')), false);
 });

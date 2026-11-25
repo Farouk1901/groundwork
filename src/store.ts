@@ -4,6 +4,7 @@
 process.env.RELATE_PREVIEW = [process.env.RELATE_PREVIEW, 'hybrid-search'].filter(Boolean).join(',');
 
 import { Database } from '@relate/relate';
+import { existsSync } from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
@@ -13,7 +14,9 @@ export const HOME = process.env.GROUNDWORK_HOME || path.join(path.dirname(fileUR
 import { SCHEMA, type Row, type Store } from './core.js';
 export { EMBED_DIM, SEARCH_INDEXES, ensureSearchIndexes, num, type Row, type Store } from './core.js';
 
-export function openStore(dir = process.env.GROUNDWORK_DB || path.join(HOME, 'graph')): Store {
+export function openStore(
+  dir = process.env.GROUNDWORK_DB || (existsSync(path.join(HOME, 'graph')) ? path.join(HOME, 'graph') : path.join(HOME, 'graph.rl')),
+): Store {
   let db: ReturnType<typeof Database.open>;
   try { db = Database.open(dir); }
   catch (e) {
