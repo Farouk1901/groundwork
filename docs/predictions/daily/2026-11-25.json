@@ -1,0 +1,305 @@
+{
+ "date": "2026-11-25",
+ "sealedAt": "2026-11-25T08:44:57.219Z",
+ "weights": {
+  "vector": 0.5,
+  "coChange": 0.05
+ },
+ "note": "Daily seal (2026-11-25) for newly opened, unfixed issues created after 2026-11-24T11:16:45.937Z with no linked PRs. Append-only; never seals open PRs.",
+ "repos": [
+  {
+   "repo": "honojs/hono",
+   "graphFetchedAt": "2026-11-25T08:44:22.096Z",
+   "popular": [
+    "src/context.ts",
+    "src/hono-base.ts",
+    "src/types.ts",
+    "src/client/client.test.ts",
+    ".github/workflows/ci.yml",
+    "src/hono.test.ts",
+    "src/types.test.ts",
+    "src/request.ts",
+    "deno_dist/context.ts",
+    "src/jsx/dom/render.ts"
+   ],
+   "forecasts": [
+    {
+     "issue": 5683,
+     "title": "`jsx/dom` can reinsert an unmounted component after two late state updates",
+     "url": "https://github.com/honojs/hono/issues/5683",
+     "createdAt": "2026-11-25T04:03:55Z",
+     "files": [
+      {
+       "path": "src/jsx/dom/render.ts",
+       "score": 1
+      },
+      {
+       "path": "src/jsx/dom/index.test.tsx",
+       "score": 0.61
+      },
+      {
+       "path": "src/jsx/dom/hooks/index.ts",
+       "score": 0.4
+      },
+      {
+       "path": "src/jsx/dom/components.test.tsx",
+       "score": 0.39
+      },
+      {
+       "path": "src/jsx/dom/hooks/index.test.tsx",
+       "score": 0.38
+      },
+      {
+       "path": "src/jsx/hooks/index.ts",
+       "score": 0.14
+      },
+      {
+       "path": "src/jsx/hooks/dom.test.tsx",
+       "score": 0.11
+      },
+      {
+       "path": "deno_dist/jsx/dom/render.ts",
+       "score": 0.11
+      },
+      {
+       "path": "src/jsx/dom/intrinsic-element/components.ts",
+       "score": 0.11
+      },
+      {
+       "path": "deno_dist/jsx/hooks/index.ts",
+       "score": 0.11
+      }
+     ]
+    },
+    {
+     "issue": 5682,
+     "title": "`c.json()` in an exported generic function fails declaration emit with TS7056 since 4.13.19",
+     "url": "https://github.com/honojs/hono/issues/5682",
+     "createdAt": "2026-11-25T02:33:27Z",
+     "files": [
+      {
+       "path": "vite.config.ts",
+       "score": 1
+      },
+      {
+       "path": "build/dts-plugins.ts",
+       "score": 0.98
+      },
+      {
+       "path": "src/jsx/base.ts",
+       "score": 0.76
+      },
+      {
+       "path": "tsconfig.build.json",
+       "score": 0.72
+      },
+      {
+       "path": "adapters/vercel/vite.config.ts",
+       "score": 0.52
+      },
+      {
+       "path": "adapters/service-worker/vite.config.ts",
+       "score": 0.52
+      },
+      {
+       "path": "adapters/netlify/vite.config.ts",
+       "score": 0.52
+      },
+      {
+       "path": "adapters/lambda-edge/vite.config.ts",
+       "score": 0.52
+      },
+      {
+       "path": "adapters/deno/vite.config.ts",
+       "score": 0.52
+      },
+      {
+       "path": "adapters/cloudflare-workers/vite.config.ts",
+       "score": 0.52
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "repo": "vitest-dev/vitest",
+   "graphFetchedAt": "2026-11-25T08:44:35.767Z",
+   "popular": [
+    "pnpm-workspace.yaml",
+    "packages/vitest/src/node/config/resolveConfig.ts",
+    "packages/vitest/src/node/types/config.ts",
+    "packages/vitest/src/node/core.ts",
+    "packages/vitest/src/node/cli/cli-config.ts",
+    ".github/workflows/ci.yml",
+    "docs/guide/cli-generated.md",
+    "docs/guide/migration.md",
+    "docs/.vitepress/config.ts",
+    "packages/vitest/src/runtime/config.ts"
+   ],
+   "forecasts": [
+    {
+     "issue": 12103,
+     "title": "`refresh()` of a fake timer breaks the order of the other timers",
+     "url": "https://github.com/vitest-dev/vitest/issues/12103",
+     "createdAt": "2026-11-24T14:24:07Z",
+     "files": [
+      {
+       "path": "packages/vitest/src/integrations/mock/timers.ts",
+       "score": 1
+      },
+      {
+       "path": "docs/config/faketimers.md",
+       "score": 0.82
+      },
+      {
+       "path": "docs/api/vi.md",
+       "score": 0.75
+      },
+      {
+       "path": "packages/vitest/src/integrations/vi.ts",
+       "score": 0.59
+      },
+      {
+       "path": "test/unit/test/fixtures/timers.suite.ts",
+       "score": 0.51
+      },
+      {
+       "path": "pnpm-workspace.yaml",
+       "score": 0.45
+      },
+      {
+       "path": "docs/guide/mocking/timers.md",
+       "score": 0.39
+      },
+      {
+       "path": "packages/vitest/src/defaults.ts",
+       "score": 0.31
+      },
+      {
+       "path": "test/unit/test/timers-temporal.test.ts",
+       "score": 0.29
+      },
+      {
+       "path": "docs/api/expect.md",
+       "score": 0.28
+      }
+     ]
+    },
+    {
+     "issue": 12102,
+     "title": "CLI options with an optional value take the next file filter as their value",
+     "url": "https://github.com/vitest-dev/vitest/issues/12102",
+     "createdAt": "2026-11-24T13:27:52Z",
+     "files": [
+      {
+       "path": "docs/guide/snapshot.md",
+       "score": 1
+      },
+      {
+       "path": "test/snapshots/test/fixtures/custom-matcher/basic.test.ts",
+       "score": 0.92
+      },
+      {
+       "path": "test/snapshots/test/custom-matcher.test.ts",
+       "score": 0.92
+      },
+      {
+       "path": "packages/vitest/src/node/config/resolveConfig.ts",
+       "score": 0.83
+      },
+      {
+       "path": "packages/vitest/src/node/projects/globProjectFiles.ts",
+       "score": 0.8
+      },
+      {
+       "path": "docs/guide/migration.md",
+       "score": 0.54
+      },
+      {
+       "path": "packages/coverage-v8/src/provider.ts",
+       "score": 0.54
+      },
+      {
+       "path": "packages/vitest/src/integrations/snapshot/chai.ts",
+       "score": 0.53
+      },
+      {
+       "path": "packages/vitest/src/public/runtime.ts",
+       "score": 0.52
+      },
+      {
+       "path": "test/core/test/exports.test.ts",
+       "score": 0.51
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "repo": "relatedb/relate",
+   "graphFetchedAt": "2026-11-25T08:44:48.115Z",
+   "popular": [
+    "docs/api/cli/spec.md",
+    "relate/relate-executor/src/exec/gpm/shortest_route/route.rs",
+    "docs/api/rust/spec.md",
+    "relate/relate-executor/src/exec/mod.rs",
+    ".github/workflows/release.yml",
+    "relate/relate/tests/common/mod.rs",
+    "relate/relate-executor/src/graph/mod.rs",
+    "relate/relate-executor/src/exec/dispatch.rs",
+    "Makefile",
+    "relate/relate-executor/src/exec/project.rs"
+   ],
+   "forecasts": [
+    {
+     "issue": 780,
+     "title": "Spec gate: new failing scenarios landed on main",
+     "url": "https://github.com/relatedb/relate/issues/780",
+     "createdAt": "2026-11-24T15:47:57Z",
+     "files": [
+      {
+       "path": ".github/workflows/spec-harness-baseline.yml",
+       "score": 1
+      },
+      {
+       "path": "docs/tck/compliance.md",
+       "score": 0.87
+      },
+      {
+       "path": ".github/workflows/spec-harness.yml",
+       "score": 0.87
+      },
+      {
+       "path": "docs/adr/0661-spec-harness-regression-gate.md",
+       "score": 0.67
+      },
+      {
+       "path": "testing/expand-workload/skill/references/sources.md",
+       "score": 0.29
+      },
+      {
+       "path": "relate/relate-executor/src/metrics.rs",
+       "score": 0.29
+      },
+      {
+       "path": "relate/relate-executor/src/exec/kernels/frontier_emit.rs",
+       "score": 0.29
+      },
+      {
+       "path": ".github/workflows/review-scripts-test.yml",
+       "score": 0.28
+      },
+      {
+       "path": "relate/relate-model/src/plan_keys.rs",
+       "score": 0.28
+      },
+      {
+       "path": "relate/relate-executor/src/frontier_decline.rs",
+       "score": 0.28
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
