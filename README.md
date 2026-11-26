@@ -65,6 +65,21 @@ The graph hop from a similar PR to the files it touched carries most of the resu
 **Estimated ROI (from first-hit rank on 703 held-out cases):**
 Taking `1 / MRR` as the files opened before reaching one the fix changed, `grep` alone averages **~2.81 files** and misses the top 5 on **48.5%** of cases. **Groundwork + grep** averages **~1.86 files** (**~34% fewer files opened before first hit**) and misses on **30.3%**; on `vitest` tickets, misses drop from `66.4%` to `37.3%`. At ~1,500 tokens per source file, that is an estimated **~1,400 tokens per ticket** (~1.4M input tokens per 1,000 tickets).
 
+**Does it help a coding agent? A/B test with Claude Code (70 tickets, 140 runs).**
+The same agent (Claude Sonnet through `claude -p`; read-only tools: Read, Grep, Glob, `git log/show/blame/grep`) gets each ticket in a checkout of the code as it was before the fix, and lists up to five files it would change. **A** works alone. **B** also has Groundwork's `plan_ticket` over MCP, the graph frozen at the moment the ticket was opened (`GROUNDWORK_AS_OF`), and a `CLAUDE.md` line asking it to start there. Tickets are every 10th/11th held-out case of `hono` and `vitest`; no run saw the fix (checked in every transcript).
+
+| 30 tickets written the way users report bugs (symptoms only, no code names) | Agent alone | Agent + Groundwork |
+|---|---:|---:|
+| **Found the test file the real fix changed** (25 tickets whose fix changed one) | 7 | **16** |
+| **Listed every file of the real fix** in its top 5 | 7 | **13** |
+| Share of the fix's files listed | 51.8% | **65.5%** |
+| A fixed file anywhere in the top 5 | 28 | 28 |
+| A fixed file **first** | **26** | 23 |
+| Precision of the listed files | **56.4%** | 46.0% |
+| Cost / mean time per ticket | $0.059 / 44 s | $0.065 / 47 s |
+
+The agent finds the main file on its own almost every time; what Groundwork adds is **the rest of the change**: the test and the sibling files that the real fix also touched. It costs some precision, and on 3 tickets it pushed the agent's first pick off the main file. On 40 tickets as filed on GitHub, which usually name the code, the first pick is the same (37 vs 37) and Groundwork still adds the test file (18 vs 12 of 35) and the whole fix (20 vs 15). The symptom-only tickets were rewritten by Claude from the ticket text alone, never from the fix. Every run, prompt and score: [`docs/data/agent-ab.json`](docs/data/agent-ab.json); method and scripts: [`bench/agent-ab`](bench/agent-ab).
+
 **Sealed forecasts scored on the future:** on 24 Nov 2026 (`f9e4c54`), Groundwork sealed **617 forecasts**, one for every open, unfixed issue in `hono`, `vitest` and `relatedb/relate` (`docs/predictions/sealed.json`, SHA-256 in `docs/predictions/sealed.sha256`). A daily GitHub Action scores them, and the append-only `daily/*.json` seals, against fixes merged after each seal. It also seals issues opened since the last seal that are unfixed and have no linked PR (open PRs are never sealed), and freezes the score with one last run right after the contest deadline (`2026-12-12T02:00:00Z` / Dec 11, 2026 6:00 PM PT).
 
 **See it for yourself:** open [hono#2550](https://farouk1901.github.io/groundwork/?repo=honojs%2Fhono&q=2550&replay=1) in the live demo (it opens in **Replay** mode): the graph rewinds to the day the ticket was opened, the fix disappears, and `src/adapter/aws-lambda/handler.ts` ranks #1 with a ✓. That is the file PR #2585 fixed 12 days later.
@@ -121,7 +136,7 @@ npx tsx src/cli.ts plan honojs/hono 5601                    # an open ticket: co
 npx tsx src/cli.ts plan honojs/hono "JWT middleware should read the token from a cookie with a custom name"
 npx tsx src/cli.ts check honojs/hono 5601 --files src/utils/cookie.ts      # forgot the test?
 npx tsx src/cli.ts ingest --from docs/data/vitest-dev__vitest.json.gz      # add another repository
-npm test                                                    # 20 tests, on in-memory Relate stores (native and WebAssembly)
+npm test                                                    # 21 tests, on in-memory Relate stores (native and WebAssembly)
 ```
 
 The first question written in words downloads the embedding model (all-MiniLM-L6-v2, about 25 MB) once.

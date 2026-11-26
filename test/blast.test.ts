@@ -7,7 +7,7 @@ import path from 'node:path';
 import { keywords, planTicket, toMarkdown } from '../src/analyze.ts';
 import { ingest, mentionedIssues, moduleOf, namedFiles } from '../src/ingest.ts';
 import { openStore, type Store } from '../src/store.ts';
-import { readOnlyCypher, whoKnows } from '../src/mcp.ts';
+import { asOfFromEnv, planTicketTool, readOnlyCypher, whoKnows } from '../src/mcp.ts';
 import { checkChange, checkMarkdown } from '../src/check.ts';
 import { backtest, cases, evalMarkdown, prCases } from '../src/eval.ts';
 import { adfText, fromJiraJson, ingestJira, jiraKeys } from '../src/jira.ts';
@@ -189,6 +189,18 @@ test('agents get read-only Cypher and who-knows', async () => {
   assert.throws(() => readOnlyCypher(store, 'CREATE (:X)'), /read queries/);
   assert.equal(JSON.parse(readOnlyCypher(store, 'RETURN 1 + 1 AS two'))[0].two, 2);
   assert.match(whoKnows(store, 'acme/shop', 'src/http'), /@ann: 2 merged PRs/);
+});
+
+test('GROUNDWORK_AS_OF freezes plan_ticket before the fix', async () => {
+  const store = await graph();
+  assert.equal(asOfFromEnv({}), undefined);
+  assert.equal(asOfFromEnv({ GROUNDWORK_AS_OF: '2026-04-01' }), '2026-04-01T00:00:00.000Z');
+  assert.throws(() => asOfFromEnv({ GROUNDWORK_AS_OF: 'yesterday' }), /not a date/);
+  const live = await planTicketTool(store, { repo: 'acme/shop', issue: 5 }, {});
+  assert.match(live, /parse-header\.ts/);
+  const frozen = await planTicketTool(store, { repo: 'acme/shop', issue: 5 }, { GROUNDWORK_AS_OF: '2026-04-01T00:00:00Z' });
+  assert.doesNotMatch(frozen, /parse-header\.ts/);
+  assert.match(frozen, /src\/http\/cookie\.ts/);
 });
 
 test('eval markdown renders a table', () => {

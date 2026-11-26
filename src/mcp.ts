@@ -28,12 +28,34 @@ export function whoKnows(store: Store, repo: string, path: string) {
     .join('\n') || 'No merged pull requests touch that path in the graph.';
 }
 
+/**
+ * GROUNDWORK_AS_OF (an ISO date) freezes the graph for plan_ticket: only PRs merged and tickets opened before it count,
+ * so an agent evaluated on a past ticket never sees that ticket's fix or anything later.
+ */
+export function asOfFromEnv(env: NodeJS.ProcessEnv = process.env): string | undefined {
+  const v = env.GROUNDWORK_AS_OF?.trim();
+  if (!v) return undefined;
+  const d = new Date(v);
+  if (Number.isNaN(d.getTime())) throw new Error(`GROUNDWORK_AS_OF is not a date: ${v}`);
+  return d.toISOString();
+}
+
+export async function planTicketTool(store: Store, args: { repo: string; issue?: number; text?: string; files?: number; code_dir?: string },
+  env: NodeJS.ProcessEnv = process.env): Promise<string> {
+  const { repo, issue, text: t, files, code_dir } = args;
+  let r = await planTicket(store, repo, issue ? { issue } : { text: t! }, { files, asOf: asOfFromEnv(env) });
+  const dir = code_dir ?? env.GROUNDWORK_CODE;
+  if (dir) r = withCode(store, r, dir, files ?? 12);
+  return toMarkdown(r);
+}
+
 const SCHEMA_TEXT = `Nodes: Repo{name} Issue{key,repo,number,title,body,state,url,labels} PR{key,repo,number,title,body,url,mergedAt,fileCount}
 File{key,repo,path} Module{key,repo,path} Person{login} Label{key,name}
 Relationships: (Person)-[:OPENED]->(Issue) (Person)-[:AUTHORED]->(PR) (PR)-[:FIXES]->(Issue) (PR)-[:TOUCHES {additions,deletions}]->(File)
 (File)-[:IN]->(Module) (File)-[:CO_CHANGED {count}]->(File) (Issue)-[:NAMES]->(File) (Issue)-[:MENTIONS]->(Issue) (Issue)-[:LABELED]->(Label)`;
 
 export async function runMcp() {
+  asOfFromEnv(); // fail at start on a bad GROUNDWORK_AS_OF, not at the first call
   const store = openStore();
   const server = new McpServer({ name: 'groundwork', version: '1.0.0' });
   const text = (t: string) => ({ content: [{ type: 'text' as const, text: t }] });
@@ -45,10 +67,7 @@ export async function runMcp() {
       code_dir: z.string().optional().describe('path of the local clone you are working in: also searches the code for the ticket’s words and fuses both rankings (more accurate)') },
   }, async ({ repo, issue, text: t, files, code_dir }) => {
     if (!issue && !t) return text('Pass either issue or text.');
-    let r = await planTicket(store, repo, issue ? { issue } : { text: t! }, { files });
-    const dir = code_dir ?? process.env.GROUNDWORK_CODE;
-    if (dir) r = withCode(store, r, dir, files ?? 12);
-    return text(toMarkdown(r));
+    return text(await planTicketTool(store, { repo, issue, text: t, files, code_dir }));
   });
 
   server.registerTool('check_diff', {

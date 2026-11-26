@@ -1,0 +1,506 @@
+{
+  "repo": "vitest-dev/vitest",
+  "source": "cases(store, repo, { split: \"newer\", limit: 220 }) from src/eval.ts; every 11th case from index 6",
+  "generatedAt": "2026-11-26T17:14:56.660Z",
+  "cases": [
+    {
+      "index": 6,
+      "issue": 11967,
+      "title": "Wildcard in the list of packages to always bundle skips package names containing a dash",
+      "createdAt": "2026-11-15T02:24:46Z",
+      "url": "https://github.com/vitest-dev/vitest/issues/11967",
+      "body": "A framework sets a pattern in the setting that forces certain packages to be processed rather than left external, using a wildcard so that all of its own packages are included. When running tests, packages whose names contain a dash after the matched prefix are not processed and stay external. As a result, one of those packages is not transformed and the test run fails. I expected the wildcard to match those package names too; replacing the wildcard with a plain regular expression for the same prefix makes the test pass. A minimal reproduction is provided.",
+      "fixPRs": [
+        {
+          "number": 11978,
+          "mergedAt": "2026-11-16T10:35:42Z"
+        }
+      ],
+      "fixCommit": "efba8cbfe94b1402a7ccab8a73994cb389cffa4d",
+      "fixCommitHow": "squash commit for PR #11978",
+      "preFixCommit": "0c502bc72fed7d1c4b9e2e40e8ba9f3657629f73",
+      "preFixDate": "2026-11-16T08:44:44+01:00",
+      "truth": [
+        "test/e2e/test/vite-ssr-resolve.test.ts",
+        "packages/vitest/src/node/plugins/testConfig.ts",
+        "docs/guide/common-errors.md"
+      ],
+      "truthTests": [
+        "test/e2e/test/vite-ssr-resolve.test.ts"
+      ],
+      "known": [
+        "packages/vitest/src/node/plugins/testConfig.ts",
+        "docs/guide/common-errors.md",
+        "test/e2e/test/vite-ssr-resolve.test.ts"
+      ],
+      "origTitle": "Wildcard in `noExternal` does not match a dash in a package name",
+      "origBody": "Wildcard in `noExternal` does not match a dash in a package name. ### Describe the bug TanStack Start sets `resolve.noExternal: ['@tanstack/start**']` so that its own packages go through its Vite plugin (we need the internal packages to be compiled by Start's compiler). With Vitest this doesn't work as expected. Vitest converts `*` to `[\\w/]+` (see `processWildcard` in `plugins/testConfig.ts`), which has no `-`, so `@tanstack/start-client-core` and the other `start-*` packages stay external. I have a one-line fix with a test and can open a PR. ### Reproduction `npm install && npm test` fails: `@tanstack/start-fn-stubs` is not transformed. It passes with `noExternal: [/@tanstack\\/start/]`. ### System Info ### Used Package Manager pnpm ### Validations - [x] Follow our [Code of Conduct]( - [x] Read the [Contributing Guidelines]( - [x] Read the [docs]( - [x] Check that there isn't [already an issue]( that reports the same bug to avoid creating a duplicate. - [x] Check that this is a concrete bug. For Q&A open a [GitHub Discussion]( or join our [Discord Chat Server]( - [x] The provided reproduction is a [minimal reproducible example]( of the bug."
+    },
+    {
+      "index": 17,
+      "issue": 11847,
+      "title": "Allow turning off the test cache from an environment variable",
+      "createdAt": "2026-11-03T13:31:29Z",
+      "url": "https://github.com/vitest-dev/vitest/issues/11847",
+      "body": "The setting that disables or moves the on-disk cache used when running tests can only be changed in the project's configuration or through command-line options, with no way to do it from the environment. We run an online course platform where each exercise is a container built from a shared base image, the exercise folder is not writable by the test user, and the exercise authors own the project configuration files. Since a recent fix the test run no longer fails, but a warning is now printed on every run, so students see it constantly across hundreds of exercises we cannot edit one by one. Our current workaround is to patch the tool's startup file in the base image to inject the command-line option, which breaks whenever that file changes, and a wrapper earlier in the path does not help. We would like to be able to control this cache setting with an environment variable instead.",
+      "fixPRs": [
+        {
+          "number": 11859,
+          "mergedAt": "2026-11-06T16:08:58Z"
+        }
+      ],
+      "fixCommit": "708c05da0c8913ebce3d77631e10279137cb46ec",
+      "fixCommitHow": "squash commit for PR #11859",
+      "preFixCommit": "9c044db81d7a1484a34d69e5a0e8be754b666a73",
+      "preFixDate": "2026-11-06T17:07:46+01:00",
+      "truth": [
+        "test/e2e/test/caching.test.ts",
+        "packages/vitest/src/node/config/resolveConfig.ts",
+        "docs/config/fsmodulecachepath.md",
+        "docs/config/fsmodulecache.md"
+      ],
+      "truthTests": [
+        "test/e2e/test/caching.test.ts"
+      ],
+      "known": [
+        "packages/vitest/src/node/config/resolveConfig.ts",
+        "test/e2e/test/caching.test.ts",
+        "docs/config/fsmodulecache.md",
+        "docs/config/fsmodulecachepath.md"
+      ],
+      "origTitle": "Allow configuring fsModuleCache from an environment variable",
+      "origBody": "Allow configuring fsModuleCache from an environment variable. ### Clear and concise description of the problem `fsModuleCache` can only be disabled or relocated from the project config or the CLI (`fsModuleCache`, `fsModuleCachePath`, `--no-fsModuleCache`, `--fsModuleCachePath`). There is no way to do it from the environment. That matters when the environment owner and the project owner are different people. We run an online course platform: each exercise is a container built from a shared base image, the exercise directory is not writable by the test user, and the exercise authors own `vitest.config.*` and `package.json`. Since #11781 (fix for #11777) the run no longer fails, but every `vitest` invocation now prints so students see the warning on every test run, in hundreds of exercises we cannot edit one by one. What we do today: the base image rewrites `vitest/vitest.mjs` to inject `--no-fsModuleCache` into `process.argv`. A wrapper earlier in `PATH` does not help, because `npx vitest` resolves the package bin directly. The patch breaks as soon as the entry file changes. ### Suggested solution An environment variable read when the config is resolved, for example: - `VITEST_FS_MO"
+    },
+    {
+      "index": 28,
+      "issue": 11773,
+      "title": "Two test projects load duplicate copies of the same dependency when caching is on",
+      "createdAt": "2026-10-28T06:36:14Z",
+      "url": "https://github.com/vitest-dev/vitest/issues/11773",
+      "body": "I turned on the setting that saves transformed modules to disk and turned off the setting that shares one dev server between projects, then ran two separate test projects in the same repository. In the second project, a saved module sometimes pulls in the first project's prepared bundle of a dependency, so two copies of the same library (Ant Design's Form) get loaded in one test. The two imports of Form turn out to be different objects, so a form provider from one copy cannot give context to fields from the other. This shows up as missing form context, empty results from the app helper, and missing message or modal methods, and which test fails depends on which project filled the cache first. I expected the second project's test to pass whether it runs alone, after the first project, or with a warm cache, with each project using its own prepared bundle consistently.",
+      "fixPRs": [
+        {
+          "number": 11775,
+          "mergedAt": "2026-10-29T08:56:59Z"
+        }
+      ],
+      "fixCommit": "524856ed0958fd09fc52d0536583ed3770d79754",
+      "fixCommitHow": "squash commit for PR #11775",
+      "preFixCommit": "78c46acdff710c84ee0dc6d737e5bb40357f677a",
+      "preFixDate": "2026-10-29T17:56:05+09:00",
+      "truth": [
+        "test/e2e/test/fs-module-cache-optimizer.test.ts",
+        "packages/vitest/src/node/cache/fsModuleCache.ts"
+      ],
+      "truthTests": [
+        "test/e2e/test/fs-module-cache-optimizer.test.ts"
+      ],
+      "known": [
+        "packages/vitest/src/node/cache/fsModuleCache.ts"
+      ],
+      "origTitle": "fix(cache): avoid reusing optimized imports across test projects",
+      "origBody": "fix(cache): avoid reusing optimized imports across test projects. ### Describe the bug With `fsModuleCache: true` and `sharedViteServer: false`, one test project can reuse a saved transform that imports another project's optimized dependency bundle. This can load two copies of the same dependency inside one test. The reproduction below shows that two imports of Ant Design's `Form` are different objects. In a React tree, this also breaks context sharing: a form provider from one copy cannot supply context to fields from the other copy. Symptoms include missing form context, empty `App.useApp()` results, and missing message or modal methods. Which test fails can depend on which project filled the cache first. ### Outcome / expected behavior The second project's test should pass whether it runs alone, after the first project, or with a warm cache. The shared module and its caller should receive the same `Form` object within that project. Separate projects may have separate optimized bundles. That is fine. A cached module used by the second project should import the second project's bundle. ### Scope - Vitest 5.0.5, ordinary `threads` pool, with normal file isolation. - Two inline proj"
+    },
+    {
+      "index": 39,
+      "issue": 11679,
+      "title": "Memory grows when test files enable fake timers and never disable them",
+      "createdAt": "2026-10-21T07:45:53Z",
+      "url": "https://github.com/vitest-dev/vitest/issues/11679",
+      "body": "When I run tests in the isolated-context worker modes, a test file that turns on fake timers and never switches back to real timers seems to stay in memory after the file finishes. Each later file that does the same adds to it, so the worker keeps holding all of them until it reaches its memory limit and is restarted. This happens even when no fake timer is actually scheduled; simply turning the fake timers feature on is enough. I ran 40 browser-simulation test files through a single worker and saw memory keep climbing. I expected each file's resources to be released once the file is done, even if it forgot to restore real timers.",
+      "fixPRs": [
+        {
+          "number": 11779,
+          "mergedAt": "2026-10-29T08:56:06Z"
+        }
+      ],
+      "fixCommit": "78c46acdff710c84ee0dc6d737e5bb40357f677a",
+      "fixCommitHow": "squash commit for PR #11779",
+      "preFixCommit": "7a56fea53774eae79bf7e8481bcbb2cf434513a2",
+      "preFixDate": "2026-10-29T17:49:34+09:00",
+      "truth": [
+        "test/e2e/test/vm-threads.test.ts",
+        "test/e2e/fixtures/leak-probe/leave-fake-timers-on.js",
+        "test/e2e/fixtures/leak-probe/fake-timers.config.js",
+        "packages/vitest/src/runtime/runVmTests.ts"
+      ],
+      "truthTests": [
+        "test/e2e/test/vm-threads.test.ts",
+        "test/e2e/fixtures/leak-probe/leave-fake-timers-on.js",
+        "test/e2e/fixtures/leak-probe/fake-timers.config.js"
+      ],
+      "known": [
+        "packages/vitest/src/runtime/runVmTests.ts",
+        "test/e2e/test/vm-threads.test.ts"
+      ],
+      "origTitle": "`vi.useFakeTimers()` left on keeps every vm context alive in vm pools",
+      "origBody": "`vi.useFakeTimers()` left on keeps every vm context alive in vm pools. ### Describe the bug Found this while measuring memory for #11380, @shairez suggested opening a separate issue for it. With `vmThreads`/`vmForks`, if a test file calls `vi.useFakeTimers()` and never calls `vi.useRealTimers()`, the vm context of that file is never garbage collected. Every file after it that does the same keeps its context too, so the worker holds all of them until it hits `vmMemoryLimit` and gets recycled. Nothing resets fake timers when a file is torn down. By default fake timers also replace `process.hrtime`, and in vm pools `process` is the worker's real process (`context.process = process` in `runVmTests()`). So the fake `hrtime` stays on the worker's process after the file is done, and it holds the clock, which holds that file's context. The clock also keeps the previous `hrtime` as `clock._hrtime`, which is the previous file's fake, so they chain and every one of them stays alive. It doesn't need a pending fake timer, calling `vi.useFakeTimers()` is enough. ### Reproduction `npm install && node leak-check/fake-timers.mjs` It runs 40 jsdom test files through one worker on vitest@5.0.2 and co"
+    },
+    {
+      "index": 50,
+      "issue": 11592,
+      "title": "Show the browser test step timeline in the failure output",
+      "createdAt": "2026-10-15T08:46:21Z",
+      "url": "https://github.com/vitest-dev/vitest/issues/11592",
+      "body": "When a test running in a real browser fails, especially a flaky one with several asynchronous steps, the error says what failed but not how the test got there. For example, a check that an element is visible can time out after 5 seconds, and nothing shows whether the earlier click was slow, whether the app spent time between steps, or whether the check waited the whole time. The step-by-step trace, with each step's timing, status and source location, can only be seen in the graphical interface and the HTML report, so it is missing from CI logs, the terminal and what a coding agent sees. The failure screenshot shows only the final page, and in CI the log gives just its file path. I would like the failure output to include a text timeline of the steps that ran, with their targets, source locations and durations.",
+      "fixPRs": [
+        {
+          "number": 11594,
+          "mergedAt": "2026-10-20T07:48:35Z"
+        }
+      ],
+      "fixCommit": "973dc84beb2f7ce92e15f7f41e166cb4fa3c4fc0",
+      "fixCommitHow": "squash commit for PR #11594",
+      "preFixCommit": "e955415841b9e439e09507616b1754a36f49e020",
+      "preFixDate": "2026-10-20T09:47:14+02:00",
+      "truth": [
+        "test/browser/specs/trace-timeline.test.ts",
+        "packages/vitest/src/node/reporters/renderers/trace-timeline.ts",
+        "packages/vitest/src/node/reporters/base.ts",
+        "docs/guide/browser/trace-view.md",
+        "docs/guide/browser/snippets/trace-failure.ansi",
+        "docs/config/browser/traceview.md"
+      ],
+      "truthTests": [
+        "test/browser/specs/trace-timeline.test.ts"
+      ],
+      "known": [
+        "packages/vitest/src/node/reporters/base.ts",
+        "docs/guide/browser/trace-view.md",
+        "docs/config/browser/traceview.md"
+      ],
+      "origTitle": "Show the browser trace timeline in test failure output",
+      "origBody": "Show the browser trace timeline in test failure output. - Related - #10310 - #11492 - design document ### Clear and concise description of the problem When a browser-mode test fails, and especially when it's flaky and involves async actions and `expect.element`, the error usually says what failed but not how the test got there. For example, `expect.element(...).toBeVisible()` timing out after 5 seconds doesn't tell you whether the previous click was slow, whether the time went to app work between two steps, or whether the assertion itself was waiting the whole time. The trace view records that sequence, with each step's timing, status, and source location. But it's only visible in Vitest UI, the browser UI, and the HTML reporter, so a failure in CI, in the terminal, or seen by a coding agent shows none of it. Browser mode already has a failure screenshot, but it's an image of the final page state. In CI the log only shows its path, so seeing it means downloading the artifacts, and a coding agent has to interpret pixels to read it. A text timeline appears in the log itself and states exactly which steps ran, with their selectors, source locations, and durations. That makes it precis"
+    },
+    {
+      "index": 61,
+      "issue": 11533,
+      "title": "Test fails with \"not defined\" error when file mentions mocking only in text",
+      "createdAt": "2026-10-09T07:54:32Z",
+      "url": "https://github.com/vitest-dev/vitest/issues/11533",
+      "body": "I turned off the built-in module runner in the experimental settings and ran a test file that contains the text of a mock call inside a string or a comment, but never actually calls it. The test run fails with an error saying that an imported name is not defined. The same file worked in version 4.1.10, so this looks like a regression in a newer release. I expected the test file to run normally, since no real mock is being set up.",
+      "fixPRs": [
+        {
+          "number": 11540,
+          "mergedAt": "2026-10-09T16:07:58Z"
+        }
+      ],
+      "fixCommit": "cd423ba045ed50662ea8e7bf7c2373e876cc0e5e",
+      "fixCommitHow": "squash commit for PR #11540",
+      "preFixCommit": "caaef94168ff9fad434bf0470c0a3270860c37b7",
+      "preFixDate": "2026-10-09T17:57:18+02:00",
+      "truth": [
+        "test/e2e/test/no-module-runner.test.ts",
+        "packages/mocker/src/node/parsers.ts",
+        "packages/mocker/src/node/hoistMocks.ts"
+      ],
+      "truthTests": [
+        "test/e2e/test/no-module-runner.test.ts"
+      ],
+      "known": [
+        "test/e2e/test/no-module-runner.test.ts",
+        "packages/mocker/src/node/hoistMocks.ts",
+        "packages/mocker/src/node/parsers.ts"
+      ],
+      "origTitle": "ReferenceError: `__vi_import_0__ is not defined` when a test file contains `vi.mock(` inside a string when using `viteModuleRunner: false`",
+      "origBody": "ReferenceError: `__vi_import_0__ is not defined` when a test file contains `vi.mock(` inside a string when using `viteModuleRunner: false`. ### Describe the bug When `experimental.viteModuleRunner: false` is set, a test file containing `vi.mock(` in a string, or even a comment (but no real mock call) fails with `ReferenceError: __vi_import_0__ is not defined`. This is a regression from 4.1.10, and I believe it was introduced by #10410. ### Cause - [`hoistMocks`]( rewrites identifiers in the MagicString it's given, then [returns `undefined`]( when there's no real mock call. - The [Vite plugin]( checks the return value, so it throws the edits away. - The [native loader]( doesn't check the return value. It runs the edited MagicString as the module code, so `add` has been rewritten but its import hasn't. ### Suggested fix Make the native loader check the return value, in a similar way to the vite loader: [`native.ts#L187-L210`]( honour the return value, and run `replaceInSourceMarker` afterwards so its edits survive the reset: Suggested test, in [`test/e2e/test/no-module-runner.test.ts`]( ### Reproduction ### System Info ### Used Package Manager pnpm ### Validations - [x] Follow our [C"
+    },
+    {
+      "index": 72,
+      "issue": 11447,
+      "title": "Running tests in a real browser with code coverage on uses more and more memory until the run crashes",
+      "createdAt": "2026-10-02T10:25:46Z",
+      "url": "https://github.com/vitest-dev/vitest/issues/11447",
+      "body": "When I run my test suite in the browser-based test mode with code coverage collected by the built-in engine-based coverage option, memory used by each browser tab keeps growing as more test files finish. In my suite of 83 test files spread over 12 tabs, the tabs hit the memory limit and the run failed with a message saying the connection to the browser was closed and the page may have been closed unexpectedly. Raising the memory limit only delays the crash. The growth does not happen when coverage is turned off or when I use the other coverage option, so I expected memory from finished test files to be freed and the full run to complete. I've linked a small reproduction project that shows the memory growing across several tiny test files in one tab.",
+      "fixPRs": [
+        {
+          "number": 11466,
+          "mergedAt": "2026-10-06T05:15:31Z"
+        }
+      ],
+      "fixCommit": "2297d93a854968d2ffee6025700c69099e6b7f80",
+      "fixCommitHow": "squash commit for PR #11466",
+      "preFixCommit": "b618afd5cce6a903ca16e0dd9c8f00b58bb0b474",
+      "preFixDate": "2026-10-05T21:54:20+02:00",
+      "truth": [
+        "test/coverage-test/test/isolation.test.ts",
+        "test/coverage-test/fixtures/test/memory-leak-4-fixture.test.ts",
+        "test/coverage-test/fixtures/test/memory-leak-3-fixture.test.ts",
+        "test/coverage-test/fixtures/test/memory-leak-2-fixture.test.ts",
+        "test/coverage-test/fixtures/test/memory-leak-1-fixture.test.ts",
+        "packages/coverage-v8/src/commands.ts",
+        "packages/coverage-v8/src/browser.ts"
+      ],
+      "truthTests": [
+        "test/coverage-test/test/isolation.test.ts",
+        "test/coverage-test/fixtures/test/memory-leak-4-fixture.test.ts",
+        "test/coverage-test/fixtures/test/memory-leak-3-fixture.test.ts",
+        "test/coverage-test/fixtures/test/memory-leak-2-fixture.test.ts",
+        "test/coverage-test/fixtures/test/memory-leak-1-fixture.test.ts"
+      ],
+      "known": [
+        "packages/coverage-v8/src/browser.ts",
+        "packages/coverage-v8/src/commands.ts",
+        "test/coverage-test/test/isolation.test.ts"
+      ],
+      "origTitle": "Browser mode: coverage-v8 leaks memory between tests",
+      "origBody": "Browser mode: coverage-v8 leaks memory between tests. ### Describe the bug AI disclaimer: the reproduction was done using Claude, but the problem was very much confirmed by our CI/my laptop regularly running out of memory during full test suite runs Might be related to but it's not the exact same symptom, so I wanted to report it either way. In browser mode with `coverage.provider: 'v8'`, the JS realm of every finished test file stays alive until the tab is closed. Each file adds its entire object graph (modules, DOM, closures) to the tab's heap, so a tab that runs many files eventually runs out of memory. In our suite (83 files, 12 tabs) tabs reached the `--max-old-space-size cap` and the run failed with `[birpc] rpc is closed, cannot call \"createTesters\" / Browser connection was closed … Was the page closed unexpectedly?`. Raising the heap size only delays the crash. The leak doesn't happen without coverage, or with @vitest/coverage-istanbul. You can find more info in the reproduction repo. ### Reproduction The linked repo runs 8 tiny test files in one tab (`fileParallelism: false`, `isolate: true`). Each keeps a ~10 MB object graph on its own `globalThis`. A browser command forc"
+    },
+    {
+      "index": 83,
+      "issue": 11337,
+      "title": "Editor hint for exact text matching setting shows wrong default",
+      "createdAt": "2026-09-23T20:01:24Z",
+      "url": "https://github.com/vitest-dev/vitest/issues/11337",
+      "body": "After installing version 5.0.1, I hovered over the browser testing setting that controls whether looking up elements by text must match exactly. The hint in my editor says the default is off, but the documentation page says the default is on. When I ran a browser test that looks up an element by the text \"Item\" while the element's text is \"Item 1\", it was not found, which matches the default being on. I expected the editor hint to say the default is on, consistent with the documentation and the actual behavior.",
+      "fixPRs": [
+        {
+          "number": 11338,
+          "mergedAt": "2026-09-24T08:35:22Z"
+        }
+      ],
+      "fixCommit": "1a57929a49fb6fb2db02b47e56c4677ca5ae1704",
+      "fixCommitHow": "squash commit for PR #11338",
+      "preFixCommit": "a0a939653bc8441848579bb6ac18706372242cd6",
+      "preFixDate": "2026-09-18T11:25:08+09:00",
+      "truth": [
+        "packages/vitest/src/node/types/browser.ts",
+        "packages/browser/context.d.ts",
+        "docs/api/browser/locators.md"
+      ],
+      "truthTests": [],
+      "known": [
+        "packages/browser/context.d.ts",
+        "docs/api/browser/locators.md",
+        "packages/vitest/src/node/types/browser.ts"
+      ],
+      "origTitle": "docs: `browser.locators.exact` JSDoc still says `@default false` after v5 made it `true`",
+      "origBody": "docs: `browser.locators.exact` JSDoc still says `@default false` after v5 made it `true`. ### Documentation is - [x] Outdated ### Explain in Detail Since #10430 (`feat(browser)!: enable locators.exact by default`), Vitest 5 resolves `browser.locators.exact` to `true` (`resolved.browser.locators.exact ??= true`), and the config docs page states `Default: true`. The TypeScript declaration still says the opposite. In `packages/vitest/src/node/types/browser.ts` on `main`: This JSDoc is what editors show on hover in `vite.config.ts`, and it ships in the published `vitest@5.0.1` declarations. It is easy to read it as \"loose matching unless I opt in\", which is the Vitest 4 behavior. ### Your Suggestion for Changes Change the tag to `@default true`, matching the runtime default and `docs/config/browser/locators.md`. ### Reproduction 1. Install `vitest@5.0.1`. 2. Hover `browser.locators.exact` in a config file, or read the published `.d.ts`: it says `@default false`. 3. Run a Browser Mode test with `page.getByText('Item')` against an element whose text is `Item 1`: the locator does not match, because the default is actually `true`."
+    },
+    {
+      "index": 94,
+      "issue": 11282,
+      "title": "Type-checking fails without browser type definitions after updating to the latest version",
+      "createdAt": "2026-09-16T02:25:08Z",
+      "url": "https://github.com/vitest-dev/vitest/issues/11282",
+      "body": "I ran the TypeScript compiler on my project with the setting that skips checking of library type files turned off, and without browser (DOM) type definitions installed. I was using the latest version of the test runner, with pnpm as my package manager. The compiler reported an error saying browser types are required, which comes from one of the test runner's dependencies, the benchmarking library. I expected the project to type-check without needing browser type definitions, since my project doesn't target a browser. I haven't prepared a full reproduction project.",
+      "fixPRs": [
+        {
+          "number": 11288,
+          "mergedAt": "2026-09-16T07:41:18Z"
+        }
+      ],
+      "fixCommit": "2300f82da3cfacc542d12949d11a567aa1191855",
+      "fixCommitHow": "squash commit for PR #11288",
+      "preFixCommit": "f88195e168b70e92059b0908c1e4c2f4049819df",
+      "preFixDate": "2026-09-16T10:24:55+09:00",
+      "truth": [
+        "pnpm-workspace.yaml"
+      ],
+      "truthTests": [],
+      "known": [
+        "pnpm-workspace.yaml"
+      ],
+      "origTitle": "DOM types required with tinybench@6.1.4",
+      "origBody": "DOM types required with tinybench@6.1.4. ### Describe the bug I'm specifically running into the following error: resolves this ### Reproduction Just running tsc --emit with skipLibCheck disabled and DOM types not present using the latest vitest. A little lazy to produce a full repro as the fix is simple ### System Info ### Used Package Manager pnpm ### Validations - [x] Follow our [Code of Conduct]( - [x] Read the [Contributing Guidelines]( - [x] Read the [docs]( - [x] Check that there isn't [already an issue]( that reports the same bug to avoid creating a duplicate. - [x] Check that this is a concrete bug. For Q&A open a [GitHub Discussion]( or join our [Discord Chat Server]( - [x] The provided reproduction is a [minimal reproducible example]( of the bug."
+    },
+    {
+      "index": 105,
+      "issue": 11193,
+      "title": "Mocks stop applying after lockfile change when caching and dependency optimization are both on",
+      "createdAt": "2026-09-08T09:54:10Z",
+      "url": "https://github.com/vitest-dev/vitest/issues/11193",
+      "body": "I turned on both the feature that caches transformed modules on disk and the dependency optimization feature for server-side code. After my package lockfile changed more than once, a mock I had registered for a third-party package silently stopped taking effect, and the real package was used instead. No error or warning appeared. I expected the cache to be fully cleared whenever the lockfile changes, so that mocks keep working. This happens on versions 4.1.x and 5.0.0, using pnpm.",
+      "fixPRs": [
+        {
+          "number": 11199,
+          "mergedAt": "2026-09-08T16:07:11Z"
+        }
+      ],
+      "fixCommit": "73614654a46f617c357920eecda439654a561f92",
+      "fixCommitHow": "squash commit for PR #11199",
+      "preFixCommit": "972e24bab5fb96843de72447eb65585628b8dbde",
+      "preFixDate": "2026-09-08T16:14:54+02:00",
+      "truth": [
+        "test/e2e/test/fs-module-cache-resiliency.test.ts",
+        "packages/vitest/src/node/cache/fsModuleCache.ts"
+      ],
+      "truthTests": [
+        "test/e2e/test/fs-module-cache-resiliency.test.ts"
+      ],
+      "known": [
+        "packages/vitest/src/node/cache/fsModuleCache.ts",
+        "test/e2e/test/fs-module-cache-resiliency.test.ts"
+      ],
+      "origTitle": "cache bug with both fsModuleCache and deps.optimizer.ssr enabled",
+      "origBody": "cache bug with both fsModuleCache and deps.optimizer.ssr enabled. ### Describe the bug `ensureCacheIntegrity()` compares the lockfile hash against `_metadata.json` and wipes the cache when it differs. But `clearCache()` removes the whole directory, `_metadata.json` included, and the file is never rewritten. On the next lockfile change there is no metadata, so it takes the \"just store a new one, don't reset the cache\" branch and stale entries survive. When the deps optimizer is active, transformed modules embed `?v= ` on every node_modules import, and that hash is derived from the lockfile. Stale entries import `left-pad?v= ` while `vi.mock('left-pad')` registers against `?v= `: different module id, mock never applies, no error. Affects 4.1.x and 5.0.0. ### Reproduction ### System Info ### Used Package Manager pnpm ### Validations - [x] Follow our [Code of Conduct]( - [x] Read the [Contributing Guidelines]( - [x] Read the [docs]( - [x] Check that there isn't [already an issue]( that reports the same bug to avoid creating a duplicate. - [x] Check that this is a concrete bug. For Q&A open a [GitHub Discussion]( or join our [Discord Chat Server]( - [x] The provided reproduction is a [m"
+    },
+    {
+      "index": 116,
+      "issue": 11073,
+      "title": "Setup file's before-each and before-all steps run for only one test file",
+      "createdAt": "2026-08-27T12:40:49Z",
+      "url": "https://github.com/vitest-dev/vitest/issues/11073",
+      "body": "I have a setup file that registers steps meant to run before each test and before all tests in a file. I listed this setup file in the configuration without its file extension. I also turned off test isolation and limited the run to a single worker to speed up my tests. With this combination, the setup steps run only for the first test file that happens to execute, not for every test file. In the minimal example I provided, the console shows the before-each message printed once instead of twice. I expected these steps to run for every test file, as they do without these settings.",
+      "fixPRs": [
+        {
+          "number": 11081,
+          "mergedAt": "2026-08-28T11:44:33Z"
+        }
+      ],
+      "fixCommit": "488c04680e4fbb9e9bff796871ed665eef517e68",
+      "fixCommitHow": "squash commit for PR #11081",
+      "preFixCommit": "3cd019a0a952f43b79d85b2750d189ce0a17066d",
+      "preFixDate": "2026-08-28T09:01:32+02:00",
+      "truth": [
+        "test/e2e/test/setup-files.test.ts",
+        "packages/vitest/src/runtime/runners/test.ts",
+        "packages/vitest/src/runtime/moduleRunner/testModuleRunner.ts",
+        "packages/vitest/src/runtime/moduleRunner/moduleRunner.ts"
+      ],
+      "truthTests": [
+        "test/e2e/test/setup-files.test.ts"
+      ],
+      "known": [
+        "packages/vitest/src/runtime/runners/test.ts",
+        "packages/vitest/src/runtime/moduleRunner/moduleRunner.ts",
+        "packages/vitest/src/runtime/moduleRunner/testModuleRunner.ts"
+      ],
+      "origTitle": "`beforeEach`/`beforeAll` in setup file gets executed only for one test suite",
+      "origBody": "`beforeEach`/`beforeAll` in setup file gets executed only for one test suite. ### Describe the bug When: * `beforeEach`/`beforeAll` is present in a setup file * the setup file is referenced in `setupFiles` without extension * the configuration contains `isolate: false` and `maxWorkers: 1` (which I'm using to [speed up the tests]( then the callback runs only for one test file (apparently one that happens to be executed first) instead of for all files. In the repro, observe the console output: `beforeEach` is printed only once instead of 2 times. ### Reproduction ### System Info ### Used Package Manager npm ### Validations - [x] Follow our [Code of Conduct]( - [x] Read the [Contributing Guidelines]( - [x] Read the [docs]( - [x] Check that there isn't [already an issue]( that reports the same bug to avoid creating a duplicate. - [x] Check that this is a concrete bug. For Q&A open a [GitHub Discussion]( or join our [Discord Chat Server]( - [x] The provided reproduction is a [minimal reproducible example]( of the bug."
+    },
+    {
+      "index": 127,
+      "issue": 10993,
+      "title": "Tests never start when a browser project is run with a visible window",
+      "createdAt": "2026-08-18T11:35:14Z",
+      "url": "https://github.com/vitest-dev/vitest/issues/10993",
+      "body": "After upgrading to the second release candidate of version 5, I set up a browser-based project in the list of projects in my configuration and turned off the setting that hides the browser window. When I run the test command, the command line just hangs and no tests are ever run. I expected the tests to start and run in the visible browser window as they did before. This only happens with this release candidate, and I can reproduce it with one of the example projects in the Vitest repository after wrapping its configuration in the projects list.",
+      "fixPRs": [
+        {
+          "number": 10994,
+          "mergedAt": "2026-08-19T06:43:59Z"
+        }
+      ],
+      "fixCommit": "9f710d304579f8af08c2ba29018ab492f06aff91",
+      "fixCommitHow": "squash commit for PR #10994",
+      "preFixCommit": "66c1cbb53a1bf2a59888df2fa3c002958d21394c",
+      "preFixDate": "2026-08-18T11:56:42+02:00",
+      "truth": [
+        "test/browser/specs/projects-ui.test.ts",
+        "packages/vitest/src/node/core.ts",
+        "packages/vitest/src/api/setup.ts"
+      ],
+      "truthTests": [
+        "test/browser/specs/projects-ui.test.ts"
+      ],
+      "known": [
+        "packages/vitest/src/api/setup.ts",
+        "packages/vitest/src/node/core.ts"
+      ],
+      "origTitle": "Browser projects don't start test run when headful (v5 rc)",
+      "origBody": "Browser projects don't start test run when headful (v5 rc). This is `5.0.0-rc.2` only. ### Describe the bug When Vitest configuration defines browser project in `test.projects` and runs it with `headless: false`, Vitest is unable to run any tests. ### Reproduction Vitest monorepo: Wrap `examples/lit/vitest.config.ts` config in `projects`: Run `pnpm run test` in that directory. CLI just hangs. ### System Info ### Used Package Manager pnpm ### Validations - [x] Follow our [Code of Conduct]( - [x] Read the [Contributing Guidelines]( - [x] Read the [docs]( - [x] Check that there isn't [already an issue]( that reports the same bug to avoid creating a duplicate. - [x] Check that this is a concrete bug. For Q&A open a [GitHub Discussion]( or join our [Discord Chat Server]( - [x] The provided reproduction is a [minimal reproducible example]( of the bug."
+    },
+    {
+      "index": 138,
+      "issue": 10870,
+      "title": "Documentation for the check that a mock function resolved is misleading",
+      "createdAt": "2026-08-04T19:36:34Z",
+      "url": "https://github.com/vitest-dev/vitest/issues/10870",
+      "body": "The documentation for the assertion that checks whether a mocked function returned a resolved promise says it should pass in a certain situation. When I wrote a test doing exactly what the documentation describes, the test failed instead of passing. I expected the behavior to match what the documentation states. Either the documentation is inaccurate or the feature does not work as described.",
+      "fixPRs": [
+        {
+          "number": 10874,
+          "mergedAt": "2026-08-05T11:01:37Z"
+        }
+      ],
+      "fixCommit": "14aa6af4a5f1cde7bf121c2fb0636bf1d0c63897",
+      "fixCommitHow": "squash commit for PR #10874",
+      "preFixCommit": "96e40feeae35a35e185ba2dd718253459bda2b30",
+      "preFixDate": "2026-08-04T15:57:58+02:00",
+      "truth": [
+        "packages/expect/src/types.ts"
+      ],
+      "truthTests": [],
+      "known": [
+        "packages/expect/src/types.ts"
+      ],
+      "origTitle": "Documentation for `toHaveResolved` is misleading",
+      "origBody": "Documentation for `toHaveResolved` is misleading. ### Describe the bug Current documentation states that however, if you actually write a test that does that the test fails with ### Reproduction ### System Info ### Used Package Manager npm ### Validations - [x] Follow our [Code of Conduct]( - [x] Read the [Contributing Guidelines]( - [x] Read the [docs]( - [x] Check that there isn't [already an issue]( that reports the same bug to avoid creating a duplicate. - [x] Check that this is a concrete bug. For Q&A open a [GitHub Discussion]( or join our [Discord Chat Server]( - [x] The provided reproduction is a [minimal reproducible example]( of the bug."
+    },
+    {
+      "index": 149,
+      "issue": 10697,
+      "title": "Type check run passes falsely when the checker runs out of memory",
+      "createdAt": "2026-07-02T10:02:02Z",
+      "url": "https://github.com/vitest-dev/vitest/issues/10697",
+      "body": "I ran the test tool with its type checking feature turned on in a project that has real type errors. The separate program that does the type checking ran out of memory and crashed with a fatal out-of-memory message and a non-zero exit code. Even so, the test tool reported that there were no type errors and finished with a success exit code, so my CI run showed green. I expected the run to fail with a clear message that the type checking program ended abnormally, instead of reporting no errors.",
+      "fixPRs": [
+        {
+          "number": 10705,
+          "mergedAt": "2026-07-29T06:26:49Z"
+        }
+      ],
+      "fixCommit": "a1b0565c9783add9f197be8c77fa82554c4b9cb1",
+      "fixCommitHow": "squash commit for PR #10705",
+      "preFixCommit": "d6ceca9d7613b29ed577a952fcad6b186a2e0269",
+      "preFixDate": "2026-07-29T08:25:09+02:00",
+      "truth": [
+        "test/typescript/test/typechecker.test.ts",
+        "test/typescript/fixtures/typecheck-crash/tsconfig.json",
+        "test/typescript/fixtures/typecheck-crash/test/ok.test-d.ts",
+        "test/typescript/fixtures/typecheck-crash/fake-tsc.mjs",
+        "packages/vitest/src/typecheck/typechecker.ts",
+        "packages/vitest/src/node/pools/workers/typecheckWorker.ts"
+      ],
+      "truthTests": [
+        "test/typescript/test/typechecker.test.ts",
+        "test/typescript/fixtures/typecheck-crash/tsconfig.json",
+        "test/typescript/fixtures/typecheck-crash/test/ok.test-d.ts",
+        "test/typescript/fixtures/typecheck-crash/fake-tsc.mjs"
+      ],
+      "known": [
+        "packages/vitest/src/typecheck/typechecker.ts",
+        "packages/vitest/src/node/pools/workers/typecheckWorker.ts",
+        "test/typescript/test/typechecker.test.ts"
+      ],
+      "origTitle": "--typecheck reports \"no type errors\" (exit 0) when the tsc child process runs out of memory",
+      "origBody": "--typecheck reports \"no type errors\" (exit 0) when the tsc child process runs out of memory. ### Describe the bug When running `vitest --typecheck`, the type errors are collected by a `tsc` child process. If that child process runs out of heap (OOM), Vitest reports **`Type Errors no errors`** and exits **0** — even though real type errors exist and `tsc` never actually finished checking. This turns a hard failure into a **false green**: type errors slip through CI undetected. The `tsc` child hard-aborts (`FATAL ERROR: Reached heap limit ... JavaScript heap out of memory`, exit 134), yet Vitest still reports \"no errors\". `tsc` itself is behaving correctly: given enough heap it always reports the error; given too little it crashes with a non-zero exit code. The problem is that Vitest treats that abnormal/failed child exit as \"no type errors\" instead of surfacing it as a run failure. ### Reproduction ### Expected behavior If the `tsc`/`vue-tsc` child process exits abnormally (non-zero for a reason other than \"type errors found\", killed by a signal, OOM abort, or produces no parseable diagnostics output), Vitest should **fail the run** with a clear error (e.g. \"typecheck process exited"
+    },
+    {
+      "index": 160,
+      "issue": 10570,
+      "title": "Merged report from split test runs shows transform time as 0ms",
+      "createdAt": "2026-06-10T23:27:30Z",
+      "url": "https://github.com/vitest-dev/vitest/issues/10570",
+      "body": "I ran the test suite split into two parts, then combined the saved results into one report. The merged report showed sensible numbers for everything else, including import time, but the transform time was always 0ms. I expected the transform time to be shown in the merged report as well, since the import time is calculated. I would like to know whether this is intended or a bug.",
+      "fixPRs": [
+        {
+          "number": 10578,
+          "mergedAt": "2026-06-14T12:36:01Z"
+        }
+      ],
+      "fixCommit": "b7897289240f707afeab8b25c93b00feba5f301e",
+      "fixCommitHow": "squash commit for PR #10578",
+      "preFixCommit": "6f794b11db1a811dbc3843a369371c171473dacd",
+      "preFixDate": "2026-06-13T18:09:19+02:00",
+      "truth": [
+        "test/e2e/test/reporters/merge-reports.test.ts",
+        "packages/vitest/src/node/reporters/blob.ts",
+        "packages/vitest/src/node/core.ts"
+      ],
+      "truthTests": [
+        "test/e2e/test/reporters/merge-reports.test.ts"
+      ],
+      "known": [
+        "packages/vitest/src/node/core.ts",
+        "packages/vitest/src/node/reporters/blob.ts",
+        "test/e2e/test/reporters/merge-reports.test.ts"
+      ],
+      "origTitle": "Vitest 4.1.5 merged report transform=0ms",
+      "origBody": "Vitest 4.1.5 merged report transform=0ms. ### Describe the bug Hey team. was not able to find this in the docs or on GitHub quickly. I am wondering why everything seems to be correct, but `transform 0ms`? I tested running 2 shards and then merging the blobs. Here are the stats: is this intended? I would assume if we can calculate `import` then `transform` is also there. Thank you. ### Reproduction 1. `pnpm install` 2. `pnpm test` - give sequential stats (if needed) 3. `pnpm test:merge` - runs 2 shards + merges the report ### System Info ### Used Package Manager pnpm ### Validations - [x] Follow our [Code of Conduct]( - [x] Read the [Contributing Guidelines]( - [x] Read the [docs]( - [x] Check that there isn't [already an issue]( that reports the same bug to avoid creating a duplicate. - [x] Check that this is a concrete bug. For Q&A open a [GitHub Discussion]( or join our [Discord Chat Server]( - [x] The provided reproduction is a [minimal reproducible example]( of the bug."
+    }
+  ],
+  "vague": true,
+  "rewrite": "symptom-only rewrite by Claude Sonnet from the ticket text alone; see scripts/rewrite.mjs"
+}

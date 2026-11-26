@@ -1,0 +1,595 @@
+{
+  "repo": "honojs/hono",
+  "source": "cases(store, repo, { split: \"newer\", limit: 200 }) from src/eval.ts; every 10th case (index 0,10,...,190)",
+  "generatedAt": "2026-11-26T12:59:28.863Z",
+  "cases": [
+    {
+      "index": 0,
+      "issue": 5663,
+      "title": "hc client: JSONParsed adds | undefined to optional properties, breaks with exactOptionalPropertyTypes",
+      "createdAt": "2026-11-21T20:15:24Z",
+      "url": "https://github.com/honojs/hono/issues/5663",
+      "body": "hc client: JSONParsed adds | undefined to optional properties, breaks with exactOptionalPropertyTypes. ### What version of Hono are you using? 4.13.19 ### What runtime/platform is your app running on? Type-level only (TypeScript 6.0.3, `moduleResolution: bundler`). The runtime does not matter. ### What steps can reproduce the bug? tsconfig.json: repro.ts: ### What is the expected behavior? `await response.json()` is typed as `{ id: string; position?: 'a' | 'b' }`, which is assignable to `Item`. JSON cannot contain `undefined`. A serialized object either has the key with a value or omits it. So an optional property should stay optional without gaining `| undefined`. ### What do you see instead? `position` is inferred as `position?: 'a' | 'b' | undefined`, which is not assignable back to `Item` when `exactOptionalPropertyTypes` is enabled: ### Additional information This looks like it comes from `JSONParsedStep` in `dist/types/utils/types.d.ts`: For an optional property, `T[K]` includes `undefined`, so `IsInvalid ` is `boolean` and `| undefined` is appended. The key stays optional because the mapped type is homomorphic, so the result is `key?: V | undefined`. Without `exactOptionalPr",
+      "fixPRs": [
+        {
+          "number": 5664,
+          "mergedAt": "2026-11-22T06:19:34Z"
+        }
+      ],
+      "fixCommit": "01b43fbb1b61147f9965fa14f32e2c2326610166",
+      "fixCommitHow": "squash commit for PR #5664",
+      "preFixCommit": "24f5adac3a4713e8898839f68b0ac88e3d450f3e",
+      "preFixDate": "2026-11-22T15:13:01+09:00",
+      "truth": [
+        "src/utils/types.ts",
+        "build/json-parsed-exact.test.ts",
+        "build/fixtures/json-parsed-exact/tsconfig.json",
+        "build/fixtures/json-parsed-exact/index.ts"
+      ],
+      "truthTests": [
+        "build/json-parsed-exact.test.ts"
+      ],
+      "known": [
+        "src/utils/types.ts"
+      ]
+    },
+    {
+      "index": 10,
+      "issue": 5622,
+      "title": "proxy helper: the documented `headers: { ...c.req.header() }` pattern fails with 500 for chunked request bodies on Node.js",
+      "createdAt": "2026-11-08T00:52:59Z",
+      "url": "https://github.com/honojs/hono/issues/5622",
+      "body": "proxy helper: the documented `headers: { ...c.req.header() }` pattern fails with 500 for chunked request bodies on Node.js. ### What version of Hono are you using? 4.13.17 (also main at 61f7c59) ### What runtime/platform is your app running on? (with version if possible) Node.js 26.13.0, @hono/node-server 2.1.6 ### What steps can reproduce the bug? The proxy helper removes hop-by-hop headers from the incoming request (`raw`), but not from `headers` passed in the init. The pattern shown in the docs and in the JSDoc copies all incoming headers with `...c.req.header()`, so `Transfer-Encoding: chunked` (and `Keep-Alive`, if the client sends it) is passed to `fetch`, which rejects it on Node.js (undici). ### What is the expected behavior? Both uploads reach the origin: ### What do you see instead? The chunked upload gets `500 Internal Server Error`: and the server logs: ### Additional information Without the `headers` override (`proxy(url, c.req)`) the chunked upload works, because `buildRequestInitFromRequest` deletes `transfer-encoding`. Applying the same `hopByHopHeaders` removal to the merged headers would fix the documented pattern. #5509 covers a `Request` passed as the first argu",
+      "fixPRs": [
+        {
+          "number": 5640,
+          "mergedAt": "2026-11-16T12:00:32Z"
+        }
+      ],
+      "fixCommit": "69b898ebb717f2e40cf69edbca1ea266f1238c03",
+      "fixCommitHow": "squash commit for PR #5640",
+      "preFixCommit": "fb48e2b295dd434a67a050c453f4d5d815b2972c",
+      "preFixDate": "2026-11-16T20:18:39+09:00",
+      "truth": [
+        "src/helper/proxy/index.ts",
+        "src/helper/proxy/index.test.ts"
+      ],
+      "truthTests": [
+        "src/helper/proxy/index.test.ts"
+      ],
+      "known": [
+        "src/helper/proxy/index.test.ts",
+        "src/helper/proxy/index.ts"
+      ]
+    },
+    {
+      "index": 20,
+      "issue": 5586,
+      "title": "`c.header()` crashes after consumption of the finalized res body",
+      "createdAt": "2026-10-28T00:45:25Z",
+      "url": "https://github.com/honojs/hono/issues/5586",
+      "body": "`c.header()` crashes after consumption of the finalized res body. ### What version of Hono are you using? 4.13.13 ### What runtime/platform is your app running on? (with version if possible) Cloudflare Workers ### What steps can reproduce the bug? In a middleware, call the `c.header()` or a dependent such as `c.redirect()` or `setCookie()` after consumption of the **finalized** res body. ### What is the expected behavior? Always respond `\"alternative response\"` with a header `x-something: hey` successfully. ### What do you see instead? The most simple solution: user shall set, on his responsibility, `c.finalized = false` just after consumption of the res body. However, the `finalized` property, though public, seems to be undocumented officially at present. Resetting as `c.res = undefined` is pointless because `finalized` is still true. Another solution is to clear `c.finalized = false` when resetting as `c.res = undefined`. Since `set res` accepts `undefined` currently, this sounds semantically reasonable to me. Some other options also come to my mind, but they are more complicated: `get finalized`, method with a callback parameter `(old: Response) => Response` to replace res, cons",
+      "fixPRs": [
+        {
+          "number": 5587,
+          "mergedAt": "2026-10-30T12:04:12Z"
+        }
+      ],
+      "fixCommit": "17ad0e21f5a91c939eeafa3df05793a8ea60f016",
+      "fixCommitHow": "squash commit for PR #5587",
+      "preFixCommit": "ee88684625077a2cd0e2f4613e593e2635ffe4c7",
+      "preFixDate": "2026-10-30T18:46:40+09:00",
+      "truth": [
+        "src/context.ts",
+        "src/context.test.ts"
+      ],
+      "truthTests": [
+        "src/context.test.ts"
+      ],
+      "known": [
+        "src/context.ts",
+        "src/context.test.ts"
+      ]
+    },
+    {
+      "index": 30,
+      "issue": 5551,
+      "title": "Declaration emit fails with TS2883 (`ClientRequest`) for `testClient()` since 4.13.10",
+      "createdAt": "2026-10-11T12:14:29Z",
+      "url": "https://github.com/honojs/hono/issues/5551",
+      "body": "Declaration emit fails with TS2883 (`ClientRequest`) for `testClient()` since 4.13.10. ### What version of Hono are you using? 4.13.13 (fails since 4.13.10, works in 4.13.9) ### What runtime/platform is your app running on? (with version if possible) Cloudflare Workers. The error comes from `tsc` itself, so it reproduces on Node.js 26.8.2 with TypeScript 6.0.3. ### What steps can reproduce the bug? Exporting the return value of `testClient()` makes declaration emit fail with TS2883. `src/index.ts`: `tsconfig.json`: `package.json`: Run `npm install hono@4.13.13 typescript@6.0.3` and `npx tsc -p .`. The same happens with `\"module\": \"preserve\"` and `\"moduleResolution\": \"bundler\"`, except that the path in the error is `client/types` without `.js`. ### What is the expected behavior? Compiles, as it does with 4.13.9, which emits `dist/index.d.ts`: ### What do you see instead? ### Additional information - The error goes away if any file in the program imports `hono/client`. - I narrowed it down to #5444 by building the declarations myself. They work at 3ed3a14f6, the commit before it, where `tsc` emits them, and fail at 5f31392d7, where `vp pack` does. - 4.13.13 still fails after #5485, w",
+      "fixPRs": [
+        {
+          "number": 5557,
+          "mergedAt": "2026-10-16T01:57:30Z"
+        }
+      ],
+      "fixCommit": "3362244401515a1530616aefb87eb388152f82a3",
+      "fixCommitHow": "squash commit for PR #5557",
+      "preFixCommit": "588ec13fa68ea44fed1b5e1b503341db2bf09d70",
+      "preFixDate": "2026-10-13T17:18:10+09:00",
+      "truth": [
+        "vite.config.ts",
+        "src/helper/testing/index.ts",
+        "build/fixtures/declaration-emit/index.ts",
+        "build/dts-plugins.ts",
+        "build/declaration-emit.test.ts"
+      ],
+      "truthTests": [
+        "build/declaration-emit.test.ts"
+      ],
+      "known": [
+        "vite.config.ts",
+        "build/declaration-emit.test.ts",
+        "build/fixtures/declaration-emit/index.ts",
+        "build/dts-plugins.ts",
+        "src/helper/testing/index.ts"
+      ]
+    },
+    {
+      "index": 40,
+      "issue": 5403,
+      "title": "aws-lambda: a binary `+xml` response is corrupted (`application/vnd.apple.installer+xml`)",
+      "createdAt": "2026-09-16T09:12:57Z",
+      "url": "https://github.com/honojs/hono/issues/5403",
+      "body": "aws-lambda: a binary `+xml` response is corrupted (`application/vnd.apple.installer+xml`). ### What version of Hono are you using? 4.13.8 (`main`, `098e1191`) ### What runtime/platform/OS are you using? `bun` 1.4.3 on macOS — the `aws-lambda` adapter, so this happens for anyone serving files from AWS Lambda (API Gateway, Function URLs or ALB). ### What steps can reproduce the bug? Return a file whose `Content-Type` ends in `+xml`, from an app running on AWS Lambda. `application/vnd.apple.installer+xml` is the media type of an Apple installer package. That file is **not XML** — it is a `xar` archive, so the first bytes are `xar!` (`78 61 72 21`) followed by binary integers and a compressed stream. The same happens with any media type that ends in `+xml` but holds a binary archive, for example `application/vnd.mozilla.xul+xml`. ### What is the expected behavior? The response body should be byte-for-byte identical to what the app returned. The adapter should treat this content type as binary and send it base64 encoded. ### What do you see instead? The body gets decoded as UTF-8, so every byte that is not valid UTF-8 turns into U+FFFD and the file is corrupted. There is no error and no",
+      "fixPRs": [
+        {
+          "number": 5424,
+          "mergedAt": "2026-09-21T10:12:52Z"
+        }
+      ],
+      "fixCommit": "0d86899d28e146da0c8760201b2d08ddae732eaa",
+      "fixCommitHow": "squash commit for PR #5424",
+      "preFixCommit": "52febbcc30bc509d5e4987577e63906fe08fc471",
+      "preFixDate": "2026-09-20T18:25:49+09:00",
+      "truth": [
+        "src/adapter/aws-lambda/handler.ts",
+        "src/adapter/aws-lambda/handler.test.ts"
+      ],
+      "truthTests": [
+        "src/adapter/aws-lambda/handler.test.ts"
+      ],
+      "known": [
+        "src/adapter/aws-lambda/handler.ts",
+        "src/adapter/aws-lambda/handler.test.ts"
+      ]
+    },
+    {
+      "index": 50,
+      "issue": 5262,
+      "title": "fix(jsx/dom): execute previous ref cleanup when ref prop changes on re-render",
+      "createdAt": "2026-08-18T19:08:08Z",
+      "url": "https://github.com/honojs/hono/issues/5262",
+      "body": "fix(jsx/dom): execute previous ref cleanup when ref prop changes on re-render. ### Problem Description In Hono's client-side JSX DOM renderer (`src/jsx/dom/render.ts`), when a DOM element's `ref` prop reference changes during a re-render (e.g., ` `), Hono registers the new ref callback `ref2(container)` and updates `refCleanupMap`, but it bypasses the cleanup function returned by the previous ref (`cleanup1` or `ref1(null)`). #### Root Cause Currently, `ref` cleanup is only triggered when a prop key is completely removed from the element via the deletion loop (`!(key in attributes)`). When a `ref` prop simply switches identity from `ref1` to `ref2`, `'ref'` remains in `attributes`, so the cleanup loop is bypassed. Consequently, any teardown logic attached to `ref1` (such as unbinding observers or cleaning up event listeners) is leaked and never executed. This leads to memory leaks in single-page applications when switching dynamic ref callbacks, conditional inline refs, or dynamic observers during component updates. --- ### Minimal Reproducible Example Add the following test case to `src/jsx/dom/index.test.tsx` and run `npx vitest run src/jsx/dom/index.test.tsx`: ```tsx it('execute",
+      "fixPRs": [
+        {
+          "number": 5264,
+          "mergedAt": "2026-08-19T11:06:49Z"
+        }
+      ],
+      "fixCommit": "48e360fcaa107c7706fcf8adccb93505876791dc",
+      "fixCommitHow": "squash commit for PR #5264",
+      "preFixCommit": "7967760748503b50de7c315fe3aa76666a8e6cab",
+      "preFixDate": "2026-08-19T19:58:41+09:00",
+      "truth": [
+        "src/jsx/dom/render.ts",
+        "src/jsx/dom/index.test.tsx"
+      ],
+      "truthTests": [
+        "src/jsx/dom/index.test.tsx"
+      ],
+      "known": [
+        "src/jsx/dom/index.test.tsx",
+        "src/jsx/dom/render.ts"
+      ]
+    },
+    {
+      "index": 60,
+      "issue": 5089,
+      "title": "RPC headers not merging when function",
+      "createdAt": "2026-07-05T20:47:56Z",
+      "url": "https://github.com/honojs/hono/issues/5089",
+      "body": "RPC headers not merging when function. ### What version of Hono are you using? 4.12.21 ### What runtime/platform is your app running on? (with version if possible) Node 24.15.0 ### What steps can reproduce the bug? Create a RPC client, passing in headers using a function Call a api using the client, passing in additional headers ### What is the expected behavior? Both headers should be added to the api call ### What do you see instead? Only the headers passed directly in are added to the api call ### Additional information Looking at the source code, it seems like this bug is caused by the following `deepMerge` call: The `deepMerge` seems to only merge objects, not functions: Not sure if the `deepMerge` function should be updated to support async functions or if the function should be called before merging",
+      "fixPRs": [
+        {
+          "number": 5092,
+          "mergedAt": "2026-07-07T09:10:46Z"
+        }
+      ],
+      "fixCommit": "f9992096de71151b8271f1cd7f45986bdd5f2b7f",
+      "fixCommitHow": "squash commit for PR #5092",
+      "preFixCommit": "626b185d0e80fa1c2a3cc1a8945afd0df6aaf3ec",
+      "preFixDate": "2026-07-06T19:06:17+09:00",
+      "truth": [
+        "src/client/client.ts",
+        "src/client/client.test.ts"
+      ],
+      "truthTests": [
+        "src/client/client.test.ts"
+      ],
+      "known": [
+        "src/client/client.test.ts",
+        "src/client/client.ts"
+      ]
+    },
+    {
+      "index": 70,
+      "issue": 4946,
+      "title": "Support custom Content-Type in compress middleware",
+      "createdAt": "2026-05-18T12:30:51Z",
+      "url": "https://github.com/honojs/hono/issues/4946",
+      "body": "Support custom Content-Type in compress middleware. ### What is the feature you are proposing? I want to compress responses with `Content-Type: application/vnd.msgpack`. (FYI it's a MIME type registered with IANA: But Hono's compress middleware only compresses responses with known Content-Type defined here: I would like an option for custom conditions for which Content-Types are allowed to be compressed. However, I'm not sure what format the ideal option should take. (For example, a function that returns a boolean, a list of Content-Types, or a regex? Also, should it be possible to add or remove from a default list of Content-Types, or should all of them have to be specified manually?)",
+      "fixPRs": [
+        {
+          "number": 4961,
+          "mergedAt": "2026-05-25T01:50:42Z"
+        }
+      ],
+      "fixCommit": "c968177d9c11ddc7c7cca57c384497f11a6d60ae",
+      "fixCommitHow": "squash commit for PR #4961",
+      "preFixCommit": "0265a5453a7c272417eaa22b93d3fb319d2188ed",
+      "preFixDate": "2026-05-25T06:17:27+09:00",
+      "truth": [
+        "src/middleware/compress/index.ts",
+        "src/middleware/compress/index.test.ts"
+      ],
+      "truthTests": [
+        "src/middleware/compress/index.test.ts"
+      ],
+      "known": [
+        "src/middleware/compress/index.ts",
+        "src/middleware/compress/index.test.ts"
+      ]
+    },
+    {
+      "index": 80,
+      "issue": 4811,
+      "title": "CORS middleware allows origin: '*' with credentials: true",
+      "createdAt": "2026-03-19T13:49:24Z",
+      "url": "https://github.com/honojs/hono/issues/4811",
+      "body": "CORS middleware allows origin: '*' with credentials: true. middleware/cors/index.ts sets Access-Control-Allow-Origin: * and Access-Control-Allow-Credentials: true when configured with origin: '*' and credentials: true. The Fetch spec says Allow-Origin must not be * when credentials mode is include — browsers reject these responses. The middleware should either warn or reflect the request origin instead of *.",
+      "fixPRs": [
+        {
+          "number": 4813,
+          "mergedAt": "2026-03-23T10:35:34Z"
+        }
+      ],
+      "fixCommit": "66fe9feec2bf0dc7bb2b8bcdcb5a380d527e8ae2",
+      "fixCommitHow": "squash commit for PR #4813",
+      "preFixCommit": "50e26118cb7a802469f566e4e5a6b8a18cb95e07",
+      "preFixDate": "2026-03-23T19:07:50+09:00",
+      "truth": [
+        "src/middleware/cors/index.ts",
+        "src/middleware/cors/index.test.ts"
+      ],
+      "truthTests": [
+        "src/middleware/cors/index.test.ts"
+      ],
+      "known": [
+        "src/middleware/cors/index.ts",
+        "src/middleware/cors/index.test.ts"
+      ]
+    },
+    {
+      "index": 90,
+      "issue": 4640,
+      "title": "Build failure when included in TS project",
+      "createdAt": "2026-01-21T14:42:47Z",
+      "url": "https://github.com/honojs/hono/issues/4640",
+      "body": "Build failure when included in TS project. ### What version of Hono are you using? 4.11.4 ### What runtime/platform is your app running on? (with version if possible) node + npm or pnpm ### What steps can reproduce the bug? See for a minimal example where I include hono in an otherwise (almost) empty project, and both `pnpm build` and `npm run build` start failing. You can see it failing in GitHub Actions on that PR. ### What is the expected behavior? My TS project that uses hono would build successfully, both on my laptop and in GitHub Actions ### What do you see instead? ### Additional information _No response_",
+      "fixPRs": [
+        {
+          "number": 4651,
+          "mergedAt": "2026-01-26T14:36:06Z"
+        }
+      ],
+      "fixCommit": "a5be555b3163236909f5699f783bbd03e28ea226",
+      "fixCommitHow": "squash commit for PR #4651",
+      "preFixCommit": "bcc81b1fc0621c4131efe09e2cc1d48c501be06c",
+      "preFixDate": "2026-01-22T10:10:27+09:00",
+      "truth": [
+        "src/request/constants.ts"
+      ],
+      "truthTests": [],
+      "known": [
+        "src/request/constants.ts"
+      ]
+    },
+    {
+      "index": 100,
+      "issue": 4510,
+      "title": "Proposal to change to specifying `charset` parameter individually for each MIME type",
+      "createdAt": "2025-11-08T07:23:00Z",
+      "url": "https://github.com/honojs/hono/issues/4510",
+      "body": "Proposal to change to specifying `charset` parameter individually for each MIME type. ### What is the feature you are proposing? Currently, MIME types parameter are set through mechanical determination. This has several problems. - There are other items besides `text/*` for which I want to specify a `charset` parameter (`image/svg+xml`, `application/xhtml+xml`, `application/xml`) - According to [IANA specifications]( not all `text/*` formats have a `charset` parameter Therefore, we will eliminate this processing and instead specify the `charset` parameter individually using the `_baseMimes` variable. (e.g. `css: 'text/css; charset=utf-8',`) Furthermore, in the `getExtension()` function, we will modify the logic to perform the check after removing the parameter instead.",
+      "fixPRs": [
+        {
+          "number": 4912,
+          "mergedAt": "2026-05-22T09:01:10Z"
+        }
+      ],
+      "fixCommit": "a192df0844724aeaf5cbc6f1ea2f8425d3f8a86a",
+      "fixCommitHow": "squash commit for PR #4912",
+      "preFixCommit": "cf6ef7056a59acdc5cd2eacdca201147885d3e54",
+      "preFixDate": "2026-05-22T17:58:02+09:00",
+      "truth": [
+        "src/utils/mime.ts",
+        "src/utils/mime.test.ts"
+      ],
+      "truthTests": [
+        "src/utils/mime.test.ts"
+      ],
+      "known": [
+        "src/utils/mime.ts",
+        "src/utils/mime.test.ts"
+      ]
+    },
+    {
+      "index": 110,
+      "issue": 4427,
+      "title": "regression in `Context`/`c.json()` type inference in `v4.9.8`",
+      "createdAt": "2025-09-26T05:54:56Z",
+      "url": "https://github.com/honojs/hono/issues/4427",
+      "body": "regression in `Context`/`c.json()` type inference in `v4.9.8`. ### What version of Hono are you using? 4.9.8 ### What runtime/platform is your app running on? (with version if possible) Bun (1.2.16), TypeScript (^5.8.2) ### What steps can reproduce the bug? ### What is the expected behavior? For this to typecheck/for TS language server to be able to infer the returned type without annotation here. ### What do you see instead? In `4.9.8`, this gives the following type error: ### Additional information Reverting to `4.9.7` allows the TS language server to infer the returned type correctly.",
+      "fixPRs": [
+        {
+          "number": 4433,
+          "mergedAt": "2025-09-29T07:49:13Z"
+        }
+      ],
+      "fixCommit": "e3bf8c8913a707e49f374575bdf6c88f0ec7e3f6",
+      "fixCommitHow": "squash commit for PR #4433",
+      "preFixCommit": "16eb88269ffb0ae68590ad55ac9ac58807850f26",
+      "preFixDate": "2025-09-27T08:43:42+09:00",
+      "truth": [
+        "src/context.ts"
+      ],
+      "truthTests": [],
+      "known": [
+        "src/context.ts"
+      ]
+    },
+    {
+      "index": 120,
+      "issue": 4324,
+      "title": "Using fire(app) instead of app.fire() causes server error.",
+      "createdAt": "2025-07-30T05:17:46Z",
+      "url": "https://github.com/honojs/hono/issues/4324",
+      "body": "Using fire(app) instead of app.fire() causes server error.. ### What version of Hono are you using? 4.8.10 ### What runtime/platform is your app running on? (with version if possible) Fastly Edge Compute ### What steps can reproduce the bug? Swapping to use fire(app) produces the following error on Fastly Edge Compute: `(new Error(\"This context has no ExecutionContext\", \"input.js\", 363))` The following code works with app.fire(); but not fire(app); ### What is the expected behavior? Proxy of mozilla.org ### What do you see instead? Internal Server Error ### Additional information Related:",
+      "fixPRs": [
+        {
+          "number": 4328,
+          "mergedAt": "2025-07-31T05:17:48Z"
+        },
+        {
+          "number": 4374,
+          "mergedAt": "2025-08-28T06:29:05Z"
+        }
+      ],
+      "fixCommit": "6d18f17e5820cf1a4cf08da36e1fd877b0ecdf87",
+      "fixCommitHow": "squash commit for PR #4328",
+      "preFixCommit": "bd454fe8a6c494050fc48f7a3eb61af3d49f91b4",
+      "preFixDate": "2025-07-30T08:05:44+09:00",
+      "truth": [
+        "src/adapter/service-worker/handler.ts",
+        "src/adapter/service-worker/handler.test.ts"
+      ],
+      "truthTests": [
+        "src/adapter/service-worker/handler.test.ts"
+      ],
+      "known": [
+        "src/adapter/service-worker/handler.ts",
+        "src/adapter/service-worker/handler.test.ts"
+      ]
+    },
+    {
+      "index": 130,
+      "issue": 4235,
+      "title": "`onError` handler couldn't handle Hono JSX errors. Also no error messages on console",
+      "createdAt": "2025-06-19T06:34:02Z",
+      "url": "https://github.com/honojs/hono/issues/4235",
+      "body": "`onError` handler couldn't handle Hono JSX errors. Also no error messages on console. ### What version of Hono are you using? 4.8.0 ### What runtime/platform is your app running on? (with version if possible) Node 20 ### What steps can reproduce the bug? I found the `onError()` hasn't triggered when there is a Hono JSX error on the server side. I debugged and found the potential design inconsistency between the dispatcher and Hono JSX. ## Reproduction code I created the repo. The specific error code is here: then access to ### What is the expected behavior? 1. Return proper 500 error page to users 2. Log proper error message / stack traces to stdout. ### What do you see instead? The blank 500 response and no stdout messages. ### Additional information As I mentioned before, this is caused by the potential design inconsistency between the dispatcher and Hono JSX. ### Design 1. Hono JSX throws the non Error type, string object. For my case, this line throws string. ### Design 2. Hono dispatcher only accepts Error types ### As a result There is no way to handle / even logging the error. This is hard to debug on the local and impossible to debug on production server. This should be fix",
+      "fixPRs": [
+        {
+          "number": 4241,
+          "mergedAt": "2025-06-21T09:59:50Z"
+        }
+      ],
+      "fixCommit": "c03f24536833d1edd081df5b62624a95234bacfb",
+      "fixCommitHow": "squash commit for PR #4241",
+      "preFixCommit": "54cf3fb3622ef483a4d22c74073486931652282a",
+      "preFixDate": "2025-06-21T18:26:42+09:00",
+      "truth": [
+        "src/jsx/index.test.tsx",
+        "src/jsx/base.ts"
+      ],
+      "truthTests": [
+        "src/jsx/index.test.tsx"
+      ],
+      "known": [
+        "src/jsx/index.test.tsx",
+        "src/jsx/base.ts"
+      ]
+    },
+    {
+      "index": 140,
+      "issue": 4170,
+      "title": "etag middleware fails to match weak ETags returned in `If-None-Match`, so 304 is never sent",
+      "createdAt": "2025-05-27T13:59:12Z",
+      "url": "https://github.com/honojs/hono/issues/4170",
+      "body": "etag middleware fails to match weak ETags returned in `If-None-Match`, so 304 is never sent. ### What version of Hono are you using? 4.7.10 ### What runtime/platform is your app running on? (with version if possible) Deno 2.3.3 (Apple silicon, macOS) ### What steps can reproduce the bug? 1. Minimal app with only the built-in `etag()` middleware: ` 2. Request the resource twice: ### What is the expected behavior? The second request should return **304 Not Modified** because the weak ETag matches (RFC 9110 § 8.8.3.2: \"An entity tag comparison is weak unless indicated otherwise\"). ### What do you see instead? **200 OK** with a full body. `etagMatches` does a literal comparison: so `\"fb36a8cfa87...\"` and `W/\"fb36a8cfa87...\"` never match. ### Additional information A temporary workaround is to enable `weak: true` in `etag()`, but the middleware should ignore the `W/` prefix automatically. One-line fix:",
+      "fixPRs": [
+        {
+          "number": 4171,
+          "mergedAt": "2025-05-29T10:26:23Z"
+        }
+      ],
+      "fixCommit": "091ecb7e867e958d48d7734029b196f654f16d14",
+      "fixCommitHow": "squash commit for PR #4171",
+      "preFixCommit": "2590c60b61742fa98454ce30c18d9d5c9447d4a5",
+      "preFixDate": "2025-05-29T18:49:04+09:00",
+      "truth": [
+        "src/middleware/etag/index.ts",
+        "src/middleware/etag/index.test.ts"
+      ],
+      "truthTests": [
+        "src/middleware/etag/index.test.ts"
+      ],
+      "known": [
+        "src/middleware/etag/index.ts",
+        "src/middleware/etag/index.test.ts"
+      ]
+    },
+    {
+      "index": 150,
+      "issue": 3998,
+      "title": "Bun adapter types are not re-exported",
+      "createdAt": "2025-03-15T06:04:13Z",
+      "url": "https://github.com/honojs/hono/issues/3998",
+      "body": "Bun adapter types are not re-exported. ### What version of Hono are you using? 4.7.4 ### What runtime/platform is your app running on? (with version if possible) Bun 1.2.5 ### What steps can reproduce the bug? 1. Create an interface or class with a property that can store a `websocket` value returned by `createBunWebSocket()` from the Hono Bun adapter. 2. Try to add the correct type `BunWebSocketHandler ` to the property. ### What is the expected behavior? I expect to be able to import types from the Bun adapter. ### What do you see instead? The types defined in the Hono Bun adapter, such as those in [src/adapter/bun/websocket.ts]( are not re-exported by [src/adapter/bun/index.ts]( I believe the only way to reference the types at this point are by copying them to my codebase or using a TypeScript utility type to extract them, such as: ### Additional information I can try to fix this if it is confirmed to be a bug.",
+      "fixPRs": [
+        {
+          "number": 4002,
+          "mergedAt": "2025-03-16T09:42:02Z"
+        }
+      ],
+      "fixCommit": "6659ea1270392f608815d89c42cf164f2cb9cfcd",
+      "fixCommitHow": "squash commit for PR #4002",
+      "preFixCommit": "d629c6233864ec891c4d23319979d1d6d91385e0",
+      "preFixDate": "2025-03-15T17:37:37+09:00",
+      "truth": [
+        "src/adapter/bun/index.ts"
+      ],
+      "truthTests": [],
+      "known": [
+        "src/adapter/bun/index.ts"
+      ]
+    },
+    {
+      "index": 160,
+      "issue": 3909,
+      "title": "mergePath incorrectly adds a trailing slash when first path segment is `/`",
+      "createdAt": "2025-02-09T16:44:21Z",
+      "url": "https://github.com/honojs/hono/issues/3909",
+      "body": "mergePath incorrectly adds a trailing slash when first path segment is `/`. ### What version of Hono are you using? 4.7.0 ### What runtime/platform is your app running on? (with version if possible) Cloudflare Workers ### What steps can reproduce the bug? This issue mainly happens when you combine Hono with Hono's Zod Openapi, but since the issue is coming from Hono itself i have created the issue here. By using this code here: You can request `/v1` which will respond correctly, but in the final openapi document the route is generated as the following: `/v1/` which results in scalar, swagger and other such tools to use the wrong path for requesting the endpoint. On the Zod Openapi middleware it will provide the following paths to `mergePath`: `mergePath(\"/\", \"/v1\", \"/\")` which results in this `/v1/`. It seems the issue comes from these lines, since after the first iteration the p variable is now `/`, and then this condition is true. ### What is the expected behavior? The openapi document should not have `/v1/` but instead `/v1`. ### What do you see instead? That the openapi document has `/v1/` and not `/v1` ### Additional information It seems to only happen when there is a route wi",
+      "fixPRs": [
+        {
+          "number": 3910,
+          "mergedAt": "2025-02-10T10:29:15Z"
+        }
+      ],
+      "fixCommit": "8340a7b67a00ad71c59d5ad1cc8bdfff340e3845",
+      "fixCommitHow": "squash commit for PR #3910",
+      "preFixCommit": "6ceb1ab22e70d5232e092bfea7313f5f1f100198",
+      "preFixDate": "2025-02-09T19:28:52+09:00",
+      "truth": [
+        "src/utils/url.ts",
+        "src/utils/url.test.ts"
+      ],
+      "truthTests": [
+        "src/utils/url.test.ts"
+      ],
+      "known": [
+        "src/utils/url.ts",
+        "src/utils/url.test.ts"
+      ]
+    },
+    {
+      "index": 170,
+      "issue": 3795,
+      "title": "Middleware context extension doesn't work with app.on",
+      "createdAt": "2025-01-01T20:58:04Z",
+      "url": "https://github.com/honojs/hono/issues/3795",
+      "body": "Middleware context extension doesn't work with app.on. ### What version of Hono are you using? 4.6.14 ### What runtime/platform is your app running on? (with version if possible) Deno (npm package) ### What steps can reproduce the bug? Following the [Documentation]( I'm adding a variable into the context via middleware. When I use a normal `app.get` or `app.post` function, there are no errors. However, when I use `app.on` for multiple routes in one function, Typescript errors stating the types `c` and `c` are incompatible. I've attached a minimal reproducible example below. ### What is the expected behavior? The middleware validates with `app.on` in the same way as using `app.get, app.post`, etc. ### What do you see instead? Type error stating that the contexts are incompatible ### Additional information _No response_",
+      "fixPRs": [
+        {
+          "number": 3802,
+          "mergedAt": "2025-01-05T09:12:05Z"
+        }
+      ],
+      "fixCommit": "100745a27fdfd9bf1860179f774548f884a67b85",
+      "fixCommitHow": "squash commit for PR #3802",
+      "preFixCommit": "5af7b4fc9126e17303f50c2f801da7be0cc2e0e5",
+      "preFixDate": "2025-01-05T17:44:05+09:00",
+      "truth": [
+        "src/types.ts",
+        "src/types.test.ts"
+      ],
+      "truthTests": [
+        "src/types.test.ts"
+      ],
+      "known": [
+        "src/types.test.ts",
+        "src/types.ts"
+      ]
+    },
+    {
+      "index": 180,
+      "issue": 3694,
+      "title": "CSP support for CSS Helper",
+      "createdAt": "2024-11-20T06:45:43Z",
+      "url": "https://github.com/honojs/hono/issues/3694",
+      "body": "CSP support for CSS Helper. ### What is the feature you are proposing? First of all, thanks a lot for you're awesome work on Hono. I really enjoy using it. I've been using the CSS helper. It works well 🚀 But in combination with nonce-based CSP i.e. if inline script and style tags are only allowed, if a random nonce is set on each render (e.g., ` ` or ` `, it doesn't work yet. Currently, there is no way to pass the nonce to the style and script tag. For example, I'd like to be able to add the nonce to the ` ` to ensure the inline CSS is not ignored by the browser. For example, a test could look as follows: I'd like to help and contribute this feature and have started a possible implementation here: -> happy for feedback! thanks! ### Related to - -",
+      "fixPRs": [
+        {
+          "number": 3685,
+          "mergedAt": "2024-11-24T01:50:24Z"
+        }
+      ],
+      "fixCommit": "bfc190f72573379565f6fab3f290e657f5778044",
+      "fixCommitHow": "squash commit for PR #3685",
+      "preFixCommit": "3059741b6ec3afe73a88c705f44eadeb71e1546e",
+      "preFixDate": "2024-11-23T19:23:52+09:00",
+      "truth": [
+        "src/utils/html.ts",
+        "src/jsx/dom/css.ts",
+        "src/jsx/dom/css.test.tsx",
+        "src/helper/css/index.ts",
+        "src/helper/css/index.test.tsx",
+        "src/helper/css/common.case.test.tsx",
+        "runtime-tests/deno-jsx/jsx.test.tsx"
+      ],
+      "truthTests": [
+        "src/jsx/dom/css.test.tsx",
+        "src/helper/css/index.test.tsx",
+        "src/helper/css/common.case.test.tsx",
+        "runtime-tests/deno-jsx/jsx.test.tsx"
+      ],
+      "known": [
+        "src/utils/html.ts",
+        "src/helper/css/index.ts",
+        "src/helper/css/index.test.tsx",
+        "runtime-tests/deno-jsx/jsx.test.tsx",
+        "src/jsx/dom/css.ts",
+        "src/jsx/dom/css.test.tsx",
+        "src/helper/css/common.case.test.tsx"
+      ]
+    },
+    {
+      "index": 190,
+      "issue": 3553,
+      "title": "Hono Websocket with bun",
+      "createdAt": "2024-10-24T03:42:16Z",
+      "url": "https://github.com/honojs/hono/issues/3553",
+      "body": "Hono Websocket with bun. ### What version of Hono are you using? 4.6.6 ### What runtime/platform is your app running on? Bun ### What steps can reproduce the bug? Configure the websocket with bun ### What is the expected behavior? The typescript lint should not occure ### What do you see instead? My whole code: ### Additional information If I am using this: It fix the issue however I need the `server.publish'",
+      "fixPRs": [
+        {
+          "number": 3562,
+          "mergedAt": "2024-10-27T01:14:06Z"
+        }
+      ],
+      "fixCommit": "f55dc45a317a8461dc5ae923c42bc8ffe37eb299",
+      "fixCommitHow": "squash commit for PR #3562",
+      "preFixCommit": "7e11832526d49b26ef27298cc917a16d080ef14e",
+      "preFixDate": "2024-10-26T11:19:12+09:00",
+      "truth": [
+        "src/adapter/bun/websocket.ts"
+      ],
+      "truthTests": [],
+      "known": [
+        "src/adapter/bun/websocket.ts"
+      ]
+    }
+  ]
+}

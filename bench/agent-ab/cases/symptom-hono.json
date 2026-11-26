@@ -1,0 +1,506 @@
+{
+  "repo": "honojs/hono",
+  "source": "cases(store, repo, { split: \"newer\", limit: 200 }) from src/eval.ts; every 10th case from index 5",
+  "generatedAt": "2026-11-26T17:14:29.372Z",
+  "cases": [
+    {
+      "index": 5,
+      "issue": 5633,
+      "title": "Option to keep a security header the route already set",
+      "createdAt": "2026-11-16T03:05:25Z",
+      "url": "https://github.com/honojs/hono/issues/5633",
+      "body": "The security headers feature replaces any header that a route has already set itself with the app-wide value. This is a good default, but it causes trouble for a route that serves user-uploaded content, such as HTML or scripts, and needs a stricter content security policy than the rest of the app. In that case the response carries the app-wide policy instead of the route's own, so uploaded HTML can load another upload from the same site as a script. Adding the security headers feature after the route is not a workaround, because it then does not run for that route. I would like an option, either global or per header, that leaves a header alone when the response already has it, with today's behavior staying the default. This was seen on version 4.13.18.",
+      "fixPRs": [
+        {
+          "number": 5634,
+          "mergedAt": "2026-11-16T12:50:48Z"
+        }
+      ],
+      "fixCommit": "0e24cf650659915629e8b3c401a4799dc89604b3",
+      "fixCommitHow": "squash commit for PR #5634",
+      "preFixCommit": "ab74a8dd94e35784a2a456a47f35e8bbd61f9ab9",
+      "preFixDate": "2026-11-16T21:48:08+09:00",
+      "truth": [
+        "src/middleware/secure-headers/secure-headers.ts",
+        "src/middleware/secure-headers/index.test.ts"
+      ],
+      "truthTests": [
+        "src/middleware/secure-headers/index.test.ts"
+      ],
+      "known": [
+        "src/middleware/secure-headers/index.test.ts",
+        "src/middleware/secure-headers/secure-headers.ts"
+      ],
+      "origTitle": "secureHeaders: an option to keep a header the handler already set",
+      "origBody": "secureHeaders: an option to keep a header the handler already set. ### What is the feature you are proposing? ### What is the feature you are proposing? `secureHeaders` writes every configured header with `ctx.res.headers.set(...)` after `await next()` (`src/middleware/secure-headers/secure-headers.ts`, `setHeaders`). A header the route handler set itself is replaced. That is the right default for most apps, but it breaks a handler that needs a stricter policy than the rest of the app. The common case is a route that serves user-supplied content on the app's origin, for example HTML or a script uploaded by a user. Such a handler sets its own `Content-Security-Policy` (say `default-src 'none'`) so the content cannot run script. With the usual setup: the response carries the app-wide policy, not the handler's. With `script-src 'self'` the uploaded HTML can then load another same-origin upload as a script. Registering `secureHeaders` after the route is not a workaround, because it then never runs for that route. Seen on hono 4.13.18. Proposal: an option that leaves a header alone when the response already has it, for example or per header. The default stays as it is today. Today the o"
+    },
+    {
+      "index": 15,
+      "issue": 5602,
+      "title": "Response caching feature leaves the original content unreleased when it answers Not Modified",
+      "createdAt": "2026-11-02T04:54:15Z",
+      "url": "https://github.com/honojs/hono/issues/5602",
+      "body": "I use the feature that adds validation tags to responses so browsers can get a 304 Not Modified answer. When a request matches and the app replies with 304, the original response content that was being streamed is thrown away without being cancelled. In my test, the stream's cancel notification never fires, even when the response had no validation tag to begin with. I expected the discarded content stream to be cancelled so any resources it holds, such as buffered data or cleanup callbacks, are released. This happens on Node.js, Bun and Cloudflare Workers with version 4.13.16.",
+      "fixPRs": [
+        {
+          "number": 5606,
+          "mergedAt": "2026-11-04T06:35:21Z"
+        }
+      ],
+      "fixCommit": "a512ba4feeca157090dfd894dbaf1380f214ccf4",
+      "fixCommitHow": "squash commit for PR #5606",
+      "preFixCommit": "846e95259bd452fd07286898658897d0fef436dd",
+      "preFixDate": "2026-11-04T15:32:32+09:00",
+      "truth": [
+        "src/middleware/pretty-json/index.ts",
+        "src/middleware/pretty-json/index.test.ts",
+        "src/middleware/etag/index.ts",
+        "src/middleware/etag/index.test.ts"
+      ],
+      "truthTests": [
+        "src/middleware/pretty-json/index.test.ts",
+        "src/middleware/etag/index.test.ts"
+      ],
+      "known": [
+        "src/middleware/etag/index.ts",
+        "src/middleware/etag/index.test.ts",
+        "src/middleware/pretty-json/index.test.ts",
+        "src/middleware/pretty-json/index.ts"
+      ],
+      "origTitle": "ETag middleware does not cancel the response body stream when returning 304 Not Modified",
+      "origBody": "ETag middleware does not cancel the response body stream when returning 304 Not Modified. ### What version of Hono are you using? 4.13.16 ### What runtime/platform is your app running on? (with version if possible) Node.js v25.9.0 / Bun / Cloudflare Workers (any runtime supporting Web Streams) ### What steps can reproduce the bug? When `etag()` returns `304 Not Modified`, `src/middleware/etag/index.ts` replaces `c.res` with `new Response(null, { status: 304, ... })` without cancelling `res.body`: Even when `ETag` is not preset on the response, `res.clone().body` tees `res.body` to compute the SHA-1 digest, and only the cloned branch is consumed. When `matched` is `true`, replacing `c.res` without calling `await res.body?.cancel()` leaves the original tee branch uncancelled. ### What is the expected behavior? When `etag()` replaces `c.res` with a `304 Not Modified` response, the discarded `res.body` stream should be cancelled (`await res.body?.cancel()`) so underlying stream resources (`cancel()` callbacks or teed stream buffers) are released. ### What do you see instead? `res.body` is not cancelled when `etag()` overwrites `c.res` on a `304 Not Modified` match (`cancelled` remains "
+    },
+    {
+      "index": 25,
+      "issue": 5565,
+      "title": "Nine-handler version of the handler-grouping helper shows wrong response types in TypeScript",
+      "createdAt": "2026-10-17T10:45:54Z",
+      "url": "https://github.com/honojs/hono/issues/5565",
+      "body": "I'm using Hono 4.7.11 and passing exactly nine handlers to the helper that groups request handlers together. In TypeScript, the response types of the second through ninth handlers all show up as the first handler's response type, so their own type information is lost. I expected each handler to keep its own response type, which is what happens when I pass two to eight handlers or ten handlers. This is a type-checking problem only and doesn't depend on the runtime or platform.",
+      "fixPRs": [
+        {
+          "number": 5618,
+          "mergedAt": "2026-11-07T03:54:01Z"
+        }
+      ],
+      "fixCommit": "1534ffa3e9c576dc3b13d8d514c85c6e2e28c1a4",
+      "fixCommitHow": "squash commit for PR #5618",
+      "preFixCommit": "eb754bd5ef22c63f1634a4c374a86be086f85710",
+      "preFixDate": "2026-11-05T23:21:08+09:00",
+      "truth": [
+        "src/helper/factory/index.ts",
+        "src/helper/factory/index.test.ts"
+      ],
+      "truthTests": [
+        "src/helper/factory/index.test.ts"
+      ],
+      "known": [
+        "src/helper/factory/index.ts",
+        "src/helper/factory/index.test.ts"
+      ],
+      "origTitle": "createHandlers x9 overload return type uses wrong generic parameters",
+      "origBody": "createHandlers x9 overload return type uses wrong generic parameters. **What version of Hono are you using?** 4.7.11 (latest main) **What runtime/platform is your app running on?** Any (TypeScript type-level bug) **What steps can reproduce the bug?** The 9-handler overload of `createHandlers` in `src/helper/factory/index.ts` has incorrect return type generics. All handlers in the return tuple use `R` (the first handler's response type) instead of their respective `R2` through `R9` generics. Looking at the overload signature (lines 240-273), the return type is: The `R2` through `R9` generics are declared in the function signature but never used in the return type, meaning TypeScript will infer the first handler's response type for all 9 handlers. For comparison, the x2-x8 and x10 overloads all correctly use their respective `R2`, `R3`, etc. generics — only x9 has this bug. **What is the expected behavior?** Each handler in the return tuple should use its own response type generic (`R2` through `R9`), matching the pattern used by all other overloads. **What do you see instead?** All 9 handlers in the return type share the first handler's `R` generic, losing type information for handl"
+    },
+    {
+      "index": 35,
+      "issue": 5484,
+      "title": "TypeScript build fails with a type-reference error after upgrading Hono to 4.13.10",
+      "createdAt": "2026-09-30T05:30:27Z",
+      "url": "https://github.com/honojs/hono/issues/5484",
+      "body": "After upgrading from 4.13.9 to 4.13.10 (and also 4.13.11), running the TypeScript compiler to build my project now fails with error TS2883. The error complains that it cannot name the inferred type of my route handlers' JSON responses without a reference to a path inside the Hono package that isn't publicly reachable. I'm using Node.js 24 or Bun with TypeScript 6.0.3, and the same project compiled fine on 4.13.9. I expected the build to succeed as before; this seems likely to affect anyone who generates type declarations from Hono handlers, such as monorepos that share types between server and client.",
+      "fixPRs": [
+        {
+          "number": 5485,
+          "mergedAt": "2026-09-30T06:31:54Z"
+        }
+      ],
+      "fixCommit": "be1f7498fed269544a3c544db0a5a727048462a8",
+      "fixCommitHow": "squash commit for PR #5485",
+      "preFixCommit": "37ce06904e732d4bc11c9075adf362c76049a594",
+      "preFixDate": "2026-09-29T15:12:47+09:00",
+      "truth": [
+        "vite.config.ts",
+        "src/jsx/base.ts",
+        "build/dts-plugins.ts",
+        "adapters/vercel/vite.config.ts",
+        "adapters/service-worker/vite.config.ts",
+        "adapters/netlify/vite.config.ts",
+        "adapters/lambda-edge/vite.config.ts",
+        "adapters/deno/vite.config.ts",
+        "adapters/cloudflare-workers/vite.config.ts",
+        "adapters/bun/vite.config.ts",
+        "adapters/aws-lambda/vite.config.ts"
+      ],
+      "truthTests": [],
+      "known": [
+        "src/jsx/base.ts",
+        "adapters/deno/vite.config.ts",
+        "adapters/vercel/vite.config.ts",
+        "adapters/service-worker/vite.config.ts",
+        "adapters/netlify/vite.config.ts",
+        "adapters/lambda-edge/vite.config.ts",
+        "adapters/cloudflare-workers/vite.config.ts",
+        "adapters/aws-lambda/vite.config.ts",
+        "adapters/bun/vite.config.ts",
+        "vite.config.ts"
+      ],
+      "origTitle": "Declaration emit fails with TS2883 (`JSONRespondReturn`) since 4.13.10",
+      "origBody": "Declaration emit fails with TS2883 (`JSONRespondReturn`) since 4.13.10. ### What version of Hono are you using? 4.13.10 (also 4.13.11). Works in 4.13.9. ### What runtime/platform is your app running on? Node.js 24 / Bun, TypeScript 6.0.3 ### What steps can reproduce the bug? Run `tsc -p .` ### What is the expected behavior? Compiles, as it does with 4.13.9. ### What do you see instead? ### Additional information Up to 4.13.9, `dist/types/context.d.ts` ended with `export {};`. Since the bundled declarations in 4.13.10, it ends with `//#endregion` instead. Without `export {};`, TypeScript treats every top-level declaration in that `.d.ts` as exported, including internal aliases like `JSONRespondReturn`. Declaration emit then tries to reference the alias through `hono/dist/types/context`, which isn't reachable through the package `exports`, so it fails with TS2883. Before, the alias wasn't exported and TypeScript inlined `Response & TypedResponse `. Appending `export {};` to `dist/types/context.d.ts` in 4.13.10 makes the error go away. This probably affects any project that builds declarations from Hono handlers, for example monorepos sharing RPC types. Other bundled `.d.ts` files may"
+    },
+    {
+      "index": 45,
+      "issue": 5333,
+      "title": "Lambda streaming handler finishes before large response is fully delivered to slow destination",
+      "createdAt": "2026-09-02T13:05:35Z",
+      "url": "https://github.com/honojs/hono/issues/5333",
+      "body": "I'm using Hono 4.13.5 on AWS Lambda with response streaming on the Node.js 24 runtime. When my app returns a large response (about 2 MiB) to a slow destination stream with a small buffer (16 KiB), the Lambda streaming handler reports that it is done while the destination stream has not yet finished receiving the data. As a result, the handler can complete before the destination has processed everything that was sent. I expected the handler to slow down when the destination can't keep up, and to report completion only after the entire response has been fully delivered.",
+      "fixPRs": [
+        {
+          "number": 5351,
+          "mergedAt": "2026-09-10T00:49:23Z"
+        }
+      ],
+      "fixCommit": "90e1b948467961718afd3ae34af9dee582b42248",
+      "fixCommitHow": "squash commit for PR #5351",
+      "preFixCommit": "7792f5dc14acaa92056c1bf402241567ff9c7396",
+      "preFixDate": "2026-09-10T09:34:08+09:00",
+      "truth": [
+        "src/adapter/aws-lambda/handler.ts",
+        "runtime-tests/lambda/stream-backpressure.test.ts"
+      ],
+      "truthTests": [
+        "runtime-tests/lambda/stream-backpressure.test.ts"
+      ],
+      "known": [
+        "src/adapter/aws-lambda/handler.ts"
+      ],
+      "origTitle": "AWS Lambda streamHandle ignores writable backpressure and resolves before the response finishes",
+      "origBody": "AWS Lambda streamHandle ignores writable backpressure and resolves before the response finishes. ### What version of Hono are you using? 4.13.5 ### What runtime/platform is your app running on? (with version if possible) AWS Lambda response streaming with the Node.js 24 runtime. ### What steps can reproduce the bug? `streamHandle` manually reads the response body and calls `writer.write()` without checking its boolean return value or waiting for the `drain` event: When the response is larger than the destination stream's `highWaterMark`, `writer.write()` returns `false`. The current loop continues reading and writing anyway. The function also resolves after calling `writer.end()`, without waiting for the writable stream to finish. This standalone reproduction uses a slow writable stream with a 16 KiB high-water mark and a 2 MiB Hono response: With the current implementation, the handler can resolve while `responseStream.writableFinished` is still `false`. The destination has not necessarily processed all buffered data when the handler promise resolves. ### What is the expected behavior? `streamHandle` should: 1. Respect writable-stream backpressure. 2. Stop reading from the web str"
+    },
+    {
+      "index": 55,
+      "issue": 5162,
+      "title": "Shared-state hook does not switch to a new data source when the source changes",
+      "createdAt": "2026-07-24T12:44:27Z",
+      "url": "https://github.com/honojs/hono/issues/5162",
+      "body": "I built a small demo page using Hono's version of the hook that subscribes to an external data store, and I clicked Increment and then Reset. Reset creates a brand new store, but the page keeps listening to the old one, so nothing updates on screen. I expected it to start following the new store as soon as the way of subscribing changed, which is what the same hook does in React in the equivalent demo. I am using Hono 4.12.31 in Chrome 150.",
+      "fixPRs": [
+        {
+          "number": 5166,
+          "mergedAt": "2026-07-26T05:14:06Z"
+        }
+      ],
+      "fixCommit": "224d2f5cbf2b4bc2ebb7482d0592149a8d9f0574",
+      "fixCommitHow": "squash commit for PR #5166",
+      "preFixCommit": "df653cea0450657977887d56a5188368387456c8",
+      "preFixDate": "2026-07-26T14:07:57+09:00",
+      "truth": [
+        "src/jsx/hooks/index.ts",
+        "src/jsx/hooks/dom.test.tsx"
+      ],
+      "truthTests": [
+        "src/jsx/hooks/dom.test.tsx"
+      ],
+      "known": [
+        "src/jsx/hooks/index.ts",
+        "src/jsx/hooks/dom.test.tsx"
+      ],
+      "origTitle": "`useSyncExternalStore` doesn't resubscribe when `subscribe` function changes",
+      "origBody": "`useSyncExternalStore` doesn't resubscribe when `subscribe` function changes. ### What version of Hono are you using? 4.12.31 ### What runtime/platform is your app running on? (with version if possible) chrome 150.0.7871.181 ### What steps can reproduce the bug? 1. Clone repo 2. `pnpm install && pnpm dev` and open 3. Click \"Increment\" 4. Click \"Reset\" 5. New store is created but Hono is subscribed to the previous one so nothing happens `useSyncExternalStore` accepts a `subscribe` function as a first argument to subscribe to the store change events, but doesn't resubscribe when the function changes. I believe the problem is that it uses `useEffect` without dependencies to subscribe to the store Hono demo: ### What is the expected behavior? `useSyncExternalStore` resubscribes to the store when `subscribe` changes like react does React demo from the same repo: ### What do you see instead? _No response_ ### Additional information _No response_"
+    },
+    {
+      "index": 65,
+      "issue": 5060,
+      "title": "Request body not read when Content-Type uses capital letters",
+      "createdAt": "2026-06-30T06:29:01Z",
+      "url": "https://github.com/honojs/hono/issues/5060",
+      "body": "When a request is sent with a Content-Type such as Application/JSON or Application/X-WWW-Form-Urlencoded, the body is not picked up by the body-parsing feature or the validation feature. These capitalization variants are valid, and the platform's own request handling reads them correctly. Instead of the submitted data, the application receives an empty object and the validation step is skipped. I expected the Content-Type to be matched regardless of upper or lower case, so the body is parsed and validated as normal.",
+      "fixPRs": [
+        {
+          "number": 5067,
+          "mergedAt": "2026-07-01T09:42:27Z"
+        }
+      ],
+      "fixCommit": "b20d4225c9aa9e615717ca74e437852cc9fd5b94",
+      "fixCommitHow": "squash commit for PR #5067",
+      "preFixCommit": "9728702911073aec5a63a3ba2840b7240e5d3205",
+      "preFixDate": "2026-07-01T06:28:08+09:00",
+      "truth": [
+        "src/validator/validator.ts",
+        "src/validator/validator.test.ts",
+        "src/utils/buffer.ts",
+        "src/utils/buffer.test.ts",
+        "src/utils/body.ts",
+        "src/utils/body.test.ts"
+      ],
+      "truthTests": [
+        "src/validator/validator.test.ts",
+        "src/utils/buffer.test.ts",
+        "src/utils/body.test.ts"
+      ],
+      "known": [
+        "src/validator/validator.ts",
+        "src/validator/validator.test.ts",
+        "src/utils/body.ts",
+        "src/utils/body.test.ts",
+        "src/utils/buffer.test.ts",
+        "src/utils/buffer.ts"
+      ],
+      "origTitle": "parseBody and validator skip mixed-case Content-Type media types",
+      "origBody": "parseBody and validator skip mixed-case Content-Type media types. ## Summary `parseBody()` and `validator()` match supported `Content-Type` media types with case-sensitive checks. Requests using valid mixed/upper-case media type values such as `Application/JSON` or `Application/X-WWW-Form-Urlencoded` can be parsed by the platform `Request`, but Hono's guards skip them and may pass an empty object downstream. ## Code path Parser / validator / feedback anchors: - `src/utils/body.ts:100-101`: `parseBody()` reads the raw `Content-Type` header value. - `src/utils/body.ts:103-105`: form parsing is guarded by lower-case `startsWith()` literals. - `src/utils/body.ts:110`: non-matching content types return `{}`. - `src/validator/validator.ts:24-26`: JSON/form regexes use lower-case media type literals. - `src/validator/validator.ts:95` and `src/validator/validator.ts:107`: non-matching content types skip the parsing/validation branch. ## Steps to reproduce Validation level: dynamic platform reproduction plus source-control-flow validation. The platform parser accepts the mixed/upper-case media type. However, Hono's current guards evaluate the same header value with lower-case-only string/re"
+    },
+    {
+      "index": 75,
+      "issue": 4911,
+      "title": "Allow the static file serving feature to be used without passing an empty settings object",
+      "createdAt": "2026-05-06T19:48:45Z",
+      "url": "https://github.com/honojs/hono/issues/4911",
+      "body": "I was using the static file serving feature that comes with the framework's platform adapters. For my TypeScript project to pass type checking, I have to hand it an empty settings object even when I don't want to change any settings. I expected to be able to call it with no settings at all, since every setting is optional anyway. I'd like the feature changed so that the settings can be left out completely, and I'm happy to submit a fix myself if the maintainers agree.",
+      "fixPRs": [
+        {
+          "number": 4934,
+          "mergedAt": "2026-05-16T09:00:01Z"
+        }
+      ],
+      "fixCommit": "26f8c33f23e6151873d165107f2dbcadf1204d15",
+      "fixCommitHow": "squash commit for PR #4934",
+      "preFixCommit": "16c4e3885f51376cb6cbddc80eeae0202cd86234",
+      "preFixDate": "2026-05-13T18:26:24+09:00",
+      "truth": [
+        "src/adapter/deno/serve-static.ts",
+        "src/adapter/cloudflare-workers/serve-static.ts",
+        "src/adapter/bun/serve-static.ts"
+      ],
+      "truthTests": [],
+      "known": [
+        "src/adapter/cloudflare-workers/serve-static.ts",
+        "src/adapter/deno/serve-static.ts",
+        "src/adapter/bun/serve-static.ts"
+      ],
+      "origTitle": "Make options in serveStatic middleware from adapters optional",
+      "origBody": "Make options in serveStatic middleware from adapters optional. ### What is the feature you are proposing? Hello! I'm taking a look at this [middleware]( and for TS to check it successfully I need to provide an empty object: It would be nice the example above could be written this way: Notice there is not `{}` in serveStatic. If you agree I can happily create a PR to support that! Please let me know 🙏🏼"
+    },
+    {
+      "index": 85,
+      "issue": 4769,
+      "title": "App crashes with an invalid state error when a streamed page is canceled midway",
+      "createdAt": "2026-02-25T11:25:26Z",
+      "url": "https://github.com/honojs/hono/issues/4769",
+      "body": "I'm running a Hono 4.12.2 app on Node that streams a page which has placeholders loading inside other placeholders (nested loading sections). When the request is canceled while these nested sections are still loading, the app crashes with an \"invalid state\" error. I expected the cancellation to be handled quietly without any crash. I believe this is the same problem as a previously reported one, though I was told the real bug may lie in a different, underlying library. I also have a failing test that reproduces it.",
+      "fixPRs": [
+        {
+          "number": 4770,
+          "mergedAt": "2026-03-04T09:30:45Z"
+        }
+      ],
+      "fixCommit": "b8cff189051d408c8c4cf57d24ca82ec8712e73d",
+      "fixCommitHow": "squash commit for PR #4770",
+      "preFixCommit": "8c4d7f3d2feea19c726bcaf3b7d01b62215eae8b",
+      "preFixDate": "2026-03-04T16:45:19+09:00",
+      "truth": [
+        "src/jsx/streaming.ts",
+        "src/jsx/streaming.test.tsx"
+      ],
+      "truthTests": [
+        "src/jsx/streaming.test.tsx"
+      ],
+      "known": [
+        "src/jsx/streaming.ts",
+        "src/jsx/streaming.test.tsx"
+      ],
+      "origTitle": "ERR_INVALID_STATE when canceling during nested Suspense",
+      "origBody": "ERR_INVALID_STATE when canceling during nested Suspense. ### What version of Hono are you using? 4.12.2 ### What runtime/platform is your app running on? (with version if possible) Node ### What steps can reproduce the bug? I think it's the same error as but according to Claude, the actual bug is upstream here. Failing test: ### What is the expected behavior? No crashing ### What do you see instead? Crashing ### Additional information _No response_"
+    },
+    {
+      "index": 95,
+      "issue": 4582,
+      "title": "Page components lose access to the current request when parent waits and uses the HTML helper",
+      "createdAt": "2025-12-17T03:39:58Z",
+      "url": "https://github.com/honojs/hono/issues/4582",
+      "body": "I am using Hono 4.11.1 on Node.js 20.15.1 with the Node server adapter 1.19.7. When a parent component both waits for an asynchronous result and uses the HTML template helper, components nested inside it can no longer get the current request through the feature meant for that. I expected the request to be available in those nested components, as it is when those two things are not combined. If this is intended behavior, I would appreciate any suggestion for a workaround.",
+      "fixPRs": [
+        {
+          "number": 4662,
+          "mergedAt": "2026-02-06T06:47:46Z"
+        }
+      ],
+      "fixCommit": "cea7b7b993af682fbf10bb29937d028a55b8ab7e",
+      "fixCommitHow": "squash commit for PR #4662",
+      "preFixCommit": "f7d272abe1644e50ab5fe9cb53f5965c35d77226",
+      "preFixDate": "2026-01-27T18:53:32+09:00",
+      "truth": [
+        "src/jsx/index.test.tsx",
+        "src/jsx/context.ts"
+      ],
+      "truthTests": [
+        "src/jsx/index.test.tsx"
+      ],
+      "known": [
+        "src/jsx/index.test.tsx",
+        "src/jsx/context.ts"
+      ],
+      "origTitle": "`useRequestContext` not working when using `await` and the `html` helper together",
+      "origBody": "`useRequestContext` not working when using `await` and the `html` helper together. ### What version of Hono are you using? 4.11.1 ### What runtime/platform is your app running on? (with version if possible) Node.js 20.15.1, @hono/node-server 1.19.7 ### What steps can reproduce the bug? Descendant components in a parent component using `await` and the `html` helper will not be able to use `useRequestContext`. ### What is the expected behavior? I expect `useRequestContext` to function correctly when using the `await` and `html` helpers in conjunction. ### What do you see instead? ### Additional information If this is the specification, I would appreciate any ideas on how to avoid it. Thank you. I am not good at English, so I am creating this using a translation AI. I apologize if there are any inappropriate expressions."
+    },
+    {
+      "index": 105,
+      "issue": 4468,
+      "title": "Excel and other Office files come out corrupted when served from an AWS Lambda app",
+      "createdAt": "2025-10-18T14:33:20Z",
+      "url": "https://github.com/honojs/hono/issues/4468",
+      "body": "I'm running a Hono app (version 4.10.1) on AWS Lambda and serving a spreadsheet file with the content type for modern Excel files. When users download it, the file is broken and won't open. It looks like the response is being treated as plain text instead of a binary file. I expected Office files such as Excel spreadsheets to be delivered as binary and download intact.",
+      "fixPRs": [
+        {
+          "number": 4469,
+          "mergedAt": "2025-10-23T04:31:35Z"
+        }
+      ],
+      "fixCommit": "253ec2857a083595e52a446694923645084e9ecd",
+      "fixCommitHow": "squash commit for PR #4469",
+      "preFixCommit": "0c6455dc10db6428257bdd601eca559247e27de6",
+      "preFixDate": "2025-10-22T08:38:44+09:00",
+      "truth": [
+        "src/adapter/aws-lambda/handler.ts",
+        "src/adapter/aws-lambda/handler.test.ts"
+      ],
+      "truthTests": [
+        "src/adapter/aws-lambda/handler.test.ts"
+      ],
+      "known": [
+        "src/adapter/aws-lambda/handler.test.ts",
+        "src/adapter/aws-lambda/handler.ts"
+      ],
+      "origTitle": "Lambda handler doesn't serve Office files (Excel etc) as binary",
+      "origBody": "Lambda handler doesn't serve Office files (Excel etc) as binary. ### What version of Hono are you using? 4.10.1 ### What runtime/platform is your app running on? (with version if possible) AWS Lambda ### What steps can reproduce the bug? Serve a response with the Content Type `application/vnd.openxmlformats-officedocument.spreadsheetml.sheet`. The lambda handler will incorrectly detect it as a plain text response (due to the string \"xml\" that's part of that mime type) and therefore the file will be broken on download at the user. ### What is the expected behavior? Treat the response as a binary file instead of text ### What do you see instead? _No response_ ### Additional information _No response_"
+    },
+    {
+      "index": 115,
+      "issue": 4388,
+      "title": "Routes defined before a middleware step are missing from the app's inferred types",
+      "createdAt": "2025-09-01T09:37:37Z",
+      "url": "https://github.com/honojs/hono/issues/4388",
+      "body": "I build my app by chaining route definitions one after another, and at some point in the chain I add a middleware step. The routes I declared before that middleware step do not appear in the type information my editor shows for the app. I expected every chained route, including the ones before the middleware step, to be included. I am using version 4.9.5 on Cloudflare Workers, and I only noticed this in the local type checking, not at runtime.",
+      "fixPRs": [
+        {
+          "number": 4722,
+          "mergedAt": "2026-02-13T13:58:46Z"
+        }
+      ],
+      "fixCommit": "8b179354c10f13eaca87a24507d909886c39f124",
+      "fixCommitHow": "squash commit for PR #4722",
+      "preFixCommit": "4a03f4f9cded9f0ed95aeefe7ed95e8a5170260b",
+      "preFixDate": "2026-02-11T17:10:36+09:00",
+      "truth": [
+        "src/types.test.ts"
+      ],
+      "truthTests": [
+        "src/types.test.ts"
+      ],
+      "known": [
+        "src/types.test.ts"
+      ],
+      "origTitle": "Type inference drops routes declared before use() when using method chaining",
+      "origBody": "Type inference drops routes declared before use() when using method chaining. ### What version of Hono are you using? ~~4.6.5~~ 4.9.5 (letest at this moment. sorry!) ### What runtime/platform is your app running on? (with version if possible) Cloudflare Workers (issue observed in local type inference only) ### What steps can reproduce the bug? When defining endpoints with method chaining, if a \"use()\" method is inserted, the routes declared before that \"use()\" are not included in the inferred type information. ### What is the expected behavior? Chained routes defined before \"use()\" should still be inferred in the types. ### What do you see instead? _No response_ ### Additional information _No response_"
+    },
+    {
+      "index": 125,
+      "issue": 4281,
+      "title": "Provide a way to get a signed cookie as text for testing",
+      "createdAt": "2025-07-14T05:15:27Z",
+      "url": "https://github.com/honojs/hono/issues/4281",
+      "body": "I store refresh tokens in signed cookies for my login system. When I write tests, I can't create a signed cookie myself to send to my refresh endpoint, because the cookie feature only sets the cookie on a response and gives me no way to get the signed value as plain text. I would like a way to generate a signed cookie (and possibly an unsigned one) and receive its contents as a string that I can attach to a test request. My current workaround is to call the login endpoint first, copy the refresh token from the cookie header in its response, and send that to the refresh endpoint.",
+      "fixPRs": [
+        {
+          "number": 4285,
+          "mergedAt": "2025-08-07T11:15:04Z"
+        }
+      ],
+      "fixCommit": "fbd2ff1ea0b01fb78c86814c33bcde05904d02ae",
+      "fixCommitHow": "squash commit for PR #4285",
+      "preFixCommit": "820d59cbd70727ed93d49cd7f79f0cbee6034cce",
+      "preFixDate": "2025-08-07T09:47:00+09:00",
+      "truth": [
+        "src/helper/cookie/index.ts",
+        "src/helper/cookie/index.test.ts"
+      ],
+      "truthTests": [
+        "src/helper/cookie/index.test.ts"
+      ],
+      "known": [
+        "src/helper/cookie/index.ts",
+        "src/helper/cookie/index.test.ts"
+      ],
+      "origTitle": "Add a generateSignedCookie function to the hono/cookie helper for testing",
+      "origBody": "Add a generateSignedCookie function to the hono/cookie helper for testing. ### What is the feature you are proposing? I used signed cookies to store refresh tokens in my auth system. The problem is that I have no way to generate a signed cookie in a test that I can send in a request to my `/refresh` endpoint to test that it validates the refresh token. This is because the `hono/cookie` helper's `setSignedCookie` returns a `Promise ` and there's no programmatic way to get a signed cookie returned as a string. I propose that a `generateSignedCookie` (and perhaps `generateCookie`) helper functions be created that return the contents of the signed cookie as a string. Then they can be sent like My current workaround is to first call the login endpoint, get the refresh token from that response `Set-Cookie` header and send it in my request to the refresh endpoint."
+    },
+    {
+      "index": 135,
+      "issue": 4205,
+      "title": "Loading placeholder and error fallback features break under a strict script security policy",
+      "createdAt": "2025-06-08T11:55:30Z",
+      "url": "https://github.com/honojs/hono/issues/4205",
+      "body": "I use the feature that shows a placeholder while content loads and the feature that shows a fallback when something fails. My site sends a security policy header that only allows scripts and styles carrying a specific one-time token. With this header on, the browser reports policy errors because the script that these two features add to the page has no token on it. I could not find any way to attach the token to that script, although I can do so for styles and for the script component in a related framework. I expected both features to work normally when the site uses this kind of security policy header.",
+      "fixPRs": [
+        {
+          "number": 4216,
+          "mergedAt": "2025-06-16T05:07:06Z"
+        }
+      ],
+      "fixCommit": "3552b59a09ca291adf8ee7262f117725eccd2860",
+      "fixCommitHow": "squash commit for PR #4216",
+      "preFixCommit": "4112261ad93e7e7c3b3bab6246556d651f43e7bd",
+      "preFixDate": "2025-06-16T14:04:43+09:00",
+      "truth": [
+        "src/jsx/streaming.ts",
+        "src/jsx/streaming.test.tsx",
+        "src/jsx/components.ts",
+        "src/jsx/components.test.tsx"
+      ],
+      "truthTests": [
+        "src/jsx/streaming.test.tsx",
+        "src/jsx/components.test.tsx"
+      ],
+      "known": [
+        "src/jsx/streaming.ts",
+        "src/jsx/streaming.test.tsx",
+        "src/jsx/components.ts",
+        "src/jsx/components.test.tsx"
+      ],
+      "origTitle": "CSP support for Suspense and ErrorBoundry",
+      "origBody": "CSP support for Suspense and ErrorBoundry. ### What is the feature you are proposing? I'm very impressed with the Suspense and ErrorBoundry JSX, but when I tried to use them with CSP nonce. The ` ` generated from Suspense and ErrorBoundry cause error in browser related to CSP directive, like this. From the source, I found the script tag is hard-coded and doesn't have ability to insert nonce attribute, like CSS ones and `Script` in honox. Suspense ErrorBoundary ### Expected Both components work fine under the Content-Security-Policy header like `script-src 'nonce-LMCyRCoWBRS9OwJpEHW3eA=='; style-src 'nonce-LMCyRCoWBRS9OwJpEHW3eA=='` ### Related * #3694"
+    },
+    {
+      "index": 145,
+      "issue": 4048,
+      "title": "Trailing slash handling doesn't apply to HEAD requests, which return 404 while GET works",
+      "createdAt": "2025-04-03T14:15:24Z",
+      "url": "https://github.com/honojs/hono/issues/4048",
+      "body": "I'm running an app on Cloudflare Workers with version 4.7.5 and the feature that handles trailing slashes in URLs turned on. When I send a GET request to a URL with a trailing slash, it is handled as expected. When I send a HEAD request to the same URL, the trailing slash handling doesn't run and I get a 404. I expected HEAD requests to behave the same as GET requests, since the framework normally lets GET routes answer HEAD requests too.",
+      "fixPRs": [
+        {
+          "number": 4049,
+          "mergedAt": "2025-04-10T09:08:41Z"
+        }
+      ],
+      "fixCommit": "02377efde52c5b182a1d1ade904b1a3caea7f827",
+      "fixCommitHow": "squash commit for PR #4049",
+      "preFixCommit": "16a9a949c66bd561e55fffba1580ddc18ef30857",
+      "preFixDate": "2025-04-08T16:24:31+09:00",
+      "truth": [
+        "src/middleware/trailing-slash/index.ts",
+        "src/middleware/trailing-slash/index.test.ts"
+      ],
+      "truthTests": [
+        "src/middleware/trailing-slash/index.test.ts"
+      ],
+      "known": [
+        "src/middleware/trailing-slash/index.ts",
+        "src/middleware/trailing-slash/index.test.ts"
+      ],
+      "origTitle": "trailing-slash middleware should handle HEAD request",
+      "origBody": "trailing-slash middleware should handle HEAD request. ### What version of Hono are you using? 4.7.5 ### What runtime/platform is your app running on? (with version if possible) Cloudflare Workers ### What steps can reproduce the bug? 1. run this hono app 2. try GET / HEAD request with trailing slash See this repository for reproduction: ### What is the expected behavior? The hono application should handle HEAD requests, same as GET requests ### What do you see instead? In the case of a HEAD request, the trailing-slash middleware is not invoked, so a 404 will be returned only for HEAD requests. ### Additional information In Hono, the GET handler implicitly handles HEAD requests as well. ref: However, since the trailingSlash middleware only handles GET requests, the GET and HEAD methods behave differently when accessing the same endpoint."
+    }
+  ],
+  "vague": true,
+  "rewrite": "symptom-only rewrite by Claude Sonnet from the ticket text alone; see scripts/rewrite.mjs"
+}

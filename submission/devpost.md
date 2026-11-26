@@ -68,6 +68,19 @@ The graph hop from a similar PR to the files it touched carries most of the resu
 
 **Estimated ROI (from first-hit rank on 703 held-out cases):** taking `1 / MRR` as the files opened before reaching one the fix changed, `grep` alone opens ~2.81 files and misses the top 5 on 48.5% of cases. Groundwork + grep opens ~1.86 files (~34% fewer files opened before first hit) and misses on 30.3%, an estimated ~1,400 tokens saved per ticket.
 
+**Does it help a coding agent? A/B test with Claude Code (70 tickets, 140 runs).** The same agent (Claude Sonnet, read-only tools including `grep` and `git log`) gets each ticket in a checkout from before the fix and lists the files it would change; with Groundwork, it also has `plan_ticket` over MCP, with the graph frozen at the moment the ticket was opened. On 30 tickets written the way users report bugs (symptoms only, no code names):
+
+| | Agent alone | Agent + Groundwork |
+|---|---:|---:|
+| **Found the test file the real fix changed** (of 25) | 7 | **16** |
+| **Listed every file of the real fix** in its top 5 | 7 | **13** |
+| Share of the fix's files listed | 51.8% | **65.5%** |
+| A fixed file in the top 5 / first | 28 / **26** | 28 / 23 |
+| Precision of the listed files | **56.4%** | 46.0% |
+| Cost and mean time per ticket | $0.059, 44 s | $0.065, 47 s |
+
+The agent finds the main file on its own almost every time; Groundwork adds the rest of the change, the test and the sibling files the real fix also touched, at some cost in precision. On 40 tickets as filed on GitHub, the first pick is the same (37 vs 37) and Groundwork still adds the test file (18 vs 12 of 35). No run saw the fix; every run and score is in `docs/data/agent-ab.json` (method: `bench/agent-ab`).
+
 **Sealed forecasts scored on the future:** on 24 Nov 2026 (`f9e4c54`), we sealed **617 forecasts** for open, unfixed issues with a SHA-256 digest (`docs/predictions/sealed.sha256`). Open PRs are never sealed, since their diffs are public. A daily GitHub Action scores `sealed.json` and the append-only `daily/*.json` seals against fixes merged after each seal, seals issues opened since the last seal that are unfixed and have no linked PR, and freezes the score with one last run right after the contest deadline (`2026-12-12T02:00:00Z` / Dec 11, 2026 6:00 PM PT).
 
 **See it yourself:** in the live demo, open a closed ticket and press **Replay**. The graph rewinds to the day the
@@ -91,7 +104,7 @@ regression: the first suggestion is `src/adapter/aws-lambda/handler.ts`, the fil
 - **Ingest** from the GitHub GraphQL API (merged PRs with files and closing references, tickets), cached on disk;
   optional **Jira** import links tickets to PRs that mention their key.
 - **The same code in the browser.** The live demo opens on `hono#2550` Replay from a small pre-baked bundle (`docs/data/instant.json`; 133 ms median plan render and zero main-thread long tasks > 200 ms in `npm run bench:instant`), while `docs/worker.js` downloads the int8 snapshot and builds the live `@relate/relate-wasm` (`1.2.0`) graph in a Web Worker, off the main thread. The WASM build cannot switch on the `hybrid-search` preview through environment variables, so it queries the vector and full-text indexes separately in Relate and fuses them with the same WRRF.
-- TypeScript on Node.js with tsx, the MCP TypeScript SDK, Cytoscape.js for the web view, esbuild for the browser and worker bundles, `node:test` for the tests (20 tests, including a native `@relate/relate 1.0.1` vs `@relate/relate-wasm 1.2.0` parity test, append-only daily new-issue sealing with SHA-256, multi-seal scoring, and post-deadline freeze verification).
+- TypeScript on Node.js with tsx, the MCP TypeScript SDK, Cytoscape.js for the web view, esbuild for the browser and worker bundles, `node:test` for the tests (21 tests, including a native `@relate/relate 1.0.1` vs `@relate/relate-wasm 1.2.0` parity test, append-only daily new-issue sealing with SHA-256, multi-seal scoring, and post-deadline freeze verification).
 
 ## Challenges we ran into
 

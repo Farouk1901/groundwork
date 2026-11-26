@@ -1,0 +1,758 @@
+{
+  "repo": "vitest-dev/vitest",
+  "source": "cases(store, repo, { split: \"newer\", limit: 220 }) from src/eval.ts; every 10th case (index 0,11,...,209)",
+  "generatedAt": "2026-11-26T15:49:38.585Z",
+  "cases": [
+    {
+      "index": 0,
+      "issue": 12037,
+      "title": "Fork cleanup throws setMaxListeners(-1) on Bun",
+      "createdAt": "2026-11-19T10:42:15Z",
+      "url": "https://github.com/vitest-dev/vitest/issues/12037",
+      "body": "Fork cleanup throws setMaxListeners(-1) on Bun. Vitest 5.1.1's default fork pool fails to start under Bun 1.4.5 on Linux x64. The first error is actionable, but on a full suite the runner also reports a negative listener limit and dozens of worker termination timeouts. ### Reproduction With Bun 1.4.5 and Vitest 5.1.1 installed, create `example.test.ts`: Run `bun --bun vitest run example.test.ts`. The watchdog calls `child.channel?.unref()`. Bun provides the channel object but lacks its `unref` method, so worker startup throws before the first test runs. The missing method is tracked in ### Cleanup after partial startup In the fork worker's `start()`, `watchProcess()` runs before the stdout/stderr listener limits are incremented and before either pipe is attached. In `stop()`, the existence of the fork's streams is enough to trigger unpiping and decrementing both limits. With multiple workers this can reach `setMaxListeners(-1)`. Please preserve the original startup error and clean up only the resources initialized before it failed. [Full-suite CI failure]( The one-file case reproduces the startup error. The full-suite log also shows the secondary cleanup errors. Running the suite w",
+      "fixPRs": [
+        {
+          "number": 12039,
+          "mergedAt": "2026-11-19T11:55:40Z"
+        }
+      ],
+      "fixCommit": "4aec89426c93b7a0e5627ae5ee32701f3a817ffe",
+      "fixCommitHow": "squash commit for PR #12039",
+      "preFixCommit": "5812ec58f58ff92d71cfd50963f53eb64bb9a333",
+      "preFixDate": "2026-11-19T11:00:44+01:00",
+      "truth": [
+        "test/e2e/test/pool.test.ts",
+        "packages/vitest/src/node/pools/workers/forksWorker.ts",
+        "packages/vitest/src/node/pools/watchdog.ts",
+        "packages/vitest/src/node/pools/pool.ts"
+      ],
+      "truthTests": [
+        "test/e2e/test/pool.test.ts"
+      ],
+      "known": [
+        "test/e2e/test/pool.test.ts",
+        "packages/vitest/src/node/pools/pool.ts",
+        "packages/vitest/src/node/pools/workers/forksWorker.ts",
+        "packages/vitest/src/node/pools/watchdog.ts"
+      ]
+    },
+    {
+      "index": 11,
+      "issue": 11921,
+      "title": "coverage-v8: one statement gets two end columns when node and browser projects load the same file",
+      "createdAt": "2026-11-09T05:22:33Z",
+      "url": "https://github.com/vitest-dev/vitest/issues/11921",
+      "body": "coverage-v8: one statement gets two end columns when node and browser projects load the same file. ### Describe the bug When one source file is loaded by a node project and a browser project, coverage-v8 maps one statement to two different end columns: the node copy ends at a column number, the browser copy ends at `null`. Istanbul keys statements by the whole range, so the report holds the statement twice. With sharding this produces false uncovered statements. A shard where the file is loaded but the statement never runs reports `3:20-3:29` with 0 hits. A browser shard reports `3:20-3:null` with 1 hit. `--merge-reports` keeps both, so the merged report shows an uncovered statement while lines stay at 100%. We hit this in CI on 196 statements across 15 files. It needs a destructuring declaration whose initializer is a call (`const { label } = useThing();`). Plain declarations map to `null` in both projects and merge correctly. ### Reproduction (`pnpm install && pnpm exec playwright install chromium && pnpm test`; the README prints the statement ranges) `src/ctx.ts` `src/plain.ts` `src/plain.test.ts` (node project) `src/plain.test.tsx` (browser project) `vitest.config.ts` Run `vite",
+      "fixPRs": [
+        {
+          "number": 12040,
+          "mergedAt": "2026-11-19T14:27:36Z"
+        }
+      ],
+      "fixCommit": "45d199c586bff37bac3cb653ab37f85ef1e3537a",
+      "fixCommitHow": "squash commit for PR #12040",
+      "preFixCommit": "c8b7d156978dfa2c294907a0f6451ac8073cb6c7",
+      "preFixDate": "2026-11-19T13:26:16+01:00",
+      "truth": [
+        "test/coverage-test/test/source-maps.test.ts",
+        "test/coverage-test/fixtures/test/end-mapping-fixture.test.ts",
+        "test/coverage-test/fixtures/src/end-mapping.ts",
+        "test/coverage-test/fixtures/src/end-mapping-dependency.ts",
+        "pnpm-workspace.yaml"
+      ],
+      "truthTests": [
+        "test/coverage-test/test/source-maps.test.ts",
+        "test/coverage-test/fixtures/test/end-mapping-fixture.test.ts",
+        "test/coverage-test/fixtures/src/end-mapping.ts",
+        "test/coverage-test/fixtures/src/end-mapping-dependency.ts"
+      ],
+      "known": [
+        "pnpm-workspace.yaml",
+        "test/coverage-test/test/source-maps.test.ts"
+      ]
+    },
+    {
+      "index": 22,
+      "issue": 11812,
+      "title": "coverage-v8: autoAttachSubprocess misses a child process's lines when the worker runs the same file",
+      "createdAt": "2026-11-01T11:42:14Z",
+      "url": "https://github.com/vitest-dev/vitest/issues/11812",
+      "body": "coverage-v8: autoAttachSubprocess misses a child process's lines when the worker runs the same file. ### Describe the bug With `coverage.autoAttachSubprocess` on, a file that runs in both the test worker and a spawned child loses the child's lines. In the repro, `inChild()` runs in the child but line 6 shows as uncovered. It only happens when `inWorker` returns a one-character string. Same on 5.1.0-beta.1. ### Reproduction ### System Info ### Used Package Manager npm ### Validations - [x] Follow our [Code of Conduct]( - [x] Read the [Contributing Guidelines]( - [x] Read the [docs]( - [x] Check that there isn't [already an issue]( that reports the same bug to avoid creating a duplicate. - [x] Check that this is a concrete bug. For Q&A open a [GitHub Discussion]( or join our [Discord Chat Server]( - [x] The provided reproduction is a [minimal reproducible example]( of the bug.",
+      "fixPRs": [
+        {
+          "number": 11890,
+          "mergedAt": "2026-11-05T12:28:09Z"
+        }
+      ],
+      "fixCommit": "71ad4dfa1d8fb0753faaa55afc55ade021d0b395",
+      "fixCommitHow": "squash commit for PR #11890",
+      "preFixCommit": "4f91e76af52bae43495c2b24a1985a9d5662d90d",
+      "preFixDate": "2026-11-05T13:26:18+01:00",
+      "truth": [
+        "test/coverage-test/test/extended-run-context.v8.test.ts",
+        "test/coverage-test/fixtures/test/worker-and-child-process.test.ts",
+        "test/coverage-test/fixtures/src/worker-and-process.js",
+        "test/coverage-test/fixtures/src/worker-and-process.child.js",
+        "packages/coverage-v8/src/provider.ts"
+      ],
+      "truthTests": [
+        "test/coverage-test/test/extended-run-context.v8.test.ts",
+        "test/coverage-test/fixtures/test/worker-and-child-process.test.ts",
+        "test/coverage-test/fixtures/src/worker-and-process.js",
+        "test/coverage-test/fixtures/src/worker-and-process.child.js"
+      ],
+      "known": [
+        "packages/coverage-v8/src/provider.ts",
+        "test/coverage-test/test/extended-run-context.v8.test.ts"
+      ]
+    },
+    {
+      "index": 33,
+      "issue": 11717,
+      "title": "Compile modules without the inline source map comment (opt-in)",
+      "createdAt": "2026-10-25T03:15:42Z",
+      "url": "https://github.com/vitest-dev/vitest/issues/11717",
+      "body": "Compile modules without the inline source map comment (opt-in). ### Clear and concise description of the problem When vitest runs a test file, every module it loads is transformed and handed to v8 to compile. The transformed code ends with the module's source map as a base64 comment: And sometimes `//# vitestCache=...` after it. That comment is often as big as the code itself. V8 still scans every byte of it, and the whole string stays in memory. In vitest's own `test/unit` suite the map comments are 67% of everything v8 compiles (11.5M of 17.0M chars across 2,177 module evaluations). V8 doesn't need it. Vitest maps stack traces through vite's module runner, which reads the map from `module.meta.code`, not from what v8 compiled. On a 100 file typescript backend suite (8 workers, cold transforms) dropping it cut wall time about 4.6% (95% interval 2.4 to 6.5) and cpu 4.5%, on top of other module loading work. On its own, 3 to 6% depending on host load. ### Suggested solution I first proposed an opt-in `experimental.stripSourceMapComments` that stripped the comment right before compile. Following the comment below, the PR instead sends the map as a JSON string next to the code, with n",
+      "fixPRs": [
+        {
+          "number": 11750,
+          "mergedAt": "2026-11-09T14:49:27Z"
+        }
+      ],
+      "fixCommit": "485cd627d3cfa5ccfcf0b056d45700eaf6ddbd90",
+      "fixCommitHow": "squash commit for PR #11750",
+      "preFixCommit": "979118a7006ae8f0744fa625ccb3298a24bf52d1",
+      "preFixDate": "2026-11-09T16:19:19+02:00",
+      "truth": [
+        "test/e2e/test/override.test.ts",
+        "test/e2e/test/module-source-map.test.ts",
+        "test/e2e/test/inspect.test.ts",
+        "test/e2e/test/fs-module-cache-manifest.test.ts",
+        "packages/web-worker/src/runner.ts",
+        "packages/vitest/src/utils/moduleSourceMap.ts",
+        "packages/vitest/src/types/rpc.ts",
+        "packages/vitest/src/types/general.ts",
+        "packages/vitest/src/runtime/moduleRunner/startVitestModuleRunner.ts",
+        "packages/vitest/src/runtime/moduleRunner/moduleTransport.ts",
+        "packages/vitest/src/runtime/moduleRunner/moduleEvaluator.ts",
+        "packages/vitest/src/runtime/moduleRunner/evaluatedModules.ts",
+        "packages/vitest/src/runtime/inspector.ts",
+        "packages/vitest/src/runtime/config.ts",
+        "packages/vitest/src/node/types/config.ts",
+        "packages/vitest/src/node/environments/transformService.ts",
+        "packages/vitest/src/node/environments/serverRunner.ts",
+        "packages/vitest/src/node/config/resolveConfig.ts",
+        "packages/vitest/src/node/cache/fsModuleCache.ts",
+        "packages/vitest/src/integrations/env/loader.ts",
+        "packages/utils/src/source-map.ts"
+      ],
+      "truthTests": [
+        "test/e2e/test/override.test.ts",
+        "test/e2e/test/module-source-map.test.ts",
+        "test/e2e/test/inspect.test.ts",
+        "test/e2e/test/fs-module-cache-manifest.test.ts"
+      ],
+      "known": [
+        "packages/vitest/src/node/environments/serverRunner.ts",
+        "packages/vitest/src/node/types/config.ts",
+        "packages/vitest/src/node/config/resolveConfig.ts",
+        "packages/vitest/src/runtime/config.ts",
+        "packages/vitest/src/node/cache/fsModuleCache.ts",
+        "packages/utils/src/source-map.ts",
+        "packages/vitest/src/node/environments/transformService.ts",
+        "packages/vitest/src/runtime/moduleRunner/startVitestModuleRunner.ts",
+        "packages/vitest/src/runtime/moduleRunner/moduleEvaluator.ts",
+        "packages/vitest/src/types/rpc.ts",
+        "test/e2e/test/override.test.ts",
+        "packages/vitest/src/types/general.ts",
+        "packages/vitest/src/integrations/env/loader.ts",
+        "packages/vitest/src/runtime/moduleRunner/moduleTransport.ts",
+        "packages/web-worker/src/runner.ts",
+        "packages/vitest/src/runtime/inspector.ts",
+        "packages/vitest/src/runtime/moduleRunner/evaluatedModules.ts"
+      ]
+    },
+    {
+      "index": 44,
+      "issue": 11656,
+      "title": "toMatchScreenshot leaves its stability timeout running, delaying exit by up to 10s",
+      "createdAt": "2026-10-20T07:08:40Z",
+      "url": "https://github.com/vitest-dev/vitest/issues/11656",
+      "body": "toMatchScreenshot leaves its stability timeout running, delaying exit by up to 10s. > Drafted by an AI agent (Claude Code) on behalf of @quanghle, who reviewed it before posting. ### Describe the bug When `expect.toMatchScreenshot.timeout` is higher than `teardownTimeout` (10s), runs that call `toMatchScreenshot` often end with and exit about 10s late, even though every test passed. As far as I can tell, the cause is in `waitForStableScreenshot` (`packages/browser/src/node/commands/screenshotMatcher/index.ts`). It races `getStableScreenshot` against `asyncTimeout(timeout)`, but the `setTimeout` inside `asyncTimeout` is never cleared. When the screenshot wins the race, the timer keeps the process alive for the rest of `timeout`. This path runs whenever the first capture isn't byte-identical to the reference, for example a pixel-equal PNG with different bytes, or no reference yet with `--update`. `--reporter=hanging-process` points at `asyncTimeout`. ### Reproduction Run `npm install`, `npm run repro`, then `npm run repro:patched`. The script creates a reference, re-encodes it so the pixels match but the bytes differ, then times the runs: | Run | Test duration | Wall time | | -------",
+      "fixPRs": [
+        {
+          "number": 11659,
+          "mergedAt": "2026-10-20T12:54:27Z"
+        }
+      ],
+      "fixCommit": "fbe37c083064decdc26af084cf20df27620b8634",
+      "fixCommitHow": "squash commit for PR #11659",
+      "preFixCommit": "e2e9c64b0575b5b073bb76f447d016304e697758",
+      "preFixDate": "2026-10-20T14:53:57+02:00",
+      "truth": [
+        "test/browser/specs/to-match-screenshot.test.ts",
+        "packages/browser/src/node/commands/screenshotMatcher/utils.ts",
+        "packages/browser/src/node/commands/screenshotMatcher/index.ts"
+      ],
+      "truthTests": [
+        "test/browser/specs/to-match-screenshot.test.ts"
+      ],
+      "known": [
+        "test/browser/specs/to-match-screenshot.test.ts",
+        "packages/browser/src/node/commands/screenshotMatcher/utils.ts",
+        "packages/browser/src/node/commands/screenshotMatcher/index.ts"
+      ]
+    },
+    {
+      "index": 55,
+      "issue": 11566,
+      "title": "`--changed` skips tests that import a deleted file",
+      "createdAt": "2026-10-13T09:48:53Z",
+      "url": "https://github.com/vitest-dev/vitest/issues/11566",
+      "body": "`--changed` skips tests that import a deleted file. ### Describe the bug `vitest run --changed` skips a test whose import was deleted. The test now fails to load, but `--changed` finds no affected tests and exits with code 0. A full `vitest run` fails on the same tree. The same thing happens when a setup file imports the deleted file. `AffectedModulesResolver` links a test to a file through the modules Vite resolved for each import: After the delete, `./helper.js` no longer resolves, so the walk records no link from `a.test.js` to the deleted path. Git reports `helper.js` as changed, but no test reaches it. Vitest counts a module that fails to transform as affected, in lines 309 to 321. The unresolved import in `a.test.js` does not make its transform fail, so that rule does not apply. ### Reproduction ### Suggested fix Treat a changed path that no longer exists on disk as affecting every test that imported it in the base revision. If that history is not available, a simpler rule is to run every test when `--changed` reports a deleted file. ### System info - vitest 5.0.4 - git 2.56.0 - Node 24, macOS ### Used package manager npm ### Validations - [x] Follow our Code of Conduct - [x]",
+      "fixPRs": [
+        {
+          "number": 11669,
+          "mergedAt": "2026-10-20T12:37:53Z"
+        }
+      ],
+      "fixCommit": "80aa13dd6d9e42282fd65286622f53d28e34ec78",
+      "fixCommitHow": "squash commit for PR #11669",
+      "preFixCommit": "79501f3a1cfc2b4d5a8e44ffd795eae68b888dc9",
+      "preFixDate": "2026-10-20T14:37:32+02:00",
+      "truth": [
+        "test/e2e/test/related-deps.test.ts",
+        "packages/vitest/src/node/affected-modules.ts"
+      ],
+      "truthTests": [
+        "test/e2e/test/related-deps.test.ts"
+      ],
+      "known": [
+        "packages/vitest/src/node/affected-modules.ts",
+        "test/e2e/test/related-deps.test.ts"
+      ]
+    },
+    {
+      "index": 66,
+      "issue": 11495,
+      "title": "With `isolate: false`, each file's `vi.mock` factory is never released, so worker memory grows per file",
+      "createdAt": "2026-10-05T13:44:25Z",
+      "url": "https://github.com/vitest-dev/vitest/issues/11495",
+      "body": "With `isolate: false`, each file's `vi.mock` factory is never released, so worker memory grows per file. ### Describe the bug With `isolate: false`, every test file's `vi.mock()` factory stays reachable after the file finishes, together with everything the factory closes over. A worker that runs many files therefore grows by the size of each file's mock-factory scope, and on a large jsdom suite the worker eventually dies with `Worker exited unexpectedly`. Mocking itself behaves correctly: each file sees its own mock. Only the memory is never released. `vi.resetModules()` at the start of each file does not change it. With `isolate: true` the heap stays flat. In the reproduction, each of 30 test files mocks the same module with a factory that closes over ~10 MB. The heap measured at the start of each file, after a forced GC (`--expose-gc`), on one worker: | config | heap used at file start (MB) | | --- | --- | | `isolate: false` | 19, 28, 38, 47, 57 … 296 (+~9.6 MB per file) | | `isolate: false` + `vi.resetModules()` per file | 19, 28, 38, 47, 57 … 296 | | `isolate: true` | 19 for every file | In a heap snapshot of a real suite, old copies are retained through `EvaluatedModuleNode.me",
+      "fixPRs": [
+        {
+          "number": 11607,
+          "mergedAt": "2026-10-15T13:45:57Z"
+        }
+      ],
+      "fixCommit": "e9c3d72f0c8d6867de06a3df43ea28a05eeec444",
+      "fixCommitHow": "squash commit for PR #11607",
+      "preFixCommit": "8dd67c2625943d824e257b87ae57a14094e90eed",
+      "preFixDate": "2026-10-15T15:23:59+02:00",
+      "truth": [
+        "test/e2e/test/mocking.test.ts",
+        "packages/vitest/src/runtime/runVmTests.ts",
+        "packages/vitest/src/runtime/runBaseTests.ts",
+        "packages/vitest/src/runtime/moduleRunner/startVitestModuleRunner.ts",
+        "packages/vitest/src/runtime/moduleRunner/moduleRunner.ts",
+        "packages/vitest/src/runtime/moduleRunner/moduleMocker.ts",
+        "packages/vitest/src/runtime/moduleRunner/bareModuleMocker.ts"
+      ],
+      "truthTests": [
+        "test/e2e/test/mocking.test.ts"
+      ],
+      "known": [
+        "packages/vitest/src/runtime/moduleRunner/startVitestModuleRunner.ts",
+        "test/e2e/test/mocking.test.ts",
+        "packages/vitest/src/runtime/moduleRunner/bareModuleMocker.ts",
+        "packages/vitest/src/runtime/moduleRunner/moduleRunner.ts",
+        "packages/vitest/src/runtime/runVmTests.ts",
+        "packages/vitest/src/runtime/runBaseTests.ts",
+        "packages/vitest/src/runtime/moduleRunner/moduleMocker.ts"
+      ]
+    },
+    {
+      "index": 77,
+      "issue": 11382,
+      "title": "Failing toMatchScreenshot creates redundant reference screenshots with retry option",
+      "createdAt": "2026-09-28T17:02:32Z",
+      "url": "https://github.com/vitest-dev/vitest/issues/11382",
+      "body": "Failing toMatchScreenshot creates redundant reference screenshots with retry option. ### Describe the bug When running visual regression tests with vitest browser mode, and having the retry option enabled (common with vrt, as browsers are flaky), the toMatchScreenshot matcher creates redundant reference screenshots when retrying, instead of capturing the retry screenshots as \"actual\" and diffing them against the existing reference screenshot. This should be a duplicate of #10211, but that issue is closed and locked, and marked as resolved, even though the issue persists (or has been reintroduced) in v5. ### Reproduction see the info and repro steps there. ### System Info ### Used Package Manager npm ### Validations - [x] Follow our [Code of Conduct]( - [x] Read the [Contributing Guidelines]( - [x] Read the [docs]( - [x] Check that there isn't [already an issue]( that reports the same bug to avoid creating a duplicate. - [x] Check that this is a concrete bug. For Q&A open a [GitHub Discussion]( or join our [Discord Chat Server]( - [x] The provided reproduction is a [minimal reproducible example]( of the bug.",
+      "fixPRs": [
+        {
+          "number": 11393,
+          "mergedAt": "2026-09-29T14:56:50Z"
+        }
+      ],
+      "fixCommit": "c22aba9925c999e923fd65e5aad35a9272a710a9",
+      "fixCommitHow": "squash commit for PR #11393",
+      "preFixCommit": "50312ebb4eca6a98f6d0b2b61d5d9d38cbbabcef",
+      "preFixDate": "2026-09-29T16:46:18+03:00",
+      "truth": [
+        "test/browser/specs/to-match-screenshot.test.ts",
+        "packages/browser/src/client/tester/expect/toMatchScreenshot.ts"
+      ],
+      "truthTests": [
+        "test/browser/specs/to-match-screenshot.test.ts"
+      ],
+      "known": [
+        "packages/browser/src/client/tester/expect/toMatchScreenshot.ts",
+        "test/browser/specs/to-match-screenshot.test.ts"
+      ]
+    },
+    {
+      "index": 88,
+      "issue": 11315,
+      "title": "Concurrent API-token initialization can hang browser tests",
+      "createdAt": "2026-09-20T00:04:17Z",
+      "url": "https://github.com/vitest-dev/vitest/issues/11315",
+      "body": "Concurrent API-token initialization can hang browser tests. ### Describe the bug Vitest 5.0.0 can accept an empty API token during concurrent first-time startup. In browser mode this causes WebSocket authentication to fail, followed by the default 60-second connection timeout without executing any tests. Originally observed in Linux CI with four Vitest processes and three browser workers per process. Separate Vite cache directories do not isolate the user-level `.vitest-secret-token` file. A standalone reproduction now demonstrates both the race and its browser consequence without application code or patched dependencies. **Expected:** concurrent initialization must not accept an empty token; an invalid token file should be handled explicitly rather than producing an opaque browser timeout. **Actual:** one process can retain an empty token even after another process finishes writing the file. The browser client sends `\"0\"` instead, so the server rejects its connection. ### Reproduced results 1. Four processes called the public `resolveConfig()` API concurrently against a fresh shared temporary home. On attempt 7, one returned `tokenLength: 0, tokenCreated: false`; the other three r",
+      "fixPRs": [
+        {
+          "number": 11323,
+          "mergedAt": "2026-10-01T06:33:06Z"
+        }
+      ],
+      "fixCommit": "6f990fef1625ffc1e1f1a442c9446d851b06b7cc",
+      "fixCommitHow": "squash commit for PR #11323",
+      "preFixCommit": "d7e1315c116991544df1a6adb898e0a0cf7759e3",
+      "preFixDate": "2026-10-01T14:49:12+09:00",
+      "truth": [
+        "test/unit/test/api-token.test.ts",
+        "packages/vitest/src/node/config/apiToken.ts"
+      ],
+      "truthTests": [
+        "test/unit/test/api-token.test.ts"
+      ],
+      "known": [
+        "packages/vitest/src/node/config/apiToken.ts"
+      ]
+    },
+    {
+      "index": 99,
+      "issue": 11246,
+      "title": "fsModuleCache serves a stale transform after a dependency is renamed (Cannot find module)",
+      "createdAt": "2026-09-12T02:21:48Z",
+      "url": "https://github.com/vitest-dev/vitest/issues/11246",
+      "body": "fsModuleCache serves a stale transform after a dependency is renamed (Cannot find module). ### Describe the bug With `fsModuleCache: true`, renaming a module that another module imports serves a stale transform of the importer, and the importer then fails with `Cannot find module`. This holds as long as the importer's own source is unchanged, which is the usual case when switching git branches. The cached transform of the importer contains the *resolved* path of its import. The cache key covers the importer's id and content, the config file content and the plugin names, but not what the importer's imports resolve to. So after `b.ts` becomes `b.tsx`, `a.ts` hits the cache and still imports `/src/b.ts`. Found by running a 643-file suite cold and then warm across a branch switch: 285 files failed to load with `Cannot find module`, and all of them passed again once `node_modules/.vitest-cache` was deleted. ### Reproduction 1. `vitest run` passes. This run writes the cache. 2. `mv src/b.ts src/b.tsx`. `a.ts` is untouched. 3. `vitest run` fails: `Error: Cannot find module '/src/b.ts' imported from …/src/a.ts` 4. `rm -rf node_modules/.vitest-cache && vitest run` passes. ### Expected Step ",
+      "fixPRs": [
+        {
+          "number": 11381,
+          "mergedAt": "2026-09-29T07:52:14Z"
+        }
+      ],
+      "fixCommit": "38f98855fa9cd7fd376afb84094eba0fda256a74",
+      "fixCommitHow": "squash commit for PR #11381",
+      "preFixCommit": "b24585f08f2ea267746a2d6ca0e43edcbb29726f",
+      "preFixDate": "2026-09-29T09:20:58+02:00",
+      "truth": [
+        "test/e2e/test/fs-module-cache-invalidation.test.ts",
+        "packages/vitest/src/node/vite.ts",
+        "packages/vitest/src/node/environments/fetchModule.ts",
+        "packages/vitest/src/node/cache/fsModuleCache.ts"
+      ],
+      "truthTests": [
+        "test/e2e/test/fs-module-cache-invalidation.test.ts"
+      ],
+      "known": [
+        "packages/vitest/src/node/cache/fsModuleCache.ts",
+        "packages/vitest/src/node/environments/fetchModule.ts",
+        "packages/vitest/src/node/vite.ts"
+      ]
+    },
+    {
+      "index": 110,
+      "issue": 11157,
+      "title": "Obsolete snapshots are not reported when the file contains a skipped test",
+      "createdAt": "2026-09-06T05:22:55Z",
+      "url": "https://github.com/vitest-dev/vitest/issues/11157",
+      "body": "Obsolete snapshots are not reported when the file contains a skipped test. ### Describe the bug Skipping one test hides every obsolete snapshot in that file. With `update: 'none'`, the CI default, the run passes. With `-u`, the stale entries are never deleted. `markSnapshotsAsCheckedForTest` in `packages/snapshot/src/port/state.ts` runs once per skipped test so the skipped test's own snapshots are not flagged as obsolete. It tests `/ \\d+$| > /` against `key.slice(testName.length)` without first checking that the key starts with `testName`. Every snapshot key ends in a space and a number, so any key longer than the skipped test's name matches and is dropped from the unchecked set. Reproduction: a file with `it.skip('a', ...)`, one passing test, and a `.snap` that still holds an entry for a test that no longer exists. `vitest run` with `update: 'none'` passes. Change the `it.skip` to `it` and the same run fails with \"Obsolete snapshots found\", which is the behaviour docs/guide/snapshot.md describes. This came in with ac9ba151d (#7126), which replaced `keyToTestName(key) === testName` with the regex so `toMatchSnapshot('name')` keys are covered, and dropped the prefix check along the ",
+      "fixPRs": [
+        {
+          "number": 11158,
+          "mergedAt": "2026-09-09T07:32:41Z"
+        }
+      ],
+      "fixCommit": "17e2b22dd018a9098a597d835bf45d1a7a3e73c8",
+      "fixCommitHow": "squash commit for PR #11158",
+      "preFixCommit": "73614654a46f617c357920eecda439654a561f92",
+      "preFixDate": "2026-09-08T18:07:11+02:00",
+      "truth": [
+        "test/e2e/snapshots/skip-test.test.ts",
+        "packages/snapshot/src/port/state.ts"
+      ],
+      "truthTests": [
+        "test/e2e/snapshots/skip-test.test.ts"
+      ],
+      "known": [
+        "packages/snapshot/src/port/state.ts"
+      ]
+    },
+    {
+      "index": 121,
+      "issue": 11035,
+      "title": "Vitest + Vite 8 causes OXC error when setting `oxc.target`",
+      "createdAt": "2026-08-22T19:21:52Z",
+      "url": "https://github.com/vitest-dev/vitest/issues/11035",
+      "body": "Vitest + Vite 8 causes OXC error when setting `oxc.target`. ### Describe the bug When you have a Vite config like `oxc.target: ['chrome121', 'firefox118']` then vitest will merge its vitest config into the vite config. This causes an error because it concatenates `ocx.target` causing it to look like `ocx.target: ['chrome121', 'firefox118', 'chrome121', 'firefox118']`. OXC will then **fail** because there are *duplicated* entries which is invalid. ### Reproduction ### System Info ### Used Package Manager npm ### Validations - [x] Follow our [Code of Conduct]( - [x] Read the [Contributing Guidelines]( - [x] Read the [docs]( - [x] Check that there isn't [already an issue]( that reports the same bug to avoid creating a duplicate. - [x] Check that this is a concrete bug. For Q&A open a [GitHub Discussion]( or join our [Discord Chat Server]( - [x] The provided reproduction is a [minimal reproducible example]( of the bug.",
+      "fixPRs": [
+        {
+          "number": 11095,
+          "mergedAt": "2026-08-29T16:06:46Z"
+        }
+      ],
+      "fixCommit": "848d7243e608efcfb6c31baaa722f17a094a841d",
+      "fixCommitHow": "squash commit for PR #11095",
+      "preFixCommit": "ccd3059efeb9e2c6b3a01c2fa289c23e6e83a865",
+      "preFixDate": "2026-08-29T18:06:18+02:00",
+      "truth": [
+        "test/e2e/test/public.test.ts",
+        "test/e2e/test/bail-race.test.ts",
+        "packages/vitest/src/node/plugins/config.ts"
+      ],
+      "truthTests": [
+        "test/e2e/test/public.test.ts",
+        "test/e2e/test/bail-race.test.ts"
+      ],
+      "known": [
+        "packages/vitest/src/node/plugins/config.ts",
+        "test/e2e/test/public.test.ts"
+      ]
+    },
+    {
+      "index": 132,
+      "issue": 10908,
+      "title": "Global setup not respecting `root` (v5 beta only)",
+      "createdAt": "2026-08-10T14:03:23Z",
+      "url": "https://github.com/vitest-dev/vitest/issues/10908",
+      "body": "Global setup not respecting `root` (v5 beta only). ### Describe the bug Vitest `5.0.0-beta.7` fails to load following global setup. Works fine in `beta.6`. ### Reproduction ### System Info ### Used Package Manager pnpm ### Validations - [x] Follow our [Code of Conduct]( - [x] Read the [Contributing Guidelines]( - [x] Read the [docs]( - [x] Check that there isn't [already an issue]( that reports the same bug to avoid creating a duplicate. - [x] Check that this is a concrete bug. For Q&A open a [GitHub Discussion]( or join our [Discord Chat Server]( - [x] The provided reproduction is a [minimal reproducible example]( of the bug.",
+      "fixPRs": [
+        {
+          "number": 10909,
+          "mergedAt": "2026-08-17T09:32:28Z"
+        }
+      ],
+      "fixCommit": "210ba00cbb399bbc15791ab43e7826990df86aa9",
+      "fixCommitHow": "squash commit for PR #10909",
+      "preFixCommit": "67e8485645a5e272ab0044497b57212cc3486646",
+      "preFixDate": "2026-08-17T11:09:00+02:00",
+      "truth": [
+        "test/test-utils/index.ts",
+        "test/e2e/test/global-setup.test.ts",
+        "test/e2e/test/config/root.test.ts",
+        "test/e2e/fixtures/global-setup-root/vitest.config.ts",
+        "test/e2e/fixtures/global-setup-root/nested/global-setup.ts",
+        "test/e2e/fixtures/global-setup-root/nested/example.test.ts",
+        "packages/vitest/src/node/projects/resolveProjects.ts",
+        "packages/vitest/src/node/plugins/workspace.ts",
+        "packages/vitest/src/node/plugins/utils.ts",
+        "packages/vitest/src/node/plugins/testConfig.ts",
+        "packages/vitest/src/node/plugins/optimizer.ts",
+        "packages/vitest/src/node/plugins/index.ts",
+        "packages/vitest/src/node/plugins/config.ts",
+        "packages/vitest/src/node/config/resolveConfig.ts"
+      ],
+      "truthTests": [
+        "test/test-utils/index.ts",
+        "test/e2e/test/global-setup.test.ts",
+        "test/e2e/test/config/root.test.ts",
+        "test/e2e/fixtures/global-setup-root/vitest.config.ts",
+        "test/e2e/fixtures/global-setup-root/nested/global-setup.ts",
+        "test/e2e/fixtures/global-setup-root/nested/example.test.ts"
+      ],
+      "known": [
+        "packages/vitest/src/node/projects/resolveProjects.ts",
+        "packages/vitest/src/node/plugins/workspace.ts",
+        "packages/vitest/src/node/plugins/utils.ts",
+        "packages/vitest/src/node/plugins/testConfig.ts",
+        "packages/vitest/src/node/plugins/config.ts",
+        "packages/vitest/src/node/config/resolveConfig.ts",
+        "test/test-utils/index.ts",
+        "packages/vitest/src/node/plugins/index.ts",
+        "test/e2e/test/global-setup.test.ts",
+        "packages/vitest/src/node/plugins/optimizer.ts"
+      ]
+    },
+    {
+      "index": 143,
+      "issue": 10791,
+      "title": "Browser mode: run hangs forever when a tester page dies without closing its websocket (no run-level deadline on createTesters)",
+      "createdAt": "2026-07-17T05:14:50Z",
+      "url": "https://github.com/vitest-dev/vitest/issues/10791",
+      "body": "Browser mode: run hangs forever when a tester page dies without closing its websocket (no run-level deadline on createTesters). ### Describe the bug In browser mode, if a tester page's JS context dies **without closing its websocket**, the whole run hangs forever with no output — `testTimeout`, `retry`, and reporters all go silent until something external kills the process (locally Ctrl-C, on CI `timeout-minutes`). The hang is structural — there is no run-level deadline anywhere on the per-file execution path: - The node-side RPC to the orchestrator is created with `timeout: -1` (`@vitest/browser` `setupClient`), so `orchestrator.createTesters([file])` in the pool's `runNextTest` can wait forever. Pending calls are only rejected by the websocket `close` handler (\"Browser connection was closed while running tests\"). - In the page, the orchestrator's `sendEventToIframe({ event: 'execute' })` returns a promise that resolves only when the tester posts `response:execute` on the BroadcastChannel — no timeout, and only an `iframeerror` event can reject it. - `testTimeout` and `retry` are enforced *inside* the tester iframe's own JS, so once that context is gone they can never fire. `brows",
+      "fixPRs": [
+        {
+          "number": 10956,
+          "mergedAt": "2026-08-17T09:08:35Z"
+        }
+      ],
+      "fixCommit": "c496c2e333f5b06f8ec74bff83697dc6eb851c7f",
+      "fixCommitHow": "squash commit for PR #10956",
+      "preFixCommit": "a8aa1dfc970896a27e68ddaf444a5fea182598a5",
+      "preFixDate": "2026-08-17T11:03:11+02:00",
+      "truth": [
+        "test/browser/specs/heartbeat.test.ts",
+        "test/browser/specs/bail-out.test.ts",
+        "packages/vitest/src/node/pools/browser.ts",
+        "packages/browser/src/node/rpc.ts",
+        "packages/browser-playwright/src/playwright.ts"
+      ],
+      "truthTests": [
+        "test/browser/specs/heartbeat.test.ts",
+        "test/browser/specs/bail-out.test.ts"
+      ],
+      "known": [
+        "packages/browser-playwright/src/playwright.ts",
+        "packages/browser/src/node/rpc.ts",
+        "packages/vitest/src/node/pools/browser.ts"
+      ]
+    },
+    {
+      "index": 154,
+      "issue": 10630,
+      "title": "Vitest double-prefixes `node:`-only built-ins in `resolve.external`",
+      "createdAt": "2026-06-21T00:15:26Z",
+      "url": "https://github.com/vitest-dev/vitest/issues/10630",
+      "body": "Vitest double-prefixes `node:`-only built-ins in `resolve.external`. ### Describe the bug Vitest 4 sets `config.resolve.external` by spreading `node:module.builtinModules` and then prefixing every entry with `node:`: On newer Node versions, `builtinModules` includes some built-ins only in already-prefixed form, for example: Related documentation: This makes Vitest generate invalid double-prefixed entries: This surfaced downstream with `@cloudflare/vite-plugin@1.42.1`, which still rejects Vitest startup because `resolve.external` contains these non-built-in `node:node:*` entries. ### Reproduction On Node `v24.14.1`: Output includes: ### Expected behavior Vitest should not add a second `node:` prefix when a built-in already starts with `node:`. For example: ### System Info - Vitest: `4.1.9` - Node: `v24.14.1` - OS: macOS arm64 - Package manager: Bun ### Additional context This appears related in spirit to #8925, but this report is specifically about Node’s own `node:`-only built-ins being double-prefixed. Filed by GPT-5.5.",
+      "fixPRs": [
+        {
+          "number": 10767,
+          "mergedAt": "2026-07-17T07:08:40Z"
+        }
+      ],
+      "fixCommit": "22d353a80c230dbc7c69a22b390070f7aa9afabe",
+      "fixCommitHow": "squash commit for PR #10767",
+      "preFixCommit": "51acd5778fa1e47b41ed7e4c0e9675880274626d",
+      "preFixDate": "2026-07-17T08:08:04+01:00",
+      "truth": [
+        "packages/vitest/src/node/plugins/runnerTransform.ts"
+      ],
+      "truthTests": [],
+      "known": [
+        "packages/vitest/src/node/plugins/runnerTransform.ts"
+      ]
+    },
+    {
+      "index": 165,
+      "issue": 10530,
+      "title": "maxConcurrency is not enforced across sibling describe blocks: concurrent tests pile up between beforeEach and afterEach",
+      "createdAt": "2026-06-07T11:28:13Z",
+      "url": "https://github.com/vitest-dev/vitest/issues/10530",
+      "body": "maxConcurrency is not enforced across sibling describe blocks: concurrent tests pile up between beforeEach and afterEach. ### Describe the bug In vitest 4, `maxConcurrency` does not bound the number of concurrent tests that are mid-lifecycle (between `beforeEach` and `afterEach`) *when the tests are split across sibling `describe` blocks.* Setups run far ahead of teardowns, so resources created per-test in `beforeEach` (in our real suite: one Postgres database + app instance per test) accumulate far beyond `maxConcurrency`. This is a follow-up to #10097, which was fixed by #10179 (v5) and backported in #10384 (v4.1.7) (thank you @hi-ogawa!). That fix restores the bound within a single suite: a flat `describe.concurrent` now behaves correctly (it did not in 4.1.6). However, the fix gives each task branch an independent limiter, so sibling concurrent suites each receive their own full `maxConcurrency` budget and the totals multiply. With 5 sibling groups and `maxConcurrency: 5`, up to 25 tests are mid-lifecycle simultaneously. I've created a repro. Basically we have 20 tests in 5 sibling `describe` groups under `describe.concurrent`, with `maxConcurrency: 5`. Each test creates a fake",
+      "fixPRs": [
+        {
+          "number": 10928,
+          "mergedAt": "2026-08-14T12:12:34Z"
+        }
+      ],
+      "fixCommit": "cf9176bfc285093c1ef3b3f63db0dfad4bc60436",
+      "fixCommitHow": "squash commit for PR #10928",
+      "preFixCommit": "9b4df4b057b645eb65c89841586ef09dd0d341b1",
+      "preFixDate": "2026-08-14T14:11:36+02:00",
+      "truth": [
+        "test/e2e/test/concurrent.test.ts",
+        "packages/vitest/src/runtime/runner/run.ts"
+      ],
+      "truthTests": [
+        "test/e2e/test/concurrent.test.ts"
+      ],
+      "known": [
+        "test/e2e/test/concurrent.test.ts"
+      ]
+    },
+    {
+      "index": 176,
+      "issue": 10396,
+      "title": "@vitest/mocker: `vi.mock(` substring inside a comment triggers the mock hoister, which rewrites imports as top-level await and deadlocks browser mode with cyclic imports",
+      "createdAt": "2026-05-19T16:22:57Z",
+      "url": "https://github.com/vitest-dev/vitest/issues/10396",
+      "body": "@vitest/mocker: `vi.mock(` substring inside a comment triggers the mock hoister, which rewrites imports as top-level await and deadlocks browser mode with cyclic imports. With the comment: Without the comment: --- ### Summary `@vitest/mocker`'s `hoistMocksPlugin` decides whether to hoist by running a raw-source regex against the file. The regex has no awareness of comments or string literals, so the substring `vi.mock(` appearing in a JSDoc comment is enough to flip hoisting on. When hoisting is on, every static `import` in the file is rewritten as a top-level `await wrapDynamicImport(...)`. Combined with a benign source-level import cycle, this deadlocks chromium's ESM loader in `vitest --project=browser` and the test sits in `[queued]` forever. ### Repro **Actual:** test hangs in `[queued]` indefinitely; only `RUN v4.1.6 …` is printed. **Expected:** test passes in ~2s. To confirm: open `src/cycle-a.ts`, delete the line containing the literal `` `vi.mock('./cycle-b')` `` (it's inside a JSDoc comment — production code is untouched), and re-run. Now it passes in ~450ms.",
+      "fixPRs": [
+        {
+          "number": 10410,
+          "mergedAt": "2026-05-21T07:11:20Z"
+        }
+      ],
+      "fixCommit": "0468e1572943cd9a59f6dcca08dfbe722a62d772",
+      "fixCommitHow": "squash commit for PR #10410",
+      "preFixCommit": "100758604a2e007f2f7ebaca0381a65735d25939",
+      "preFixDate": "2026-05-19T12:03:13+02:00",
+      "truth": [
+        "test/unit/test/injector-mock.test.ts",
+        "packages/mocker/src/node/hoistMocks.ts"
+      ],
+      "truthTests": [
+        "test/unit/test/injector-mock.test.ts"
+      ],
+      "known": [
+        "packages/mocker/src/node/hoistMocks.ts"
+      ]
+    },
+    {
+      "index": 187,
+      "issue": 10310,
+      "title": "Trace View: Failure-Only Trace Recording",
+      "createdAt": "2026-05-10T06:10:39Z",
+      "url": "https://github.com/vitest-dev/vitest/issues/10310",
+      "body": "Trace View: Failure-Only Trace Recording. - Part of This is an initial proposal superseded by next comment --- Vitest browser trace view currently captures DOM snapshots as trace entries are recorded. This gives a useful step timeline for debugging, but it also means enabling trace view has a non-zero happy-path cost: every captured step pays for DOM snapshot serialization even when the test passes. This is a proposal to add a capture policy where lightweight trace metadata is still recorded for the full timeline, but DOM snapshots are taken only when a failure is known. This is different from \"retain on failure\". The goal is not to record full snapshots throughout the test and discard them on pass. The goal is to keep the happy path low-cost by recording metadata only, then capture diagnostic DOM state at the point where a command/assertion/test fails. ## Motivation Browser trace view is client-driven, unlike Playwright tracing. There is no browser/provider-level tracing session to start just for turning the feature on. The meaningful local cost is snapshot capture. There is still one global-ish cost today: trace view imports `rrweb-snapshot` when enabled for the attempt. For fail",
+      "fixPRs": [
+        {
+          "number": 11612,
+          "mergedAt": "2026-10-26T07:11:57Z"
+        }
+      ],
+      "fixCommit": "d5d7d2f06039a5838c5ab782b00f9f0de668fc6c",
+      "fixCommitHow": "squash commit for PR #11612",
+      "preFixCommit": "5c674859b5ecfd5f43c369d52f08a324bfcdbc07",
+      "preFixDate": "2026-10-26T12:56:03+09:00",
+      "truth": [
+        "test/unit/test/cli-test.test.ts",
+        "test/ui/test/trace.spec.ts",
+        "test/ui/test/trace-failure-only.spec.ts",
+        "test/ui/fixtures/trace/vitest.config.ts",
+        "test/ui/fixtures/trace-stream/vitest.config.ts",
+        "test/ui/fixtures/trace-failure-only/vitest.config.ts",
+        "test/ui/fixtures/trace-failure-only/pass.test.ts",
+        "test/ui/fixtures/trace-failure-only/basic.test.ts",
+        "test/e2e/test/config/browser-configs.test.ts",
+        "test/browser/specs/trace.test.ts",
+        "test/browser/fixtures/trace/vitest.config.ts",
+        "packages/vitest/src/runtime/config.ts",
+        "packages/vitest/src/node/types/browser.ts",
+        "packages/vitest/src/node/config/resolveConfig.ts",
+        "packages/vitest/src/node/cli/cli-config.ts",
+        "packages/ui/client/composables/trace-view.ts",
+        "packages/ui/client/components/trace/TraceView.vue",
+        "packages/browser/src/client/utils.ts",
+        "packages/browser/src/client/tester/trace.ts",
+        "packages/browser/src/client/tester/runner.ts",
+        "packages/browser/src/client/orchestrator.ts",
+        "docs/guide/cli-generated.md",
+        "docs/config/browser/traceview.md"
+      ],
+      "truthTests": [
+        "test/unit/test/cli-test.test.ts",
+        "test/ui/test/trace.spec.ts",
+        "test/ui/test/trace-failure-only.spec.ts",
+        "test/ui/fixtures/trace/vitest.config.ts",
+        "test/ui/fixtures/trace-stream/vitest.config.ts",
+        "test/ui/fixtures/trace-failure-only/vitest.config.ts",
+        "test/ui/fixtures/trace-failure-only/pass.test.ts",
+        "test/ui/fixtures/trace-failure-only/basic.test.ts",
+        "test/e2e/test/config/browser-configs.test.ts",
+        "test/browser/specs/trace.test.ts",
+        "test/browser/fixtures/trace/vitest.config.ts"
+      ],
+      "known": [
+        "packages/vitest/src/node/cli/cli-config.ts",
+        "docs/guide/cli-generated.md",
+        "packages/browser/src/client/tester/runner.ts",
+        "packages/vitest/src/node/types/browser.ts",
+        "packages/vitest/src/node/config/resolveConfig.ts",
+        "packages/vitest/src/runtime/config.ts",
+        "packages/browser/src/client/utils.ts",
+        "packages/browser/src/client/orchestrator.ts",
+        "test/ui/test/trace.spec.ts",
+        "test/browser/specs/trace.test.ts",
+        "test/browser/fixtures/trace/vitest.config.ts",
+        "packages/ui/client/composables/trace-view.ts",
+        "packages/ui/client/components/trace/TraceView.vue",
+        "packages/browser/src/client/tester/trace.ts",
+        "docs/config/browser/traceview.md",
+        "test/unit/test/cli-test.test.ts"
+      ]
+    },
+    {
+      "index": 198,
+      "issue": 10242,
+      "title": "Unhandled errors caught during a run are missing from the JUnit XML report",
+      "createdAt": "2026-05-01T07:57:04Z",
+      "url": "https://github.com/vitest-dev/vitest/issues/10242",
+      "body": "Unhandled errors caught during a run are missing from the JUnit XML report. ### Describe the bug When Vitest catches an unhandled rejection or uncaught exception during a test run (via its worker process-level handler), the CLI prints an `⎯ Unhandled Errors ⎯` section, the run summary shows `Errors 1 error`, and the process exits with code `1`. None of this is reflected in the JUnit XML report — ` ` and ` ` both still report `failures=\"0\" errors=\"0\"` and contain only the passing testcases. CI systems that gate on the JUnit artifact (Jenkins JUnit plugin, GitLab MR test widget, Azure Pipelines test tab, CircleCI test insights, etc.) therefore report the build as green even though the run actually failed. A real-world example where this bites: a worker process exiting unexpectedly surfaces as: …which lands in the same `Unhandled Errors` channel and is similarly absent from the JUnit XML. ### Expected The JUnit report should reflect the unhandled error that Vitest already counted in its `Errors` summary line — for example via a non-zero `errors=` count on the suite, an ` ` element, or a synthetic ` ` carrying the error. ### Actual `vitest run` stdout (truncated): Exit code: `1`. `juni",
+      "fixPRs": [
+        {
+          "number": 10244,
+          "mergedAt": "2026-05-08T07:09:24Z"
+        }
+      ],
+      "fixCommit": "6f74e5e9d2d2cbe7ef27af9ce86bc6066b0d607a",
+      "fixCommitHow": "squash commit for PR #10244",
+      "preFixCommit": "511c09269675301e1a35d415a613f74428f60c7e",
+      "preFixDate": "2026-05-08T08:07:17+01:00",
+      "truth": [
+        "test/e2e/test/reporters/junit.test.ts",
+        "test/e2e/test/reporters/__snapshots__/junit.test.ts.snap",
+        "test/e2e/fixtures/reporters/unhandled-errors-multi/multi.test.ts",
+        "test/e2e/fixtures/reporters/unhandled-errors-multi-project/vitest.config.ts",
+        "test/e2e/fixtures/reporters/unhandled-errors-multi-project/space-2/test/reject.test.ts",
+        "test/e2e/fixtures/reporters/unhandled-errors-multi-project/space-1/test/reject.test.ts",
+        "packages/vitest/src/node/reporters/junit.ts"
+      ],
+      "truthTests": [
+        "test/e2e/test/reporters/junit.test.ts",
+        "test/e2e/test/reporters/__snapshots__/junit.test.ts.snap",
+        "test/e2e/fixtures/reporters/unhandled-errors-multi/multi.test.ts",
+        "test/e2e/fixtures/reporters/unhandled-errors-multi-project/vitest.config.ts",
+        "test/e2e/fixtures/reporters/unhandled-errors-multi-project/space-2/test/reject.test.ts",
+        "test/e2e/fixtures/reporters/unhandled-errors-multi-project/space-1/test/reject.test.ts"
+      ],
+      "known": [
+        "test/e2e/test/reporters/junit.test.ts",
+        "packages/vitest/src/node/reporters/junit.ts"
+      ]
+    },
+    {
+      "index": 209,
+      "issue": 10180,
+      "title": "Deprecate and remove `sequential: boolean` from test/suite options in favor of its negation `concurrent: boolean`",
+      "createdAt": "2026-04-24T02:37:21Z",
+      "url": "https://github.com/vitest-dev/vitest/issues/10180",
+      "body": "Deprecate and remove `sequential: boolean` from test/suite options in favor of its negation `concurrent: boolean`. We support many variants to specify test concurrency: `concurrent` and `sequantial` are direct negation of each other and thus inherently redundant. Having independent options cause quite a churn internally and it can be also confusing for end users, so they should be consolidated into one flag. The end users should switch to either of: --- Some notorious examples of internal churns:",
+      "fixPRs": [
+        {
+          "number": 10198,
+          "mergedAt": "2026-04-27T07:58:47Z"
+        }
+      ],
+      "fixCommit": "9229f2edc37f979dc6c6740fce87f0b5f6656790",
+      "fixCommitHow": "squash commit for PR #10198",
+      "preFixCommit": "1ba7338c3c84ee13bc4a57efac002306ce0399a6",
+      "preFixDate": "2026-04-26T16:30:59+02:00",
+      "truth": [
+        "test/core/test/sequential.test.ts",
+        "test/core/test/concurrent-suite.test.ts",
+        "test/config/test/sequence-concurrent.test.ts",
+        "test/config/fixtures/sequence-concurrent/sequence-concurrent-true-sequential.test.ts",
+        "test/cli/test/test-tags.test.ts",
+        "test/cli/test/static-collect.test.ts",
+        "packages/vitest/src/node/ast-collect.ts",
+        "packages/runner/src/types/tasks.ts",
+        "packages/runner/src/suite.ts",
+        "docs/guide/parallelism.md",
+        "docs/guide/migration.md",
+        "docs/api/test.md",
+        "docs/api/describe.md"
+      ],
+      "truthTests": [
+        "test/core/test/sequential.test.ts",
+        "test/core/test/concurrent-suite.test.ts",
+        "test/config/test/sequence-concurrent.test.ts",
+        "test/config/fixtures/sequence-concurrent/sequence-concurrent-true-sequential.test.ts",
+        "test/cli/test/test-tags.test.ts",
+        "test/cli/test/static-collect.test.ts"
+      ],
+      "known": [
+        "test/cli/test/test-tags.test.ts",
+        "test/cli/test/static-collect.test.ts",
+        "packages/vitest/src/node/ast-collect.ts",
+        "packages/runner/src/types/tasks.ts",
+        "docs/guide/parallelism.md",
+        "docs/guide/migration.md",
+        "docs/api/test.md",
+        "docs/api/describe.md",
+        "test/core/test/concurrent-suite.test.ts",
+        "packages/runner/src/suite.ts"
+      ]
+    }
+  ]
+}

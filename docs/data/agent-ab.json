@@ -1,0 +1,4011 @@
+{
+ "generatedAt": "2026-11-26T18:22:47.499Z",
+ "model": "Claude Sonnet (claude CLI -p, max 25 turns), tools: Read, Grep, Glob, read-only git and ls",
+ "conditions": {
+  "A": "agent alone",
+  "B": "agent + Groundwork MCP plan_ticket, the repository's CLAUDE.md asking it to start there, graph frozen at the ticket's creation (GROUNDWORK_AS_OF)"
+ },
+ "sets": {
+  "symptom": {
+   "about": "Tickets rewritten as a user would report them: symptoms only, no file, function or option names, no ticket number",
+   "total": {
+    "agentAlone": {
+     "tickets": 30,
+     "firstFileCorrect": 26,
+     "hitAt5": 28,
+     "testFileFound": 7,
+     "ticketsWhoseFixChangedATest": 25,
+     "wholeFixInTop5": 7,
+     "fixFilesCoveredPct": 51.8,
+     "precisionPct": 56.4,
+     "calledPlanTicket": 0,
+     "costUsd": 1.76,
+     "meanSeconds": 44.4,
+     "leaked": 0
+    },
+    "agentWithGroundwork": {
+     "tickets": 30,
+     "firstFileCorrect": 23,
+     "hitAt5": 28,
+     "testFileFound": 16,
+     "ticketsWhoseFixChangedATest": 25,
+     "wholeFixInTop5": 13,
+     "fixFilesCoveredPct": 65.5,
+     "precisionPct": 46,
+     "calledPlanTicket": 30,
+     "costUsd": 1.96,
+     "meanSeconds": 47.4,
+     "leaked": 0
+    }
+   },
+   "hono": {
+    "agentAlone": {
+     "tickets": 15,
+     "firstFileCorrect": 13,
+     "hitAt5": 14,
+     "testFileFound": 7,
+     "ticketsWhoseFixChangedATest": 13,
+     "wholeFixInTop5": 6,
+     "fixFilesCoveredPct": 63.9,
+     "precisionPct": 70.8,
+     "calledPlanTicket": 0,
+     "costUsd": 0.43,
+     "meanSeconds": 63.3,
+     "leaked": 0
+    },
+    "agentWithGroundwork": {
+     "tickets": 15,
+     "firstFileCorrect": 12,
+     "hitAt5": 14,
+     "testFileFound": 12,
+     "ticketsWhoseFixChangedATest": 13,
+     "wholeFixInTop5": 10,
+     "fixFilesCoveredPct": 82.8,
+     "precisionPct": 61,
+     "calledPlanTicket": 15,
+     "costUsd": 0.63,
+     "meanSeconds": 27.1,
+     "leaked": 0
+    }
+   },
+   "vitest": {
+    "agentAlone": {
+     "tickets": 15,
+     "firstFileCorrect": 13,
+     "hitAt5": 14,
+     "testFileFound": 0,
+     "ticketsWhoseFixChangedATest": 12,
+     "wholeFixInTop5": 1,
+     "fixFilesCoveredPct": 39.7,
+     "precisionPct": 42,
+     "calledPlanTicket": 0,
+     "costUsd": 1.32,
+     "meanSeconds": 25.5,
+     "leaked": 0
+    },
+    "agentWithGroundwork": {
+     "tickets": 15,
+     "firstFileCorrect": 11,
+     "hitAt5": 14,
+     "testFileFound": 4,
+     "ticketsWhoseFixChangedATest": 12,
+     "wholeFixInTop5": 3,
+     "fixFilesCoveredPct": 48.2,
+     "precisionPct": 31,
+     "calledPlanTicket": 15,
+     "costUsd": 1.34,
+     "meanSeconds": 67.7,
+     "leaked": 0
+    }
+   },
+   "runs": [
+    {
+     "repo": "honojs/hono",
+     "issue": 5633,
+     "cond": "A",
+     "files": [
+      "src/middleware/secure-headers/secure-headers.ts",
+      "src/middleware/secure-headers/index.test.ts"
+     ],
+     "truth": [
+      "src/middleware/secure-headers/secure-headers.ts",
+      "src/middleware/secure-headers/index.test.ts"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 1,
+     "usedGroundwork": false,
+     "turns": 4,
+     "costUsd": 0.025706400000000004,
+     "seconds": 10,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 5633,
+     "cond": "B",
+     "files": [
+      "src/middleware/secure-headers/secure-headers.ts",
+      "src/middleware/secure-headers/index.test.ts",
+      "src/middleware/secure-headers/index.ts"
+     ],
+     "truth": [
+      "src/middleware/secure-headers/secure-headers.ts",
+      "src/middleware/secure-headers/index.test.ts"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 0.6666666666666666,
+     "usedGroundwork": true,
+     "turns": 3,
+     "costUsd": 0.0342055,
+     "seconds": 20,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 5602,
+     "cond": "A",
+     "files": [
+      "src/middleware/etag/index.ts",
+      "src/middleware/etag/index.test.ts"
+     ],
+     "truth": [
+      "src/middleware/pretty-json/index.ts",
+      "src/middleware/pretty-json/index.test.ts",
+      "src/middleware/etag/index.ts",
+      "src/middleware/etag/index.test.ts"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.5,
+     "precision": 1,
+     "usedGroundwork": false,
+     "turns": 3,
+     "costUsd": 0.0217751,
+     "seconds": 124,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 5602,
+     "cond": "B",
+     "files": [
+      "src/middleware/etag/index.ts",
+      "src/middleware/etag/index.test.ts"
+     ],
+     "truth": [
+      "src/middleware/pretty-json/index.ts",
+      "src/middleware/pretty-json/index.test.ts",
+      "src/middleware/etag/index.ts",
+      "src/middleware/etag/index.test.ts"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.5,
+     "precision": 1,
+     "usedGroundwork": true,
+     "turns": 4,
+     "costUsd": 0.031584,
+     "seconds": 21,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 5565,
+     "cond": "A",
+     "files": [
+      "src/helper/factory/index.ts",
+      "src/helper/factory/index.test.ts"
+     ],
+     "truth": [
+      "src/helper/factory/index.ts",
+      "src/helper/factory/index.test.ts"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 1,
+     "usedGroundwork": false,
+     "turns": 7,
+     "costUsd": 0.0312112,
+     "seconds": 62,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 5565,
+     "cond": "B",
+     "files": [
+      "src/helper/factory/index.ts",
+      "src/helper/factory/index.test.ts"
+     ],
+     "truth": [
+      "src/helper/factory/index.ts",
+      "src/helper/factory/index.test.ts"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 1,
+     "usedGroundwork": true,
+     "turns": 6,
+     "costUsd": 0.0508549,
+     "seconds": 27,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 5484,
+     "cond": "A",
+     "files": [
+      "vite.config.ts",
+      "package.json",
+      "tsconfig.build.json",
+      "src/context.ts"
+     ],
+     "truth": [
+      "vite.config.ts",
+      "src/jsx/base.ts",
+      "build/dts-plugins.ts",
+      "adapters/vercel/vite.config.ts",
+      "adapters/service-worker/vite.config.ts",
+      "adapters/netlify/vite.config.ts",
+      "adapters/lambda-edge/vite.config.ts",
+      "adapters/deno/vite.config.ts",
+      "adapters/cloudflare-workers/vite.config.ts",
+      "adapters/bun/vite.config.ts",
+      "adapters/aws-lambda/vite.config.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": false,
+     "wholeFix": false,
+     "covered": 0.09090909090909091,
+     "precision": 0.25,
+     "usedGroundwork": false,
+     "turns": 7,
+     "costUsd": 0.0679907,
+     "seconds": 69,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 5484,
+     "cond": "B",
+     "files": [
+      "src/utils/types.ts",
+      "src/context.ts",
+      "src/types.ts",
+      "src/client/types.ts",
+      "src/types.test.ts"
+     ],
+     "truth": [
+      "vite.config.ts",
+      "src/jsx/base.ts",
+      "build/dts-plugins.ts",
+      "adapters/vercel/vite.config.ts",
+      "adapters/service-worker/vite.config.ts",
+      "adapters/netlify/vite.config.ts",
+      "adapters/lambda-edge/vite.config.ts",
+      "adapters/deno/vite.config.ts",
+      "adapters/cloudflare-workers/vite.config.ts",
+      "adapters/bun/vite.config.ts",
+      "adapters/aws-lambda/vite.config.ts"
+     ],
+     "rank": null,
+     "testFile": false,
+     "needsTest": false,
+     "wholeFix": false,
+     "covered": 0,
+     "precision": 0,
+     "usedGroundwork": true,
+     "turns": 7,
+     "costUsd": 0.0554361,
+     "seconds": 27,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 5333,
+     "cond": "A",
+     "files": [
+      "src/adapter/aws-lambda/handler.ts"
+     ],
+     "truth": [
+      "src/adapter/aws-lambda/handler.ts",
+      "runtime-tests/lambda/stream-backpressure.test.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.5,
+     "precision": 1,
+     "usedGroundwork": false,
+     "turns": 3,
+     "costUsd": 0.0229324,
+     "seconds": 34,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 5333,
+     "cond": "B",
+     "files": [
+      "src/adapter/aws-lambda/handler.ts",
+      "runtime_tests/lambda/stream.test.ts",
+      "runtime_tests/lambda/stream-mock.ts",
+      "src/adapter/aws-lambda/handler.test.ts"
+     ],
+     "truth": [
+      "src/adapter/aws-lambda/handler.ts",
+      "runtime-tests/lambda/stream-backpressure.test.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.5,
+     "precision": 0.25,
+     "usedGroundwork": true,
+     "turns": 3,
+     "costUsd": 0.0265067,
+     "seconds": 42,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 5162,
+     "cond": "A",
+     "files": [
+      "src/jsx/hooks/index.ts",
+      "src/jsx/hooks/dom.test.tsx"
+     ],
+     "truth": [
+      "src/jsx/hooks/index.ts",
+      "src/jsx/hooks/dom.test.tsx"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 1,
+     "usedGroundwork": false,
+     "turns": 3,
+     "costUsd": 0.017475400000000002,
+     "seconds": 16,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 5162,
+     "cond": "B",
+     "files": [
+      "src/jsx/hooks/index.ts",
+      "src/jsx/hooks/dom.test.tsx",
+      "src/jsx/dom/index.test.tsx"
+     ],
+     "truth": [
+      "src/jsx/hooks/index.ts",
+      "src/jsx/hooks/dom.test.tsx"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 0.6666666666666666,
+     "usedGroundwork": true,
+     "turns": 4,
+     "costUsd": 0.0293451,
+     "seconds": 60,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 5060,
+     "cond": "A",
+     "files": [
+      "src/validator/validator.ts",
+      "src/utils/body.ts",
+      "src/middleware/method-override/index.ts"
+     ],
+     "truth": [
+      "src/validator/validator.ts",
+      "src/validator/validator.test.ts",
+      "src/utils/buffer.ts",
+      "src/utils/buffer.test.ts",
+      "src/utils/body.ts",
+      "src/utils/body.test.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.3333333333333333,
+     "precision": 0.6666666666666666,
+     "usedGroundwork": false,
+     "turns": 3,
+     "costUsd": 0.0223661,
+     "seconds": 16,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 5060,
+     "cond": "B",
+     "files": [
+      "src/validator/validator.ts",
+      "src/utils/body.ts",
+      "src/validator/validator.test.ts",
+      "src/utils/body.test.ts",
+      "src/middleware/method-override/index.ts"
+     ],
+     "truth": [
+      "src/validator/validator.ts",
+      "src/validator/validator.test.ts",
+      "src/utils/buffer.ts",
+      "src/utils/buffer.test.ts",
+      "src/utils/body.ts",
+      "src/utils/body.test.ts"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.6666666666666666,
+     "precision": 0.8,
+     "usedGroundwork": true,
+     "turns": 4,
+     "costUsd": 0.034787,
+     "seconds": 18,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 4911,
+     "cond": "A",
+     "files": [
+      "src/adapter/bun/serve-static.ts",
+      "src/adapter/deno/serve-static.ts"
+     ],
+     "truth": [
+      "src/adapter/deno/serve-static.ts",
+      "src/adapter/cloudflare-workers/serve-static.ts",
+      "src/adapter/bun/serve-static.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": false,
+     "wholeFix": false,
+     "covered": 0.6666666666666666,
+     "precision": 1,
+     "usedGroundwork": false,
+     "turns": 6,
+     "costUsd": 0.0348151,
+     "seconds": 129,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 4911,
+     "cond": "B",
+     "files": [
+      "src/adapter/bun/serve-static.ts",
+      "src/adapter/deno/serve-static.ts",
+      "src/adapter/cloudflare-workers/serve-static.ts",
+      "runtime-tests/bun/index.test.tsx"
+     ],
+     "truth": [
+      "src/adapter/deno/serve-static.ts",
+      "src/adapter/cloudflare-workers/serve-static.ts",
+      "src/adapter/bun/serve-static.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": false,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 0.75,
+     "usedGroundwork": true,
+     "turns": 3,
+     "costUsd": 0.029669800000000003,
+     "seconds": 19,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 4769,
+     "cond": "A",
+     "files": [
+      "src/jsx/streaming.ts",
+      "src/jsx/streaming.test.tsx"
+     ],
+     "truth": [
+      "src/jsx/streaming.ts",
+      "src/jsx/streaming.test.tsx"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 1,
+     "usedGroundwork": false,
+     "turns": 5,
+     "costUsd": 0.031378,
+     "seconds": 19,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 4769,
+     "cond": "B",
+     "files": [
+      "src/jsx/streaming.ts",
+      "src/jsx/streaming.test.tsx",
+      "src/helper/streaming/stream.ts"
+     ],
+     "truth": [
+      "src/jsx/streaming.ts",
+      "src/jsx/streaming.test.tsx"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 0.6666666666666666,
+     "usedGroundwork": true,
+     "turns": 5,
+     "costUsd": 0.0374362,
+     "seconds": 25,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 4582,
+     "cond": "A",
+     "files": [
+      "src/jsx/base.ts",
+      "src/helper/html/index.ts",
+      "src/jsx/context.ts",
+      "src/jsx/components.ts",
+      "src/middleware/jsx-renderer/index.ts"
+     ],
+     "truth": [
+      "src/jsx/index.test.tsx",
+      "src/jsx/context.ts"
+     ],
+     "rank": 3,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.5,
+     "precision": 0.2,
+     "usedGroundwork": false,
+     "turns": 10,
+     "costUsd": 0.0555059,
+     "seconds": 26,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 4582,
+     "cond": "B",
+     "files": [
+      "src/jsx/base.ts",
+      "src/helper/html/index.ts",
+      "src/jsx/context.ts",
+      "src/jsx/index.test.tsx",
+      "src/middleware/jsx-renderer/index.test.tsx"
+     ],
+     "truth": [
+      "src/jsx/index.test.tsx",
+      "src/jsx/context.ts"
+     ],
+     "rank": 3,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 0.4,
+     "usedGroundwork": true,
+     "turns": 10,
+     "costUsd": 0.0628451,
+     "seconds": 34,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 4468,
+     "cond": "A",
+     "files": [
+      "src/adapter/aws-lambda/handler.ts",
+      "src/adapter/lambda-edge/handler.ts",
+      "src/adapter/aws-lambda/handler.test.ts",
+      "src/adapter/lambda-edge/handler.test.ts"
+     ],
+     "truth": [
+      "src/adapter/aws-lambda/handler.ts",
+      "src/adapter/aws-lambda/handler.test.ts"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 0.5,
+     "usedGroundwork": false,
+     "turns": 4,
+     "costUsd": 0.024680900000000002,
+     "seconds": 21,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 4468,
+     "cond": "B",
+     "files": [
+      "src/adapter/aws-lambda/handler.ts",
+      "src/adapter/aws-lambda/handler.test.ts",
+      "src/adapter/lambda-edge/handler.ts",
+      "src/adapter/lambda-edge/handler.test.ts"
+     ],
+     "truth": [
+      "src/adapter/aws-lambda/handler.ts",
+      "src/adapter/aws-lambda/handler.test.ts"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 0.5,
+     "usedGroundwork": true,
+     "turns": 4,
+     "costUsd": 0.0325834,
+     "seconds": 17,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 4388,
+     "cond": "A",
+     "files": [
+      "src/types.ts",
+      "src/hono-base.ts"
+     ],
+     "truth": [
+      "src/types.test.ts"
+     ],
+     "rank": null,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0,
+     "precision": 0,
+     "usedGroundwork": false,
+     "turns": 5,
+     "costUsd": 0.0201321,
+     "seconds": 209,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 4388,
+     "cond": "B",
+     "files": [
+      "src/types.ts",
+      "src/hono-base.ts",
+      "src/types.test.ts",
+      "src/client/client.test.ts",
+      "deno_dist/types.ts"
+     ],
+     "truth": [
+      "src/types.test.ts"
+     ],
+     "rank": 3,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 0.2,
+     "usedGroundwork": true,
+     "turns": 12,
+     "costUsd": 0.12038949999999998,
+     "seconds": 41,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 4281,
+     "cond": "A",
+     "files": [
+      "src/helper/cookie/index.ts",
+      "src/utils/cookie.ts",
+      "src/helper/cookie/cookie.test.ts"
+     ],
+     "truth": [
+      "src/helper/cookie/index.ts",
+      "src/helper/cookie/index.test.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.5,
+     "precision": 0.3333333333333333,
+     "usedGroundwork": false,
+     "turns": 2,
+     "costUsd": 0.00825,
+     "seconds": 100,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 4281,
+     "cond": "B",
+     "files": [
+      "src/helper/cookie/index.ts",
+      "src/helper/cookie/index.test.ts",
+      "src/utils/cookie.ts",
+      "src/utils/cookie.test.ts"
+     ],
+     "truth": [
+      "src/helper/cookie/index.ts",
+      "src/helper/cookie/index.test.ts"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 0.5,
+     "usedGroundwork": true,
+     "turns": 3,
+     "costUsd": 0.0254244,
+     "seconds": 19,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 4205,
+     "cond": "A",
+     "files": [
+      "src/jsx/streaming.ts",
+      "src/jsx/components.ts",
+      "src/jsx/dom/components.ts"
+     ],
+     "truth": [
+      "src/jsx/streaming.ts",
+      "src/jsx/streaming.test.tsx",
+      "src/jsx/components.ts",
+      "src/jsx/components.test.tsx"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.5,
+     "precision": 0.6666666666666666,
+     "usedGroundwork": false,
+     "turns": 4,
+     "costUsd": 0.0318759,
+     "seconds": 59,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 4205,
+     "cond": "B",
+     "files": [
+      "src/jsx/streaming.ts",
+      "src/jsx/components.ts",
+      "src/jsx/streaming.test.tsx",
+      "src/jsx/index.test.tsx"
+     ],
+     "truth": [
+      "src/jsx/streaming.ts",
+      "src/jsx/streaming.test.tsx",
+      "src/jsx/components.ts",
+      "src/jsx/components.test.tsx"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.75,
+     "precision": 0.75,
+     "usedGroundwork": true,
+     "turns": 3,
+     "costUsd": 0.0269329,
+     "seconds": 18,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 4048,
+     "cond": "A",
+     "files": [
+      "src/middleware/trailing-slash/index.ts",
+      "src/middleware/trailing-slash/index.test.ts"
+     ],
+     "truth": [
+      "src/middleware/trailing-slash/index.ts",
+      "src/middleware/trailing-slash/index.test.ts"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 1,
+     "usedGroundwork": false,
+     "turns": 2,
+     "costUsd": 0.0147519,
+     "seconds": 56,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 4048,
+     "cond": "B",
+     "files": [
+      "src/middleware/trailing-slash/index.ts",
+      "src/middleware/trailing-slash/index.test.ts"
+     ],
+     "truth": [
+      "src/middleware/trailing-slash/index.ts",
+      "src/middleware/trailing-slash/index.test.ts"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 1,
+     "usedGroundwork": true,
+     "turns": 3,
+     "costUsd": 0.027433199999999998,
+     "seconds": 18,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 11967,
+     "cond": "A",
+     "files": [
+      "packages/vitest/src/node/plugins/testConfig.ts"
+     ],
+     "truth": [
+      "test/e2e/test/vite-ssr-resolve.test.ts",
+      "packages/vitest/src/node/plugins/testConfig.ts",
+      "docs/guide/common-errors.md"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.3333333333333333,
+     "precision": 1,
+     "usedGroundwork": false,
+     "turns": 4,
+     "costUsd": 0.0574922,
+     "seconds": 17,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 11967,
+     "cond": "B",
+     "files": [
+      "packages/vitest/src/node/resolver.ts",
+      "packages/vitest/src/node/types/config.ts",
+      "docs/config/server.md",
+      "packages/vitest/src/node/plugins/testConfig.ts",
+      "packages/vitest/src/node/config/resolveConfig.ts"
+     ],
+     "truth": [
+      "test/e2e/test/vite-ssr-resolve.test.ts",
+      "packages/vitest/src/node/plugins/testConfig.ts",
+      "docs/guide/common-errors.md"
+     ],
+     "rank": 4,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.3333333333333333,
+     "precision": 0.2,
+     "usedGroundwork": true,
+     "turns": 9,
+     "costUsd": 0.09899070000000001,
+     "seconds": 52,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 11847,
+     "cond": "A",
+     "files": [
+      "packages/vitest/src/node/config/resolveConfig.ts",
+      "packages/vitest/src/node/cache/fsModuleCache.ts",
+      "packages/vitest/src/node/cli/cli-config.ts",
+      "docs/config/fsmodulecache.md"
+     ],
+     "truth": [
+      "test/e2e/test/caching.test.ts",
+      "packages/vitest/src/node/config/resolveConfig.ts",
+      "docs/config/fsmodulecachepath.md",
+      "docs/config/fsmodulecache.md"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.5,
+     "precision": 0.5,
+     "usedGroundwork": false,
+     "turns": 4,
+     "costUsd": 0.0649538,
+     "seconds": 16,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 11847,
+     "cond": "B",
+     "files": [
+      "packages/vitest/src/node/config/resolveConfig.ts",
+      "packages/vitest/src/node/cli/cli-config.ts",
+      "test/e2e/test/caching.test.ts",
+      "packages/vitest/src/node/cache/fsModuleCache.ts",
+      "packages/vitest/src/node/environments/transformService.ts"
+     ],
+     "truth": [
+      "test/e2e/test/caching.test.ts",
+      "packages/vitest/src/node/config/resolveConfig.ts",
+      "docs/config/fsmodulecachepath.md",
+      "docs/config/fsmodulecache.md"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.5,
+     "precision": 0.4,
+     "usedGroundwork": true,
+     "turns": 4,
+     "costUsd": 0.0620672,
+     "seconds": 307,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 11773,
+     "cond": "A",
+     "files": [
+      "packages/vitest/src/node/cache/fsModuleCache.ts",
+      "packages/vitest/src/node/environments/transformService.ts"
+     ],
+     "truth": [
+      "test/e2e/test/fs-module-cache-optimizer.test.ts",
+      "packages/vitest/src/node/cache/fsModuleCache.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.5,
+     "precision": 0.5,
+     "usedGroundwork": false,
+     "turns": 4,
+     "costUsd": 0.0642821,
+     "seconds": 20,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 11773,
+     "cond": "B",
+     "files": [
+      "packages/vitest/src/node/cache/fsModuleCache.ts",
+      "packages/vitest/src/node/environments/fetchModule.ts",
+      "packages/vitest/src/node/config/resolveConfig.ts",
+      "test/e2e/test/caching.test.ts"
+     ],
+     "truth": [
+      "test/e2e/test/fs-module-cache-optimizer.test.ts",
+      "packages/vitest/src/node/cache/fsModuleCache.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.5,
+     "precision": 0.25,
+     "usedGroundwork": true,
+     "turns": 4,
+     "costUsd": 0.0763674,
+     "seconds": 64,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 11679,
+     "cond": "A",
+     "files": [
+      "packages/vitest/src/runtime/runVmTests.ts",
+      "packages/vitest/src/runtime/workers/vm.ts",
+      "packages/vitest/src/integrations/mock/timers.ts",
+      "packages/vitest/src/integrations/vi.ts"
+     ],
+     "truth": [
+      "test/e2e/test/vm-threads.test.ts",
+      "test/e2e/fixtures/leak-probe/leave-fake-timers-on.js",
+      "test/e2e/fixtures/leak-probe/fake-timers.config.js",
+      "packages/vitest/src/runtime/runVmTests.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.25,
+     "precision": 0.25,
+     "usedGroundwork": false,
+     "turns": 11,
+     "costUsd": 0.12114889999999999,
+     "seconds": 30,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 11679,
+     "cond": "B",
+     "files": [
+      "packages/vitest/src/runtime/runVmTests.ts",
+      "packages/vitest/src/runtime/workers/vm.ts",
+      "packages/vitest/src/integrations/mock/timers.ts",
+      "packages/vitest/src/runtime/runBaseTests.ts",
+      "test/e2e/test/vm-threads.test.ts"
+     ],
+     "truth": [
+      "test/e2e/test/vm-threads.test.ts",
+      "test/e2e/fixtures/leak-probe/leave-fake-timers-on.js",
+      "test/e2e/fixtures/leak-probe/fake-timers.config.js",
+      "packages/vitest/src/runtime/runVmTests.ts"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.5,
+     "precision": 0.4,
+     "usedGroundwork": true,
+     "turns": 10,
+     "costUsd": 0.10784780000000001,
+     "seconds": 31,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 11592,
+     "cond": "A",
+     "files": [
+      "packages/vitest/src/node/reporters/base.ts",
+      "packages/ui/client/composables/trace-view.ts",
+      "packages/browser/src/node/commands/trace.ts",
+      "packages/vitest/src/runtime/runner/types.ts",
+      "packages/browser/src/client/tester/trace.ts"
+     ],
+     "truth": [
+      "test/browser/specs/trace-timeline.test.ts",
+      "packages/vitest/src/node/reporters/renderers/trace-timeline.ts",
+      "packages/vitest/src/node/reporters/base.ts",
+      "docs/guide/browser/trace-view.md",
+      "docs/guide/browser/snippets/trace-failure.ansi",
+      "docs/config/browser/traceview.md"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.16666666666666666,
+     "precision": 0.2,
+     "usedGroundwork": false,
+     "turns": 11,
+     "costUsd": 0.1068813,
+     "seconds": 27,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 11592,
+     "cond": "B",
+     "files": [
+      "packages/vitest/src/node/reporters/base.ts",
+      "packages/vitest/src/node/printError.ts",
+      "packages/browser/src/client/tester/trace.ts",
+      "packages/browser/src/client/tester/context.ts",
+      "packages/browser/src/client/tester/locators.ts"
+     ],
+     "truth": [
+      "test/browser/specs/trace-timeline.test.ts",
+      "packages/vitest/src/node/reporters/renderers/trace-timeline.ts",
+      "packages/vitest/src/node/reporters/base.ts",
+      "docs/guide/browser/trace-view.md",
+      "docs/guide/browser/snippets/trace-failure.ansi",
+      "docs/config/browser/traceview.md"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.16666666666666666,
+     "precision": 0.2,
+     "usedGroundwork": true,
+     "turns": 9,
+     "costUsd": 0.0920822,
+     "seconds": 28,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 11533,
+     "cond": "A",
+     "files": [
+      "packages/mocker/src/node/hoistMocks.ts",
+      "packages/vitest/src/runtime/workers/native.ts"
+     ],
+     "truth": [
+      "test/e2e/test/no-module-runner.test.ts",
+      "packages/mocker/src/node/parsers.ts",
+      "packages/mocker/src/node/hoistMocks.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.3333333333333333,
+     "precision": 0.5,
+     "usedGroundwork": false,
+     "turns": 11,
+     "costUsd": 0.10792099999999999,
+     "seconds": 34,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 11533,
+     "cond": "B",
+     "files": [
+      "packages/mocker/src/node/hoistMocks.ts",
+      "packages/vitest/src/runtime/workers/native.ts",
+      "packages/mocker/src/node/hoistMocksPlugin.ts",
+      "test/e2e/test/mocking-native.test.ts",
+      "packages/vitest/src/node/plugins/mocks.ts"
+     ],
+     "truth": [
+      "test/e2e/test/no-module-runner.test.ts",
+      "packages/mocker/src/node/parsers.ts",
+      "packages/mocker/src/node/hoistMocks.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.3333333333333333,
+     "precision": 0.2,
+     "usedGroundwork": true,
+     "turns": 15,
+     "costUsd": 0.1387935,
+     "seconds": 254,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 11447,
+     "cond": "A",
+     "files": [
+      "packages/coverage-v8/src/commands.ts",
+      "packages/coverage-v8/src/browser.ts",
+      "packages/browser/src/client/tester/tester.ts",
+      "packages/vitest/src/integrations/coverage.ts",
+      "packages/browser/src/client/tester/runner.ts"
+     ],
+     "truth": [
+      "test/coverage-test/test/isolation.test.ts",
+      "test/coverage-test/fixtures/test/memory-leak-4-fixture.test.ts",
+      "test/coverage-test/fixtures/test/memory-leak-3-fixture.test.ts",
+      "test/coverage-test/fixtures/test/memory-leak-2-fixture.test.ts",
+      "test/coverage-test/fixtures/test/memory-leak-1-fixture.test.ts",
+      "packages/coverage-v8/src/commands.ts",
+      "packages/coverage-v8/src/browser.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.2857142857142857,
+     "precision": 0.4,
+     "usedGroundwork": false,
+     "turns": 7,
+     "costUsd": 0.0738625,
+     "seconds": 21,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 11447,
+     "cond": "B",
+     "files": [
+      "packages/coverage-v8/src/commands.ts",
+      "packages/coverage-v8/src/provider.ts",
+      "packages/vitest/src/node/pools/browser.ts"
+     ],
+     "truth": [
+      "test/coverage-test/test/isolation.test.ts",
+      "test/coverage-test/fixtures/test/memory-leak-4-fixture.test.ts",
+      "test/coverage-test/fixtures/test/memory-leak-3-fixture.test.ts",
+      "test/coverage-test/fixtures/test/memory-leak-2-fixture.test.ts",
+      "test/coverage-test/fixtures/test/memory-leak-1-fixture.test.ts",
+      "packages/coverage-v8/src/commands.ts",
+      "packages/coverage-v8/src/browser.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.14285714285714285,
+     "precision": 0.3333333333333333,
+     "usedGroundwork": true,
+     "turns": 4,
+     "costUsd": 0.07028179999999999,
+     "seconds": 24,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 11337,
+     "cond": "A",
+     "files": [
+      "packages/vitest/src/node/types/browser.ts",
+      "docs/api/browser/locators.md"
+     ],
+     "truth": [
+      "packages/vitest/src/node/types/browser.ts",
+      "packages/browser/context.d.ts",
+      "docs/api/browser/locators.md"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": false,
+     "wholeFix": false,
+     "covered": 0.6666666666666666,
+     "precision": 1,
+     "usedGroundwork": false,
+     "turns": 4,
+     "costUsd": 0.0672914,
+     "seconds": 36,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 11337,
+     "cond": "B",
+     "files": [
+      "packages/vitest/src/node/types/browser.ts",
+      "packages/browser/context.d.ts",
+      "packages/vitest/src/node/cli/cli-config.ts",
+      "docs/guide/cli-generated.md"
+     ],
+     "truth": [
+      "packages/vitest/src/node/types/browser.ts",
+      "packages/browser/context.d.ts",
+      "docs/api/browser/locators.md"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": false,
+     "wholeFix": false,
+     "covered": 0.6666666666666666,
+     "precision": 0.5,
+     "usedGroundwork": true,
+     "turns": 4,
+     "costUsd": 0.0676858,
+     "seconds": 19,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 11282,
+     "cond": "A",
+     "files": [
+      "packages/vitest/src/runtime/benchmark.ts",
+      "packages/vitest/src/runtime/runner/types.ts",
+      "packages/vitest/package.json",
+      "packages/vitest/src/runtime/benchmark/default-provider.ts"
+     ],
+     "truth": [
+      "pnpm-workspace.yaml"
+     ],
+     "rank": null,
+     "testFile": false,
+     "needsTest": false,
+     "wholeFix": false,
+     "covered": 0,
+     "precision": 0,
+     "usedGroundwork": false,
+     "turns": 6,
+     "costUsd": 0.06812019999999999,
+     "seconds": 19,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 11282,
+     "cond": "B",
+     "files": [
+      "packages/vitest/src/runtime/benchmark.ts",
+      "packages/vitest/src/runtime/runner/types.ts",
+      "packages/vitest/src/runtime/benchmark/default-provider.ts",
+      "pnpm-workspace.yaml",
+      "packages/vitest/package.json"
+     ],
+     "truth": [
+      "pnpm-workspace.yaml"
+     ],
+     "rank": 4,
+     "testFile": false,
+     "needsTest": false,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 0.2,
+     "usedGroundwork": true,
+     "turns": 5,
+     "costUsd": 0.070987,
+     "seconds": 71,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 11193,
+     "cond": "A",
+     "files": [
+      "packages/vitest/src/node/cache/fsModuleCache.ts",
+      "packages/vitest/src/node/core.ts",
+      "packages/vitest/src/node/plugins/runnerTransform.ts",
+      "packages/vitest/src/node/plugins/utils.ts"
+     ],
+     "truth": [
+      "test/e2e/test/fs-module-cache-resiliency.test.ts",
+      "packages/vitest/src/node/cache/fsModuleCache.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.5,
+     "precision": 0.25,
+     "usedGroundwork": false,
+     "turns": 10,
+     "costUsd": 0.1101087,
+     "seconds": 29,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 11193,
+     "cond": "B",
+     "files": [
+      "packages/vitest/src/node/cache/fsModuleCache.ts",
+      "packages/vitest/src/node/environments/normalizeUrl.ts",
+      "packages/vitest/src/node/environments/fetchModule.ts",
+      "packages/vitest/src/node/core.ts"
+     ],
+     "truth": [
+      "test/e2e/test/fs-module-cache-resiliency.test.ts",
+      "packages/vitest/src/node/cache/fsModuleCache.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.5,
+     "precision": 0.25,
+     "usedGroundwork": true,
+     "turns": 7,
+     "costUsd": 0.1022353,
+     "seconds": 31,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 11073,
+     "cond": "A",
+     "files": [
+      "packages/vitest/src/runtime/runners/test.ts",
+      "packages/vitest/src/node/config/resolveConfig.ts",
+      "packages/vitest/src/runtime/runner/setup.ts"
+     ],
+     "truth": [
+      "test/e2e/test/setup-files.test.ts",
+      "packages/vitest/src/runtime/runners/test.ts",
+      "packages/vitest/src/runtime/moduleRunner/testModuleRunner.ts",
+      "packages/vitest/src/runtime/moduleRunner/moduleRunner.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.25,
+     "precision": 0.3333333333333333,
+     "usedGroundwork": false,
+     "turns": 10,
+     "costUsd": 0.0917747,
+     "seconds": 24,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 11073,
+     "cond": "B",
+     "files": [
+      "packages/vitest/src/runtime/runners/test.ts",
+      "packages/vitest/src/node/config/resolveConfig.ts",
+      "packages/vitest/src/runtime/runner/setup.ts",
+      "packages/vitest/src/runtime/runner/collect.ts"
+     ],
+     "truth": [
+      "test/e2e/test/setup-files.test.ts",
+      "packages/vitest/src/runtime/runners/test.ts",
+      "packages/vitest/src/runtime/moduleRunner/testModuleRunner.ts",
+      "packages/vitest/src/runtime/moduleRunner/moduleRunner.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.25,
+     "precision": 0.25,
+     "usedGroundwork": true,
+     "turns": 9,
+     "costUsd": 0.0999916,
+     "seconds": 28,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 10993,
+     "cond": "A",
+     "files": [
+      "packages/vitest/src/node/core.ts",
+      "packages/vitest/src/node/plugins/browserLoader.ts",
+      "packages/browser-playwright/src/playwright.ts",
+      "packages/vitest/src/node/projects/resolveProjects.ts",
+      "packages/vitest/src/node/config/resolveConfig.ts"
+     ],
+     "truth": [
+      "test/browser/specs/projects-ui.test.ts",
+      "packages/vitest/src/node/core.ts",
+      "packages/vitest/src/api/setup.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.3333333333333333,
+     "precision": 0.2,
+     "usedGroundwork": false,
+     "turns": 24,
+     "costUsd": 0.23353859999999996,
+     "seconds": 57,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 10993,
+     "cond": "B",
+     "files": [
+      "packages/browser-playwright/src/playwright.ts",
+      "packages/vitest/src/node/plugins/browserLoader.ts",
+      "packages/vitest/src/node/pools/browser.ts",
+      "packages/vitest/src/node/project.ts"
+     ],
+     "truth": [
+      "test/browser/specs/projects-ui.test.ts",
+      "packages/vitest/src/node/core.ts",
+      "packages/vitest/src/api/setup.ts"
+     ],
+     "rank": null,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0,
+     "precision": 0,
+     "usedGroundwork": true,
+     "turns": 10,
+     "costUsd": 0.1377555,
+     "seconds": 34,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 10870,
+     "cond": "A",
+     "files": [
+      "docs/api/expect.md",
+      "packages/expect/src/types.ts",
+      "packages/expect/src/jest-expect.ts"
+     ],
+     "truth": [
+      "packages/expect/src/types.ts"
+     ],
+     "rank": 2,
+     "testFile": false,
+     "needsTest": false,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 0.3333333333333333,
+     "usedGroundwork": false,
+     "turns": 6,
+     "costUsd": 0.0440664,
+     "seconds": 24,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 10870,
+     "cond": "B",
+     "files": [
+      "docs/api/expect.md",
+      "packages/expect/src/jest-expect.ts",
+      "packages/expect/src/types.ts",
+      "test/unit/test/fn.test.ts",
+      "docs/api/mock.md"
+     ],
+     "truth": [
+      "packages/expect/src/types.ts"
+     ],
+     "rank": 3,
+     "testFile": false,
+     "needsTest": false,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 0.2,
+     "usedGroundwork": true,
+     "turns": 5,
+     "costUsd": 0.0508642,
+     "seconds": 21,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 10697,
+     "cond": "A",
+     "files": [
+      "packages/vitest/src/typecheck/typechecker.ts",
+      "packages/vitest/src/node/pools/typecheck.ts",
+      "packages/vitest/src/typecheck/parse.ts"
+     ],
+     "truth": [
+      "test/typescript/test/typechecker.test.ts",
+      "test/typescript/fixtures/typecheck-crash/tsconfig.json",
+      "test/typescript/fixtures/typecheck-crash/test/ok.test-d.ts",
+      "test/typescript/fixtures/typecheck-crash/fake-tsc.mjs",
+      "packages/vitest/src/typecheck/typechecker.ts",
+      "packages/vitest/src/node/pools/workers/typecheckWorker.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.16666666666666666,
+     "precision": 0.3333333333333333,
+     "usedGroundwork": false,
+     "turns": 4,
+     "costUsd": 0.0389175,
+     "seconds": 14,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 10697,
+     "cond": "B",
+     "files": [
+      "packages/vitest/src/typecheck/typechecker.ts",
+      "test/typescript/test/typechecker.test.ts",
+      "test/typescript/test/typecheck-error.test.ts"
+     ],
+     "truth": [
+      "test/typescript/test/typechecker.test.ts",
+      "test/typescript/fixtures/typecheck-crash/tsconfig.json",
+      "test/typescript/fixtures/typecheck-crash/test/ok.test-d.ts",
+      "test/typescript/fixtures/typecheck-crash/fake-tsc.mjs",
+      "packages/vitest/src/typecheck/typechecker.ts",
+      "packages/vitest/src/node/pools/workers/typecheckWorker.ts"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.3333333333333333,
+     "precision": 0.6666666666666666,
+     "usedGroundwork": true,
+     "turns": 5,
+     "costUsd": 0.0545777,
+     "seconds": 20,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 10570,
+     "cond": "A",
+     "files": [
+      "packages/vitest/src/node/reporters/blob.ts",
+      "packages/vitest/src/node/reporters/base.ts",
+      "packages/vitest/src/node/core.ts",
+      "packages/vitest/src/node/state.ts"
+     ],
+     "truth": [
+      "test/e2e/test/reporters/merge-reports.test.ts",
+      "packages/vitest/src/node/reporters/blob.ts",
+      "packages/vitest/src/node/core.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.6666666666666666,
+     "precision": 0.5,
+     "usedGroundwork": false,
+     "turns": 6,
+     "costUsd": 0.0738007,
+     "seconds": 15,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 10570,
+     "cond": "B",
+     "files": [
+      "packages/vitest/src/node/reporters/blob.ts",
+      "packages/vitest/src/node/core.ts",
+      "test/e2e/test/reporters/merge-reports.test.ts",
+      "packages/vitest/src/node/state.ts",
+      "packages/vitest/src/node/reporters/base.ts"
+     ],
+     "truth": [
+      "test/e2e/test/reporters/merge-reports.test.ts",
+      "packages/vitest/src/node/reporters/blob.ts",
+      "packages/vitest/src/node/core.ts"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 0.6,
+     "usedGroundwork": true,
+     "turns": 10,
+     "costUsd": 0.1064559,
+     "seconds": 32,
+     "leaked": false
+    }
+   ]
+  },
+  "named": {
+   "about": "Tickets as filed on GitHub, which usually name the code involved",
+   "total": {
+    "agentAlone": {
+     "tickets": 40,
+     "firstFileCorrect": 37,
+     "hitAt5": 38,
+     "testFileFound": 12,
+     "ticketsWhoseFixChangedATest": 35,
+     "wholeFixInTop5": 15,
+     "fixFilesCoveredPct": 60,
+     "precisionPct": 70.8,
+     "calledPlanTicket": 0,
+     "costUsd": 1.54,
+     "meanSeconds": 36.4,
+     "leaked": 0
+    },
+    "agentWithGroundwork": {
+     "tickets": 40,
+     "firstFileCorrect": 37,
+     "hitAt5": 38,
+     "testFileFound": 18,
+     "ticketsWhoseFixChangedATest": 35,
+     "wholeFixInTop5": 20,
+     "fixFilesCoveredPct": 67.4,
+     "precisionPct": 55.4,
+     "calledPlanTicket": 40,
+     "costUsd": 2,
+     "meanSeconds": 31.7,
+     "leaked": 0
+    }
+   },
+   "hono": {
+    "agentAlone": {
+     "tickets": 20,
+     "firstFileCorrect": 18,
+     "hitAt5": 19,
+     "testFileFound": 12,
+     "ticketsWhoseFixChangedATest": 16,
+     "wholeFixInTop5": 14,
+     "fixFilesCoveredPct": 78.7,
+     "precisionPct": 71.3,
+     "calledPlanTicket": 0,
+     "costUsd": 0.41,
+     "meanSeconds": 23.4,
+     "leaked": 0
+    },
+    "agentWithGroundwork": {
+     "tickets": 20,
+     "firstFileCorrect": 18,
+     "hitAt5": 19,
+     "testFileFound": 14,
+     "ticketsWhoseFixChangedATest": 16,
+     "wholeFixInTop5": 16,
+     "fixFilesCoveredPct": 87.1,
+     "precisionPct": 60.3,
+     "calledPlanTicket": 20,
+     "costUsd": 0.6,
+     "meanSeconds": 35,
+     "leaked": 0
+    }
+   },
+   "vitest": {
+    "agentAlone": {
+     "tickets": 20,
+     "firstFileCorrect": 19,
+     "hitAt5": 19,
+     "testFileFound": 0,
+     "ticketsWhoseFixChangedATest": 19,
+     "wholeFixInTop5": 1,
+     "fixFilesCoveredPct": 41.4,
+     "precisionPct": 70.3,
+     "calledPlanTicket": 0,
+     "costUsd": 1.13,
+     "meanSeconds": 49.4,
+     "leaked": 0
+    },
+    "agentWithGroundwork": {
+     "tickets": 20,
+     "firstFileCorrect": 19,
+     "hitAt5": 19,
+     "testFileFound": 4,
+     "ticketsWhoseFixChangedATest": 19,
+     "wholeFixInTop5": 4,
+     "fixFilesCoveredPct": 47.7,
+     "precisionPct": 50.4,
+     "calledPlanTicket": 20,
+     "costUsd": 1.4,
+     "meanSeconds": 28.5,
+     "leaked": 0
+    }
+   },
+   "runs": [
+    {
+     "repo": "honojs/hono",
+     "issue": 5663,
+     "cond": "A",
+     "files": [
+      "src/utils/types.ts",
+      "src/utils/types.test.ts"
+     ],
+     "truth": [
+      "src/utils/types.ts",
+      "build/json-parsed-exact.test.ts",
+      "build/fixtures/json-parsed-exact/tsconfig.json",
+      "build/fixtures/json-parsed-exact/index.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.25,
+     "precision": 0.5,
+     "usedGroundwork": false,
+     "turns": 2,
+     "costUsd": 0.0193451,
+     "seconds": 8,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 5663,
+     "cond": "B",
+     "files": [
+      "src/utils/types.ts",
+      "src/utils/types.test.ts",
+      "src/client/client.test.ts",
+      "src/types.test.ts",
+      "deno_dist/utils/types.ts"
+     ],
+     "truth": [
+      "src/utils/types.ts",
+      "build/json-parsed-exact.test.ts",
+      "build/fixtures/json-parsed-exact/tsconfig.json",
+      "build/fixtures/json-parsed-exact/index.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.25,
+     "precision": 0.2,
+     "usedGroundwork": true,
+     "turns": 3,
+     "costUsd": 0.028784100000000003,
+     "seconds": 16,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 5622,
+     "cond": "A",
+     "files": [
+      "src/helper/proxy/index.ts",
+      "src/helper/proxy/index.test.ts"
+     ],
+     "truth": [
+      "src/helper/proxy/index.ts",
+      "src/helper/proxy/index.test.ts"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 1,
+     "usedGroundwork": false,
+     "turns": 2,
+     "costUsd": 0.0129792,
+     "seconds": 9,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 5622,
+     "cond": "B",
+     "files": [
+      "src/helper/proxy/index.ts",
+      "src/helper/proxy/index.test.ts"
+     ],
+     "truth": [
+      "src/helper/proxy/index.ts",
+      "src/helper/proxy/index.test.ts"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 1,
+     "usedGroundwork": true,
+     "turns": 3,
+     "costUsd": 0.0262024,
+     "seconds": 80,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 5586,
+     "cond": "A",
+     "files": [
+      "src/context.ts"
+     ],
+     "truth": [
+      "src/context.ts",
+      "src/context.test.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.5,
+     "precision": 1,
+     "usedGroundwork": false,
+     "turns": 4,
+     "costUsd": 0.0207733,
+     "seconds": 11,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 5586,
+     "cond": "B",
+     "files": [
+      "src/context.ts",
+      "src/context.test.ts",
+      "deno_dist/context.ts"
+     ],
+     "truth": [
+      "src/context.ts",
+      "src/context.test.ts"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 0.6666666666666666,
+     "usedGroundwork": true,
+     "turns": 5,
+     "costUsd": 0.0342796,
+     "seconds": 19,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 5551,
+     "cond": "A",
+     "files": [
+      "src/helper/testing/index.ts",
+      "src/client/index.ts",
+      "src/client/types.ts"
+     ],
+     "truth": [
+      "vite.config.ts",
+      "src/helper/testing/index.ts",
+      "build/fixtures/declaration-emit/index.ts",
+      "build/dts-plugins.ts",
+      "build/declaration-emit.test.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.2,
+     "precision": 0.3333333333333333,
+     "usedGroundwork": false,
+     "turns": 3,
+     "costUsd": 0.0202962,
+     "seconds": 16,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 5551,
+     "cond": "B",
+     "files": [
+      "build/dts-plugins.ts",
+      "vite.config.ts",
+      "src/client/types.ts",
+      "src/client/index.ts",
+      "src/helper/testing/index.ts"
+     ],
+     "truth": [
+      "vite.config.ts",
+      "src/helper/testing/index.ts",
+      "build/fixtures/declaration-emit/index.ts",
+      "build/dts-plugins.ts",
+      "build/declaration-emit.test.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.6,
+     "precision": 0.6,
+     "usedGroundwork": true,
+     "turns": 3,
+     "costUsd": 0.035519400000000007,
+     "seconds": 20,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 5403,
+     "cond": "A",
+     "files": [
+      "src/adapter/aws-lambda/handler.ts",
+      "src/adapter/aws-lambda/handler.test.ts"
+     ],
+     "truth": [
+      "src/adapter/aws-lambda/handler.ts",
+      "src/adapter/aws-lambda/handler.test.ts"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 1,
+     "usedGroundwork": false,
+     "turns": 2,
+     "costUsd": 0.0141538,
+     "seconds": 7,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 5403,
+     "cond": "B",
+     "files": [
+      "src/adapter/aws-lambda/handler.ts",
+      "src/adapter/aws-lambda/handler.test.ts"
+     ],
+     "truth": [
+      "src/adapter/aws-lambda/handler.ts",
+      "src/adapter/aws-lambda/handler.test.ts"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 1,
+     "usedGroundwork": true,
+     "turns": 3,
+     "costUsd": 0.024803,
+     "seconds": 59,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 5262,
+     "cond": "A",
+     "files": [
+      "src/jsx/dom/render.ts",
+      "src/jsx/dom/index.test.tsx"
+     ],
+     "truth": [
+      "src/jsx/dom/render.ts",
+      "src/jsx/dom/index.test.tsx"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 1,
+     "usedGroundwork": false,
+     "turns": 1,
+     "costUsd": 0.0100869,
+     "seconds": 10,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 5262,
+     "cond": "B",
+     "files": [
+      "src/jsx/dom/render.ts",
+      "src/jsx/dom/index.test.tsx"
+     ],
+     "truth": [
+      "src/jsx/dom/render.ts",
+      "src/jsx/dom/index.test.tsx"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 1,
+     "usedGroundwork": true,
+     "turns": 3,
+     "costUsd": 0.0245389,
+     "seconds": 14,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 5089,
+     "cond": "A",
+     "files": [
+      "src/client/client.ts",
+      "src/client/utils.ts",
+      "src/client/client.test.ts",
+      "src/client/utils.test.ts",
+      "src/client/types.ts"
+     ],
+     "truth": [
+      "src/client/client.ts",
+      "src/client/client.test.ts"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 0.4,
+     "usedGroundwork": false,
+     "turns": 4,
+     "costUsd": 0.030486100000000002,
+     "seconds": 11,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 5089,
+     "cond": "B",
+     "files": [
+      "src/client/client.ts",
+      "src/client/client.test.ts",
+      "src/client/utils.ts",
+      "src/client/types.ts"
+     ],
+     "truth": [
+      "src/client/client.ts",
+      "src/client/client.test.ts"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 0.5,
+     "usedGroundwork": true,
+     "turns": 5,
+     "costUsd": 0.0343648,
+     "seconds": 18,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 4946,
+     "cond": "A",
+     "files": [
+      "src/middleware/compress/index.ts",
+      "src/utils/compress.ts",
+      "src/middleware/compress/index.test.ts"
+     ],
+     "truth": [
+      "src/middleware/compress/index.ts",
+      "src/middleware/compress/index.test.ts"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 0.6666666666666666,
+     "usedGroundwork": false,
+     "turns": 3,
+     "costUsd": 0.01656,
+     "seconds": 17,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 4946,
+     "cond": "B",
+     "files": [
+      "src/middleware/compress/index.ts",
+      "src/middleware/compress/index.test.ts",
+      "src/utils/compress.ts"
+     ],
+     "truth": [
+      "src/middleware/compress/index.ts",
+      "src/middleware/compress/index.test.ts"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 0.6666666666666666,
+     "usedGroundwork": true,
+     "turns": 3,
+     "costUsd": 0.026661800000000003,
+     "seconds": 16,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 4811,
+     "cond": "A",
+     "files": [
+      "src/middleware/cors/index.ts",
+      "src/middleware/cors/index.test.ts"
+     ],
+     "truth": [
+      "src/middleware/cors/index.ts",
+      "src/middleware/cors/index.test.ts"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 1,
+     "usedGroundwork": false,
+     "turns": 2,
+     "costUsd": 0.018127499999999998,
+     "seconds": 15,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 4811,
+     "cond": "B",
+     "files": [
+      "src/middleware/cors/index.ts",
+      "src/middleware/cors/index.test.ts"
+     ],
+     "truth": [
+      "src/middleware/cors/index.ts",
+      "src/middleware/cors/index.test.ts"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 1,
+     "usedGroundwork": true,
+     "turns": 3,
+     "costUsd": 0.027502699999999998,
+     "seconds": 14,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 4640,
+     "cond": "A",
+     "files": [
+      "src/middleware/jwk/jwk.ts",
+      "src/utils/jwt/jwt.ts",
+      "src/utils/jwt/jwa.ts",
+      "src/middleware/jwt/index.ts"
+     ],
+     "truth": [
+      "src/request/constants.ts"
+     ],
+     "rank": null,
+     "testFile": false,
+     "needsTest": false,
+     "wholeFix": false,
+     "covered": 0,
+     "precision": 0,
+     "usedGroundwork": false,
+     "turns": 5,
+     "costUsd": 0.0418274,
+     "seconds": 63,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 4640,
+     "cond": "B",
+     "files": [
+      "src/middleware/jwk/jwk.ts",
+      "src/utils/jwt/jwt.ts",
+      "src/utils/jwt/types.ts",
+      "src/middleware/jwt/index.ts",
+      "package.json"
+     ],
+     "truth": [
+      "src/request/constants.ts"
+     ],
+     "rank": null,
+     "testFile": false,
+     "needsTest": false,
+     "wholeFix": false,
+     "covered": 0,
+     "precision": 0,
+     "usedGroundwork": true,
+     "turns": 5,
+     "costUsd": 0.0468237,
+     "seconds": 139,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 4510,
+     "cond": "A",
+     "files": [
+      "src/utils/mime.ts",
+      "src/utils/mime.test.ts"
+     ],
+     "truth": [
+      "src/utils/mime.ts",
+      "src/utils/mime.test.ts"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 1,
+     "usedGroundwork": false,
+     "turns": 4,
+     "costUsd": 0.021200700000000003,
+     "seconds": 11,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 4510,
+     "cond": "B",
+     "files": [
+      "src/utils/mime.ts",
+      "src/utils/mime.test.ts",
+      "src/helper/ssg/ssg.ts",
+      "src/middleware/serve-static/index.ts",
+      "src/helper/ssg/ssg.test.tsx"
+     ],
+     "truth": [
+      "src/utils/mime.ts",
+      "src/utils/mime.test.ts"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 0.4,
+     "usedGroundwork": true,
+     "turns": 3,
+     "costUsd": 0.0298496,
+     "seconds": 17,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 4427,
+     "cond": "A",
+     "files": [
+      "src/utils/types.ts",
+      "src/context.ts",
+      "src/types.ts",
+      "src/hono-base.ts",
+      "src/utils/types.test.ts"
+     ],
+     "truth": [
+      "src/context.ts"
+     ],
+     "rank": 2,
+     "testFile": false,
+     "needsTest": false,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 0.2,
+     "usedGroundwork": false,
+     "turns": 2,
+     "costUsd": 0.0129428,
+     "seconds": 8,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 4427,
+     "cond": "B",
+     "files": [
+      "src/utils/types.ts",
+      "src/context.ts",
+      "src/utils/types.test.ts",
+      "src/client/client.test.ts",
+      "src/types.test.ts"
+     ],
+     "truth": [
+      "src/context.ts"
+     ],
+     "rank": 2,
+     "testFile": false,
+     "needsTest": false,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 0.2,
+     "usedGroundwork": true,
+     "turns": 4,
+     "costUsd": 0.032366400000000004,
+     "seconds": 22,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 4324,
+     "cond": "A",
+     "files": [
+      "src/adapter/service-worker/handler.ts",
+      "src/adapter/service-worker/handler.test.ts",
+      "src/hono-base.ts"
+     ],
+     "truth": [
+      "src/adapter/service-worker/handler.ts",
+      "src/adapter/service-worker/handler.test.ts"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 0.6666666666666666,
+     "usedGroundwork": false,
+     "turns": 3,
+     "costUsd": 0.023552499999999997,
+     "seconds": 11,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 4324,
+     "cond": "B",
+     "files": [
+      "src/adapter/service-worker/handler.ts",
+      "src/adapter/service-worker/types.ts",
+      "src/adapter/service-worker/handler.test.ts",
+      "src/adapter/service-worker/index.ts",
+      "src/hono-base.ts"
+     ],
+     "truth": [
+      "src/adapter/service-worker/handler.ts",
+      "src/adapter/service-worker/handler.test.ts"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 0.4,
+     "usedGroundwork": true,
+     "turns": 6,
+     "costUsd": 0.0368229,
+     "seconds": 23,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 4235,
+     "cond": "A",
+     "files": [
+      "src/jsx/base.ts",
+      "src/compose.ts",
+      "src/hono-base.ts"
+     ],
+     "truth": [
+      "src/jsx/index.test.tsx",
+      "src/jsx/base.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.5,
+     "precision": 0.3333333333333333,
+     "usedGroundwork": false,
+     "turns": 3,
+     "costUsd": 0.0202999,
+     "seconds": 13,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 4235,
+     "cond": "B",
+     "files": [
+      "src/jsx/base.ts",
+      "src/hono-base.ts",
+      "src/jsx/index.test.tsx",
+      "src/hono.test.ts",
+      "deno_dist/hono-base.ts"
+     ],
+     "truth": [
+      "src/jsx/index.test.tsx",
+      "src/jsx/base.ts"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 0.4,
+     "usedGroundwork": true,
+     "turns": 4,
+     "costUsd": 0.0292328,
+     "seconds": 15,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 4170,
+     "cond": "A",
+     "files": [
+      "src/middleware/etag/index.ts",
+      "src/middleware/etag/index.test.ts"
+     ],
+     "truth": [
+      "src/middleware/etag/index.ts",
+      "src/middleware/etag/index.test.ts"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 1,
+     "usedGroundwork": false,
+     "turns": 2,
+     "costUsd": 0.012876599999999998,
+     "seconds": 29,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 4170,
+     "cond": "B",
+     "files": [
+      "src/middleware/etag/index.ts",
+      "src/middleware/etag/index.test.ts"
+     ],
+     "truth": [
+      "src/middleware/etag/index.ts",
+      "src/middleware/etag/index.test.ts"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 1,
+     "usedGroundwork": true,
+     "turns": 3,
+     "costUsd": 0.024291800000000002,
+     "seconds": 14,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 3998,
+     "cond": "A",
+     "files": [
+      "src/adapter/bun/index.ts"
+     ],
+     "truth": [
+      "src/adapter/bun/index.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": false,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 1,
+     "usedGroundwork": false,
+     "turns": 2,
+     "costUsd": 0.0130867,
+     "seconds": 13,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 3998,
+     "cond": "B",
+     "files": [
+      "src/adapter/bun/index.ts",
+      "src/adapter/bun/websocket.ts"
+     ],
+     "truth": [
+      "src/adapter/bun/index.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": false,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 0.5,
+     "usedGroundwork": true,
+     "turns": 3,
+     "costUsd": 0.0242399,
+     "seconds": 58,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 3909,
+     "cond": "A",
+     "files": [
+      "src/utils/url.ts",
+      "src/utils/url.test.ts"
+     ],
+     "truth": [
+      "src/utils/url.ts",
+      "src/utils/url.test.ts"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 1,
+     "usedGroundwork": false,
+     "turns": 2,
+     "costUsd": 0.0151159,
+     "seconds": 13,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 3909,
+     "cond": "B",
+     "files": [
+      "src/utils/url.ts",
+      "src/utils/url.test.ts"
+     ],
+     "truth": [
+      "src/utils/url.ts",
+      "src/utils/url.test.ts"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 1,
+     "usedGroundwork": true,
+     "turns": 3,
+     "costUsd": 0.026881099999999998,
+     "seconds": 81,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 3795,
+     "cond": "A",
+     "files": [
+      "src/types.ts",
+      "src/hono-base.ts",
+      "src/types.test.ts"
+     ],
+     "truth": [
+      "src/types.ts",
+      "src/types.test.ts"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 0.6666666666666666,
+     "usedGroundwork": false,
+     "turns": 6,
+     "costUsd": 0.0417214,
+     "seconds": 112,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 3795,
+     "cond": "B",
+     "files": [
+      "src/types.ts",
+      "src/types.test.ts",
+      "src/hono.test.ts",
+      "src/hono-base.ts",
+      "src/helper/factory/index.ts"
+     ],
+     "truth": [
+      "src/types.ts",
+      "src/types.test.ts"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 0.4,
+     "usedGroundwork": true,
+     "turns": 3,
+     "costUsd": 0.0302534,
+     "seconds": 37,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 3694,
+     "cond": "A",
+     "files": [
+      "src/helper/css/index.ts",
+      "src/helper/css/index.test.tsx"
+     ],
+     "truth": [
+      "src/utils/html.ts",
+      "src/jsx/dom/css.ts",
+      "src/jsx/dom/css.test.tsx",
+      "src/helper/css/index.ts",
+      "src/helper/css/index.test.tsx",
+      "src/helper/css/common.case.test.tsx",
+      "runtime-tests/deno-jsx/jsx.test.tsx"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.2857142857142857,
+     "precision": 1,
+     "usedGroundwork": false,
+     "turns": 3,
+     "costUsd": 0.025270700000000004,
+     "seconds": 11,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 3694,
+     "cond": "B",
+     "files": [
+      "src/helper/css/index.ts",
+      "src/helper/css/index.test.tsx",
+      "src/helper/css/common.ts",
+      "src/jsx/dom/css.ts",
+      "src/helper/css/common.case.test.tsx"
+     ],
+     "truth": [
+      "src/utils/html.ts",
+      "src/jsx/dom/css.ts",
+      "src/jsx/dom/css.test.tsx",
+      "src/helper/css/index.ts",
+      "src/helper/css/index.test.tsx",
+      "src/helper/css/common.case.test.tsx",
+      "runtime-tests/deno-jsx/jsx.test.tsx"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.5714285714285714,
+     "precision": 0.8,
+     "usedGroundwork": true,
+     "turns": 3,
+     "costUsd": 0.0267142,
+     "seconds": 17,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 3553,
+     "cond": "A",
+     "files": [
+      "src/adapter/bun/websocket.ts",
+      "src/adapter/bun/server.ts"
+     ],
+     "truth": [
+      "src/adapter/bun/websocket.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": false,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 0.5,
+     "usedGroundwork": false,
+     "turns": 3,
+     "costUsd": 0.0212779,
+     "seconds": 80,
+     "leaked": false
+    },
+    {
+     "repo": "honojs/hono",
+     "issue": 3553,
+     "cond": "B",
+     "files": [
+      "src/adapter/bun/websocket.ts",
+      "src/adapter/bun/server.ts",
+      "src/helper/websocket/index.ts"
+     ],
+     "truth": [
+      "src/adapter/bun/websocket.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": false,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 0.3333333333333333,
+     "usedGroundwork": true,
+     "turns": 3,
+     "costUsd": 0.03303590000000001,
+     "seconds": 20,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 12037,
+     "cond": "A",
+     "files": [
+      "packages/vitest/src/node/pools/workers/forksWorker.ts",
+      "packages/vitest/src/node/pools/watchdog.ts"
+     ],
+     "truth": [
+      "test/e2e/test/pool.test.ts",
+      "packages/vitest/src/node/pools/workers/forksWorker.ts",
+      "packages/vitest/src/node/pools/watchdog.ts",
+      "packages/vitest/src/node/pools/pool.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.5,
+     "precision": 1,
+     "usedGroundwork": false,
+     "turns": 3,
+     "costUsd": 0.05858669999999999,
+     "seconds": 14,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 12037,
+     "cond": "B",
+     "files": [
+      "packages/vitest/src/node/pools/workers/forksWorker.ts",
+      "packages/vitest/src/node/pools/watchdog.ts",
+      "test/e2e/test/pool-worker-exit.test.ts",
+      "packages/vitest/src/node/pools/poolRunner.ts"
+     ],
+     "truth": [
+      "test/e2e/test/pool.test.ts",
+      "packages/vitest/src/node/pools/workers/forksWorker.ts",
+      "packages/vitest/src/node/pools/watchdog.ts",
+      "packages/vitest/src/node/pools/pool.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.5,
+     "precision": 0.5,
+     "usedGroundwork": true,
+     "turns": 3,
+     "costUsd": 0.0874494,
+     "seconds": 18,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 11921,
+     "cond": "A",
+     "files": [
+      "packages/coverage-v8/src/provider.ts"
+     ],
+     "truth": [
+      "test/coverage-test/test/source-maps.test.ts",
+      "test/coverage-test/fixtures/test/end-mapping-fixture.test.ts",
+      "test/coverage-test/fixtures/src/end-mapping.ts",
+      "test/coverage-test/fixtures/src/end-mapping-dependency.ts",
+      "pnpm-workspace.yaml"
+     ],
+     "rank": null,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0,
+     "precision": 0,
+     "usedGroundwork": false,
+     "turns": 4,
+     "costUsd": 0.0640492,
+     "seconds": 40,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 11921,
+     "cond": "B",
+     "files": [
+      "packages/coverage-v8/src/provider.ts",
+      "packages/vitest/src/node/coverage.ts",
+      "test/coverage-test/test/results-snapshot.test.ts",
+      "packages/coverage-v8/src/browser.ts",
+      "packages/coverage-v8/src/commands.ts"
+     ],
+     "truth": [
+      "test/coverage-test/test/source-maps.test.ts",
+      "test/coverage-test/fixtures/test/end-mapping-fixture.test.ts",
+      "test/coverage-test/fixtures/src/end-mapping.ts",
+      "test/coverage-test/fixtures/src/end-mapping-dependency.ts",
+      "pnpm-workspace.yaml"
+     ],
+     "rank": null,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0,
+     "precision": 0,
+     "usedGroundwork": true,
+     "turns": 3,
+     "costUsd": 0.059141900000000004,
+     "seconds": 17,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 11812,
+     "cond": "A",
+     "files": [
+      "packages/coverage-v8/src/provider.ts",
+      "packages/coverage-v8/src/index.ts",
+      "packages/vitest/src/runtime/moduleRunner/moduleEvaluator.ts"
+     ],
+     "truth": [
+      "test/coverage-test/test/extended-run-context.v8.test.ts",
+      "test/coverage-test/fixtures/test/worker-and-child-process.test.ts",
+      "test/coverage-test/fixtures/src/worker-and-process.js",
+      "test/coverage-test/fixtures/src/worker-and-process.child.js",
+      "packages/coverage-v8/src/provider.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.2,
+     "precision": 0.3333333333333333,
+     "usedGroundwork": false,
+     "turns": 6,
+     "costUsd": 0.08537299999999999,
+     "seconds": 83,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 11812,
+     "cond": "B",
+     "files": [
+      "packages/coverage-v8/src/provider.ts",
+      "packages/coverage-v8/src/index.ts"
+     ],
+     "truth": [
+      "test/coverage-test/test/extended-run-context.v8.test.ts",
+      "test/coverage-test/fixtures/test/worker-and-child-process.test.ts",
+      "test/coverage-test/fixtures/src/worker-and-process.js",
+      "test/coverage-test/fixtures/src/worker-and-process.child.js",
+      "packages/coverage-v8/src/provider.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.2,
+     "precision": 0.5,
+     "usedGroundwork": true,
+     "turns": 8,
+     "costUsd": 0.1045457,
+     "seconds": 34,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 11717,
+     "cond": "A",
+     "files": [
+      "packages/vitest/src/node/environments/transformService.ts",
+      "packages/vitest/src/runtime/moduleRunner/moduleRunner.ts",
+      "packages/vitest/src/node/cache/fsModuleCache.ts",
+      "packages/vitest/src/runtime/moduleRunner/evaluatedModules.ts",
+      "packages/vitest/src/node/cli/cli-config.ts"
+     ],
+     "truth": [
+      "test/e2e/test/override.test.ts",
+      "test/e2e/test/module-source-map.test.ts",
+      "test/e2e/test/inspect.test.ts",
+      "test/e2e/test/fs-module-cache-manifest.test.ts",
+      "packages/web-worker/src/runner.ts",
+      "packages/vitest/src/utils/moduleSourceMap.ts",
+      "packages/vitest/src/types/rpc.ts",
+      "packages/vitest/src/types/general.ts",
+      "packages/vitest/src/runtime/moduleRunner/startVitestModuleRunner.ts",
+      "packages/vitest/src/runtime/moduleRunner/moduleTransport.ts",
+      "packages/vitest/src/runtime/moduleRunner/moduleEvaluator.ts",
+      "packages/vitest/src/runtime/moduleRunner/evaluatedModules.ts",
+      "packages/vitest/src/runtime/inspector.ts",
+      "packages/vitest/src/runtime/config.ts",
+      "packages/vitest/src/node/types/config.ts",
+      "packages/vitest/src/node/environments/transformService.ts",
+      "packages/vitest/src/node/environments/serverRunner.ts",
+      "packages/vitest/src/node/config/resolveConfig.ts",
+      "packages/vitest/src/node/cache/fsModuleCache.ts",
+      "packages/vitest/src/integrations/env/loader.ts",
+      "packages/utils/src/source-map.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.14285714285714285,
+     "precision": 0.6,
+     "usedGroundwork": false,
+     "turns": 6,
+     "costUsd": 0.06491649999999999,
+     "seconds": 14,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 11717,
+     "cond": "B",
+     "files": [
+      "packages/vitest/src/node/environments/transformService.ts",
+      "packages/vitest/src/runtime/moduleRunner/moduleEvaluator.ts",
+      "packages/vitest/src/node/cache/fsModuleCache.ts",
+      "packages/vitest/src/runtime/moduleRunner/startVitestModuleRunner.ts",
+      "packages/vitest/src/node/cli/cli-config.ts"
+     ],
+     "truth": [
+      "test/e2e/test/override.test.ts",
+      "test/e2e/test/module-source-map.test.ts",
+      "test/e2e/test/inspect.test.ts",
+      "test/e2e/test/fs-module-cache-manifest.test.ts",
+      "packages/web-worker/src/runner.ts",
+      "packages/vitest/src/utils/moduleSourceMap.ts",
+      "packages/vitest/src/types/rpc.ts",
+      "packages/vitest/src/types/general.ts",
+      "packages/vitest/src/runtime/moduleRunner/startVitestModuleRunner.ts",
+      "packages/vitest/src/runtime/moduleRunner/moduleTransport.ts",
+      "packages/vitest/src/runtime/moduleRunner/moduleEvaluator.ts",
+      "packages/vitest/src/runtime/moduleRunner/evaluatedModules.ts",
+      "packages/vitest/src/runtime/inspector.ts",
+      "packages/vitest/src/runtime/config.ts",
+      "packages/vitest/src/node/types/config.ts",
+      "packages/vitest/src/node/environments/transformService.ts",
+      "packages/vitest/src/node/environments/serverRunner.ts",
+      "packages/vitest/src/node/config/resolveConfig.ts",
+      "packages/vitest/src/node/cache/fsModuleCache.ts",
+      "packages/vitest/src/integrations/env/loader.ts",
+      "packages/utils/src/source-map.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.19047619047619047,
+     "precision": 0.8,
+     "usedGroundwork": true,
+     "turns": 7,
+     "costUsd": 0.0853351,
+     "seconds": 47,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 11656,
+     "cond": "A",
+     "files": [
+      "packages/browser/src/node/commands/screenshotMatcher/index.ts",
+      "packages/browser/src/node/commands/screenshotMatcher/utils.ts"
+     ],
+     "truth": [
+      "test/browser/specs/to-match-screenshot.test.ts",
+      "packages/browser/src/node/commands/screenshotMatcher/utils.ts",
+      "packages/browser/src/node/commands/screenshotMatcher/index.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.6666666666666666,
+     "precision": 1,
+     "usedGroundwork": false,
+     "turns": 4,
+     "costUsd": 0.0547698,
+     "seconds": 11,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 11656,
+     "cond": "B",
+     "files": [
+      "packages/browser/src/node/commands/screenshotMatcher/index.ts",
+      "packages/browser/src/node/commands/screenshotMatcher/utils.ts",
+      "test/browser/specs/to-match-screenshot.test.ts"
+     ],
+     "truth": [
+      "test/browser/specs/to-match-screenshot.test.ts",
+      "packages/browser/src/node/commands/screenshotMatcher/utils.ts",
+      "packages/browser/src/node/commands/screenshotMatcher/index.ts"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 1,
+     "usedGroundwork": true,
+     "turns": 3,
+     "costUsd": 0.0581425,
+     "seconds": 18,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 11566,
+     "cond": "A",
+     "files": [
+      "packages/vitest/src/node/affected-modules.ts",
+      "packages/vitest/src/node/specifications.ts",
+      "packages/vitest/src/node/vcs/git.ts"
+     ],
+     "truth": [
+      "test/e2e/test/related-deps.test.ts",
+      "packages/vitest/src/node/affected-modules.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.5,
+     "precision": 0.3333333333333333,
+     "usedGroundwork": false,
+     "turns": 5,
+     "costUsd": 0.0681406,
+     "seconds": 20,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 11566,
+     "cond": "B",
+     "files": [
+      "packages/vitest/src/node/affected-modules.ts",
+      "packages/vitest/src/node/specifications.ts",
+      "packages/vitest/src/node/core.ts"
+     ],
+     "truth": [
+      "test/e2e/test/related-deps.test.ts",
+      "packages/vitest/src/node/affected-modules.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.5,
+     "precision": 0.3333333333333333,
+     "usedGroundwork": true,
+     "turns": 3,
+     "costUsd": 0.0611819,
+     "seconds": 21,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 11495,
+     "cond": "A",
+     "files": [
+      "packages/vitest/src/runtime/runBaseTests.ts",
+      "packages/vitest/src/runtime/utils.ts",
+      "packages/vitest/src/runtime/moduleRunner/moduleMocker.ts",
+      "packages/vitest/src/runtime/moduleRunner/bareModuleMocker.ts",
+      "packages/vitest/src/runtime/runVmTests.ts"
+     ],
+     "truth": [
+      "test/e2e/test/mocking.test.ts",
+      "packages/vitest/src/runtime/runVmTests.ts",
+      "packages/vitest/src/runtime/runBaseTests.ts",
+      "packages/vitest/src/runtime/moduleRunner/startVitestModuleRunner.ts",
+      "packages/vitest/src/runtime/moduleRunner/moduleRunner.ts",
+      "packages/vitest/src/runtime/moduleRunner/moduleMocker.ts",
+      "packages/vitest/src/runtime/moduleRunner/bareModuleMocker.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.5714285714285714,
+     "precision": 0.8,
+     "usedGroundwork": false,
+     "turns": 5,
+     "costUsd": 0.06635590000000001,
+     "seconds": 85,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 11495,
+     "cond": "B",
+     "files": [
+      "packages/vitest/src/runtime/moduleRunner/moduleMocker.ts",
+      "packages/vitest/src/runtime/moduleRunner/moduleRunner.ts",
+      "packages/vitest/src/runtime/moduleRunner/startVitestModuleRunner.ts",
+      "packages/vitest/src/runtime/moduleRunner/bareModuleMocker.ts",
+      "test/e2e/test/vm-threads.test.ts"
+     ],
+     "truth": [
+      "test/e2e/test/mocking.test.ts",
+      "packages/vitest/src/runtime/runVmTests.ts",
+      "packages/vitest/src/runtime/runBaseTests.ts",
+      "packages/vitest/src/runtime/moduleRunner/startVitestModuleRunner.ts",
+      "packages/vitest/src/runtime/moduleRunner/moduleRunner.ts",
+      "packages/vitest/src/runtime/moduleRunner/moduleMocker.ts",
+      "packages/vitest/src/runtime/moduleRunner/bareModuleMocker.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.5714285714285714,
+     "precision": 0.8,
+     "usedGroundwork": true,
+     "turns": 8,
+     "costUsd": 0.11542859999999999,
+     "seconds": 33,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 11382,
+     "cond": "A",
+     "files": [
+      "packages/browser/src/client/tester/expect/toMatchScreenshot.ts"
+     ],
+     "truth": [
+      "test/browser/specs/to-match-screenshot.test.ts",
+      "packages/browser/src/client/tester/expect/toMatchScreenshot.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.5,
+     "precision": 1,
+     "usedGroundwork": false,
+     "turns": 7,
+     "costUsd": 0.10207300000000001,
+     "seconds": 20,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 11382,
+     "cond": "B",
+     "files": [
+      "packages/browser/src/client/tester/expect/toMatchScreenshot.ts",
+      "packages/browser/src/client/tester/runner.ts",
+      "test/browser/specs/to-match-screenshot.test.ts",
+      "test/browser/fixtures/expect-dom/toMatchScreenshot.test.ts",
+      "packages/browser/src/node/commands/screenshotMatcher/index.ts"
+     ],
+     "truth": [
+      "test/browser/specs/to-match-screenshot.test.ts",
+      "packages/browser/src/client/tester/expect/toMatchScreenshot.ts"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 0.4,
+     "usedGroundwork": true,
+     "turns": 8,
+     "costUsd": 0.1021532,
+     "seconds": 26,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 11315,
+     "cond": "A",
+     "files": [
+      "packages/vitest/src/node/config/apiToken.ts",
+      "packages/vitest/src/node/config/resolveConfig.ts"
+     ],
+     "truth": [
+      "test/unit/test/api-token.test.ts",
+      "packages/vitest/src/node/config/apiToken.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.5,
+     "precision": 0.5,
+     "usedGroundwork": false,
+     "turns": 4,
+     "costUsd": 0.0526956,
+     "seconds": 13,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 11315,
+     "cond": "B",
+     "files": [
+      "packages/vitest/src/node/config/apiToken.ts",
+      "packages/browser/src/node/rpc.ts",
+      "packages/vitest/src/node/config/resolveConfig.ts"
+     ],
+     "truth": [
+      "test/unit/test/api-token.test.ts",
+      "packages/vitest/src/node/config/apiToken.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.5,
+     "precision": 0.3333333333333333,
+     "usedGroundwork": true,
+     "turns": 4,
+     "costUsd": 0.0632812,
+     "seconds": 46,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 11246,
+     "cond": "A",
+     "files": [
+      "packages/vitest/src/node/cache/fsModuleCache.ts",
+      "packages/vitest/src/node/environments/fetchModule.ts"
+     ],
+     "truth": [
+      "test/e2e/test/fs-module-cache-invalidation.test.ts",
+      "packages/vitest/src/node/vite.ts",
+      "packages/vitest/src/node/environments/fetchModule.ts",
+      "packages/vitest/src/node/cache/fsModuleCache.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.5,
+     "precision": 1,
+     "usedGroundwork": false,
+     "turns": 5,
+     "costUsd": 0.068976,
+     "seconds": 42,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 11246,
+     "cond": "B",
+     "files": [
+      "packages/vitest/src/node/cache/fsModuleCache.ts",
+      "packages/vitest/src/node/environments/fetchModule.ts",
+      "test/e2e/test/fs-module-cache-resiliency.test.ts",
+      "docs/config/experimental.md"
+     ],
+     "truth": [
+      "test/e2e/test/fs-module-cache-invalidation.test.ts",
+      "packages/vitest/src/node/vite.ts",
+      "packages/vitest/src/node/environments/fetchModule.ts",
+      "packages/vitest/src/node/cache/fsModuleCache.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.5,
+     "precision": 0.5,
+     "usedGroundwork": true,
+     "turns": 3,
+     "costUsd": 0.06071109999999999,
+     "seconds": 34,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 11157,
+     "cond": "A",
+     "files": [
+      "packages/snapshot/src/port/state.ts"
+     ],
+     "truth": [
+      "test/e2e/snapshots/skip-test.test.ts",
+      "packages/snapshot/src/port/state.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.5,
+     "precision": 1,
+     "usedGroundwork": false,
+     "turns": 1,
+     "costUsd": 0.037747,
+     "seconds": 9,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 11157,
+     "cond": "B",
+     "files": [
+      "packages/snapshot/src/port/state.ts",
+      "test/e2e/snapshots/file.test.ts"
+     ],
+     "truth": [
+      "test/e2e/snapshots/skip-test.test.ts",
+      "packages/snapshot/src/port/state.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.5,
+     "precision": 0.5,
+     "usedGroundwork": true,
+     "turns": 4,
+     "costUsd": 0.0605902,
+     "seconds": 21,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 11035,
+     "cond": "A",
+     "files": [
+      "packages/vitest/src/node/plugins/config.ts"
+     ],
+     "truth": [
+      "test/e2e/test/public.test.ts",
+      "test/e2e/test/bail-race.test.ts",
+      "packages/vitest/src/node/plugins/config.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.3333333333333333,
+     "precision": 1,
+     "usedGroundwork": false,
+     "turns": 3,
+     "costUsd": 0.04831049999999999,
+     "seconds": 16,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 11035,
+     "cond": "B",
+     "files": [
+      "packages/vitest/src/node/plugins/config.ts",
+      "test/cli/test/oxc.test.ts"
+     ],
+     "truth": [
+      "test/e2e/test/public.test.ts",
+      "test/e2e/test/bail-race.test.ts",
+      "packages/vitest/src/node/plugins/config.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.3333333333333333,
+     "precision": 0.5,
+     "usedGroundwork": true,
+     "turns": 3,
+     "costUsd": 0.0589513,
+     "seconds": 19,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 10908,
+     "cond": "A",
+     "files": [
+      "packages/vitest/src/node/projects/resolveProjects.ts",
+      "packages/vitest/src/node/plugins/testConfig.ts",
+      "packages/vitest/src/node/config/resolveConfig.ts",
+      "packages/vitest/src/node/project.ts",
+      "packages/vitest/src/node/globalSetup.ts"
+     ],
+     "truth": [
+      "test/test-utils/index.ts",
+      "test/e2e/test/global-setup.test.ts",
+      "test/e2e/test/config/root.test.ts",
+      "test/e2e/fixtures/global-setup-root/vitest.config.ts",
+      "test/e2e/fixtures/global-setup-root/nested/global-setup.ts",
+      "test/e2e/fixtures/global-setup-root/nested/example.test.ts",
+      "packages/vitest/src/node/projects/resolveProjects.ts",
+      "packages/vitest/src/node/plugins/workspace.ts",
+      "packages/vitest/src/node/plugins/utils.ts",
+      "packages/vitest/src/node/plugins/testConfig.ts",
+      "packages/vitest/src/node/plugins/optimizer.ts",
+      "packages/vitest/src/node/plugins/index.ts",
+      "packages/vitest/src/node/plugins/config.ts",
+      "packages/vitest/src/node/config/resolveConfig.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.21428571428571427,
+     "precision": 0.6,
+     "usedGroundwork": false,
+     "turns": 8,
+     "costUsd": 0.08945700000000001,
+     "seconds": 387,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 10908,
+     "cond": "B",
+     "files": [
+      "packages/vitest/src/node/projects/resolveProjects.ts",
+      "packages/vitest/src/node/plugins/testConfig.ts",
+      "packages/vitest/src/node/config/resolveConfig.ts",
+      "packages/vitest/src/node/project.ts",
+      "packages/vitest/src/node/globalSetup.ts"
+     ],
+     "truth": [
+      "test/test-utils/index.ts",
+      "test/e2e/test/global-setup.test.ts",
+      "test/e2e/test/config/root.test.ts",
+      "test/e2e/fixtures/global-setup-root/vitest.config.ts",
+      "test/e2e/fixtures/global-setup-root/nested/global-setup.ts",
+      "test/e2e/fixtures/global-setup-root/nested/example.test.ts",
+      "packages/vitest/src/node/projects/resolveProjects.ts",
+      "packages/vitest/src/node/plugins/workspace.ts",
+      "packages/vitest/src/node/plugins/utils.ts",
+      "packages/vitest/src/node/plugins/testConfig.ts",
+      "packages/vitest/src/node/plugins/optimizer.ts",
+      "packages/vitest/src/node/plugins/index.ts",
+      "packages/vitest/src/node/plugins/config.ts",
+      "packages/vitest/src/node/config/resolveConfig.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.21428571428571427,
+     "precision": 0.6,
+     "usedGroundwork": true,
+     "turns": 11,
+     "costUsd": 0.12212949999999999,
+     "seconds": 33,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 10791,
+     "cond": "A",
+     "files": [
+      "packages/vitest/src/node/pools/browser.ts",
+      "packages/browser/src/client/orchestrator.ts",
+      "packages/browser/src/node/rpc.ts",
+      "packages/browser/src/client/client.ts",
+      "packages/browser/src/types.ts"
+     ],
+     "truth": [
+      "test/browser/specs/heartbeat.test.ts",
+      "test/browser/specs/bail-out.test.ts",
+      "packages/vitest/src/node/pools/browser.ts",
+      "packages/browser/src/node/rpc.ts",
+      "packages/browser-playwright/src/playwright.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.4,
+     "precision": 0.4,
+     "usedGroundwork": false,
+     "turns": 2,
+     "costUsd": 0.0448767,
+     "seconds": 10,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 10791,
+     "cond": "B",
+     "files": [
+      "packages/vitest/src/node/pools/browser.ts",
+      "packages/browser/src/client/orchestrator.ts",
+      "packages/browser/src/node/rpc.ts",
+      "packages/browser/src/client/tester/tester.ts",
+      "packages/browser/src/client/channel.ts"
+     ],
+     "truth": [
+      "test/browser/specs/heartbeat.test.ts",
+      "test/browser/specs/bail-out.test.ts",
+      "packages/vitest/src/node/pools/browser.ts",
+      "packages/browser/src/node/rpc.ts",
+      "packages/browser-playwright/src/playwright.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.4,
+     "precision": 0.4,
+     "usedGroundwork": true,
+     "turns": 3,
+     "costUsd": 0.0628321,
+     "seconds": 20,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 10630,
+     "cond": "A",
+     "files": [
+      "packages/vitest/src/node/plugins/runnerTransform.ts"
+     ],
+     "truth": [
+      "packages/vitest/src/node/plugins/runnerTransform.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": false,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 1,
+     "usedGroundwork": false,
+     "turns": 4,
+     "costUsd": 0.032799499999999995,
+     "seconds": 159,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 10630,
+     "cond": "B",
+     "files": [
+      "packages/vitest/src/node/plugins/runnerTransform.ts",
+      "test/config/test/external.test.ts",
+      "packages/vitest/src/utils/modules.ts"
+     ],
+     "truth": [
+      "packages/vitest/src/node/plugins/runnerTransform.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": false,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 0.3333333333333333,
+     "usedGroundwork": true,
+     "turns": 4,
+     "costUsd": 0.0437356,
+     "seconds": 17,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 10530,
+     "cond": "A",
+     "files": [
+      "packages/vitest/src/runtime/runner/run.ts",
+      "packages/vitest/src/utils/limit-concurrency.ts"
+     ],
+     "truth": [
+      "test/e2e/test/concurrent.test.ts",
+      "packages/vitest/src/runtime/runner/run.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.5,
+     "precision": 0.5,
+     "usedGroundwork": false,
+     "turns": 4,
+     "costUsd": 0.0451927,
+     "seconds": 12,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 10530,
+     "cond": "B",
+     "files": [
+      "packages/vitest/src/runtime/runner/run.ts",
+      "packages/vitest/src/utils/limit-concurrency.ts",
+      "test/e2e/test/concurrent.test.ts",
+      "test/core/test/concurrent-suite.test.ts",
+      "docs/config/maxconcurrency.md"
+     ],
+     "truth": [
+      "test/e2e/test/concurrent.test.ts",
+      "packages/vitest/src/runtime/runner/run.ts"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": true,
+     "covered": 1,
+     "precision": 0.4,
+     "usedGroundwork": true,
+     "turns": 7,
+     "costUsd": 0.06331809999999999,
+     "seconds": 47,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 10396,
+     "cond": "A",
+     "files": [
+      "packages/mocker/src/node/hoistMocks.ts",
+      "packages/mocker/src/node/hoistMocksPlugin.ts"
+     ],
+     "truth": [
+      "test/unit/test/injector-mock.test.ts",
+      "packages/mocker/src/node/hoistMocks.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.5,
+     "precision": 0.5,
+     "usedGroundwork": false,
+     "turns": 3,
+     "costUsd": 0.035206600000000005,
+     "seconds": 11,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 10396,
+     "cond": "B",
+     "files": [
+      "packages/mocker/src/node/hoistMocks.ts",
+      "packages/mocker/src/node/hoistMocksPlugin.ts",
+      "test/core/test/injector-mock.test.ts",
+      "packages/mocker/src/node/esmWalker.ts"
+     ],
+     "truth": [
+      "test/unit/test/injector-mock.test.ts",
+      "packages/mocker/src/node/hoistMocks.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.5,
+     "precision": 0.25,
+     "usedGroundwork": true,
+     "turns": 4,
+     "costUsd": 0.047293299999999996,
+     "seconds": 41,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 10310,
+     "cond": "A",
+     "files": [
+      "packages/browser/src/client/tester/trace.ts",
+      "packages/browser/src/client/tester/runner.ts",
+      "packages/vitest/src/node/types/browser.ts",
+      "packages/vitest/src/node/config/resolveConfig.ts",
+      "packages/vitest/src/node/cli/cli-config.ts"
+     ],
+     "truth": [
+      "test/unit/test/cli-test.test.ts",
+      "test/ui/test/trace.spec.ts",
+      "test/ui/test/trace-failure-only.spec.ts",
+      "test/ui/fixtures/trace/vitest.config.ts",
+      "test/ui/fixtures/trace-stream/vitest.config.ts",
+      "test/ui/fixtures/trace-failure-only/vitest.config.ts",
+      "test/ui/fixtures/trace-failure-only/pass.test.ts",
+      "test/ui/fixtures/trace-failure-only/basic.test.ts",
+      "test/e2e/test/config/browser-configs.test.ts",
+      "test/browser/specs/trace.test.ts",
+      "test/browser/fixtures/trace/vitest.config.ts",
+      "packages/vitest/src/runtime/config.ts",
+      "packages/vitest/src/node/types/browser.ts",
+      "packages/vitest/src/node/config/resolveConfig.ts",
+      "packages/vitest/src/node/cli/cli-config.ts",
+      "packages/ui/client/composables/trace-view.ts",
+      "packages/ui/client/components/trace/TraceView.vue",
+      "packages/browser/src/client/utils.ts",
+      "packages/browser/src/client/tester/trace.ts",
+      "packages/browser/src/client/tester/runner.ts",
+      "packages/browser/src/client/orchestrator.ts",
+      "docs/guide/cli-generated.md",
+      "docs/config/browser/traceview.md"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.21739130434782608,
+     "precision": 1,
+     "usedGroundwork": false,
+     "turns": 3,
+     "costUsd": 0.049234599999999996,
+     "seconds": 9,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 10310,
+     "cond": "B",
+     "files": [
+      "packages/browser/src/client/tester/trace.ts",
+      "packages/browser/src/client/tester/runner.ts",
+      "packages/browser/src/client/tester/snapshot.ts",
+      "packages/vitest/src/node/types/browser.ts",
+      "test/browser/specs/trace.test.ts"
+     ],
+     "truth": [
+      "test/unit/test/cli-test.test.ts",
+      "test/ui/test/trace.spec.ts",
+      "test/ui/test/trace-failure-only.spec.ts",
+      "test/ui/fixtures/trace/vitest.config.ts",
+      "test/ui/fixtures/trace-stream/vitest.config.ts",
+      "test/ui/fixtures/trace-failure-only/vitest.config.ts",
+      "test/ui/fixtures/trace-failure-only/pass.test.ts",
+      "test/ui/fixtures/trace-failure-only/basic.test.ts",
+      "test/e2e/test/config/browser-configs.test.ts",
+      "test/browser/specs/trace.test.ts",
+      "test/browser/fixtures/trace/vitest.config.ts",
+      "packages/vitest/src/runtime/config.ts",
+      "packages/vitest/src/node/types/browser.ts",
+      "packages/vitest/src/node/config/resolveConfig.ts",
+      "packages/vitest/src/node/cli/cli-config.ts",
+      "packages/ui/client/composables/trace-view.ts",
+      "packages/ui/client/components/trace/TraceView.vue",
+      "packages/browser/src/client/utils.ts",
+      "packages/browser/src/client/tester/trace.ts",
+      "packages/browser/src/client/tester/runner.ts",
+      "packages/browser/src/client/orchestrator.ts",
+      "docs/guide/cli-generated.md",
+      "docs/config/browser/traceview.md"
+     ],
+     "rank": 1,
+     "testFile": true,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.17391304347826086,
+     "precision": 0.8,
+     "usedGroundwork": true,
+     "turns": 4,
+     "costUsd": 0.0641202,
+     "seconds": 39,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 10242,
+     "cond": "A",
+     "files": [
+      "packages/vitest/src/node/reporters/junit.ts",
+      "test/reporters/tests/junit.test.ts"
+     ],
+     "truth": [
+      "test/e2e/test/reporters/junit.test.ts",
+      "test/e2e/test/reporters/__snapshots__/junit.test.ts.snap",
+      "test/e2e/fixtures/reporters/unhandled-errors-multi/multi.test.ts",
+      "test/e2e/fixtures/reporters/unhandled-errors-multi-project/vitest.config.ts",
+      "test/e2e/fixtures/reporters/unhandled-errors-multi-project/space-2/test/reject.test.ts",
+      "test/e2e/fixtures/reporters/unhandled-errors-multi-project/space-1/test/reject.test.ts",
+      "packages/vitest/src/node/reporters/junit.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.14285714285714285,
+     "precision": 0.5,
+     "usedGroundwork": false,
+     "turns": 3,
+     "costUsd": 0.027686900000000004,
+     "seconds": 15,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 10242,
+     "cond": "B",
+     "files": [
+      "packages/vitest/src/node/reporters/junit.ts",
+      "test/reporters/tests/junit.test.ts",
+      "packages/vitest/src/node/core.ts"
+     ],
+     "truth": [
+      "test/e2e/test/reporters/junit.test.ts",
+      "test/e2e/test/reporters/__snapshots__/junit.test.ts.snap",
+      "test/e2e/fixtures/reporters/unhandled-errors-multi/multi.test.ts",
+      "test/e2e/fixtures/reporters/unhandled-errors-multi-project/vitest.config.ts",
+      "test/e2e/fixtures/reporters/unhandled-errors-multi-project/space-2/test/reject.test.ts",
+      "test/e2e/fixtures/reporters/unhandled-errors-multi-project/space-1/test/reject.test.ts",
+      "packages/vitest/src/node/reporters/junit.ts"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.14285714285714285,
+     "precision": 0.3333333333333333,
+     "usedGroundwork": true,
+     "turns": 3,
+     "costUsd": 0.040814500000000004,
+     "seconds": 19,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 10180,
+     "cond": "A",
+     "files": [
+      "packages/runner/src/suite.ts",
+      "packages/runner/src/types/tasks.ts",
+      "packages/vitest/src/node/ast-collect.ts",
+      "docs/guide/migration.md",
+      "docs/api/test.md"
+     ],
+     "truth": [
+      "test/core/test/sequential.test.ts",
+      "test/core/test/concurrent-suite.test.ts",
+      "test/config/test/sequence-concurrent.test.ts",
+      "test/config/fixtures/sequence-concurrent/sequence-concurrent-true-sequential.test.ts",
+      "test/cli/test/test-tags.test.ts",
+      "test/cli/test/static-collect.test.ts",
+      "packages/vitest/src/node/ast-collect.ts",
+      "packages/runner/src/types/tasks.ts",
+      "packages/runner/src/suite.ts",
+      "docs/guide/parallelism.md",
+      "docs/guide/migration.md",
+      "docs/api/test.md",
+      "docs/api/describe.md"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.38461538461538464,
+     "precision": 1,
+     "usedGroundwork": false,
+     "turns": 4,
+     "costUsd": 0.0334648,
+     "seconds": 18,
+     "leaked": false
+    },
+    {
+     "repo": "vitest-dev/vitest",
+     "issue": 10180,
+     "cond": "B",
+     "files": [
+      "packages/runner/src/suite.ts",
+      "packages/runner/src/types/tasks.ts",
+      "docs/guide/migration.md",
+      "docs/api/test.md",
+      "packages/vitest/src/node/types/config.ts"
+     ],
+     "truth": [
+      "test/core/test/sequential.test.ts",
+      "test/core/test/concurrent-suite.test.ts",
+      "test/config/test/sequence-concurrent.test.ts",
+      "test/config/fixtures/sequence-concurrent/sequence-concurrent-true-sequential.test.ts",
+      "test/cli/test/test-tags.test.ts",
+      "test/cli/test/static-collect.test.ts",
+      "packages/vitest/src/node/ast-collect.ts",
+      "packages/runner/src/types/tasks.ts",
+      "packages/runner/src/suite.ts",
+      "docs/guide/parallelism.md",
+      "docs/guide/migration.md",
+      "docs/api/test.md",
+      "docs/api/describe.md"
+     ],
+     "rank": 1,
+     "testFile": false,
+     "needsTest": true,
+     "wholeFix": false,
+     "covered": 0.3076923076923077,
+     "precision": 0.8,
+     "usedGroundwork": true,
+     "turns": 3,
+     "costUsd": 0.0375959,
+     "seconds": 19,
+     "leaked": false
+    }
+   ]
+  }
+ }
+}
