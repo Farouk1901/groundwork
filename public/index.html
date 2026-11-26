@@ -186,7 +186,8 @@ async function boot() {
   }
   loadSealed();
   const qs = new URLSearchParams(location.search);
-  const def = STATIC && !qs.get('q') && gw?.defaultInstantView ? gw.defaultInstantView() : null;
+  const instant = STATIC && !qs.get('q') && gw?.defaultInstantView ? gw.defaultInstantView() : null;
+  const def = instant && (!qs.get('repo') || qs.get('repo') === instant.repo) ? instant : null;
   const initRepo = qs.get('repo') || def?.repo || undefined;
   await loadRepoView(initRepo);
   if (qs.get('q')) {
