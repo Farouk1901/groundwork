@@ -1,0 +1,206 @@
+{
+ "honojs/hono": {
+  "cases": 200,
+  "split": "newer",
+  "mode": "tickets",
+  "at": "2026-11-26T11:39:38.021Z",
+  "results": [
+   {
+    "name": "Groundwork (full)",
+    "hit5": 78,
+    "hit10": 82.5,
+    "mrr": 0.634
+   },
+   {
+    "name": "  without similar tickets",
+    "hit5": 77.5,
+    "hit10": 84,
+    "mrr": 0.649
+   },
+   {
+    "name": "  without similar PRs",
+    "hit5": 68.5,
+    "hit10": 74,
+    "mrr": 0.559
+   },
+   {
+    "name": "  without co-change",
+    "hit5": 78,
+    "hit10": 82.5,
+    "mrr": 0.646
+   },
+   {
+    "name": "  vector only (no full-text)",
+    "hit5": 74,
+    "hit10": 82,
+    "mrr": 0.592
+   },
+   {
+    "name": "  full-text only (no vector)",
+    "hit5": 79,
+    "hit10": 83,
+    "mrr": 0.659
+   },
+   {
+    "name": "Baseline: grep the code for the ticket’s words",
+    "hit5": 58.5,
+    "hit10": 74.5,
+    "mrr": 0.39
+   },
+   {
+    "name": "Groundwork + grep (fused)",
+    "hit5": 79.5,
+    "hit10": 83.5,
+    "mrr": 0.654
+   },
+   {
+    "name": "Baseline: most-changed files",
+    "hit5": 15.5,
+    "hit10": 21.5,
+    "mrr": 0.106
+   },
+   {
+    "name": "Ceiling (files seen before)",
+    "hit5": null,
+    "hit10": null,
+    "mrr": null
+   }
+  ]
+ },
+ "vitest-dev/vitest": {
+  "cases": 220,
+  "split": "newer",
+  "mode": "tickets",
+  "at": "2026-11-26T11:59:37.074Z",
+  "results": [
+   {
+    "name": "Groundwork (full)",
+    "hit5": 62.7,
+    "hit10": 71.8,
+    "mrr": 0.461
+   },
+   {
+    "name": "  without similar tickets",
+    "hit5": 63.6,
+    "hit10": 69.1,
+    "mrr": 0.444
+   },
+   {
+    "name": "  without similar PRs",
+    "hit5": 50,
+    "hit10": 57.3,
+    "mrr": 0.422
+   },
+   {
+    "name": "  without co-change",
+    "hit5": 63.2,
+    "hit10": 71.8,
+    "mrr": 0.457
+   },
+   {
+    "name": "  vector only (no full-text)",
+    "hit5": 56.4,
+    "hit10": 69.1,
+    "mrr": 0.402
+   },
+   {
+    "name": "  full-text only (no vector)",
+    "hit5": 60.5,
+    "hit10": 71.4,
+    "mrr": 0.448
+   },
+   {
+    "name": "Baseline: grep the code for the ticket’s words",
+    "hit5": 33.6,
+    "hit10": 50.9,
+    "mrr": 0.244
+   },
+   {
+    "name": "Groundwork + grep (fused)",
+    "hit5": 62.7,
+    "hit10": 71.4,
+    "mrr": 0.442
+   },
+   {
+    "name": "Baseline: most-changed files",
+    "hit5": 16.8,
+    "hit10": 20.5,
+    "mrr": 0.077
+   },
+   {
+    "name": "Ceiling (files seen before)",
+    "hit5": null,
+    "hit10": null,
+    "mrr": null
+   }
+  ]
+ },
+ "relatedb/relate": {
+  "cases": 283,
+  "split": "newer",
+  "mode": "prs",
+  "at": "2026-11-26T12:23:52.453Z",
+  "results": [
+   {
+    "name": "Groundwork (full)",
+    "hit5": 50.9,
+    "hit10": 61.1,
+    "mrr": 0.406
+   },
+   {
+    "name": "  without similar tickets",
+    "hit5": 56.9,
+    "hit10": 66.1,
+    "mrr": 0.434
+   },
+   {
+    "name": "  without similar PRs",
+    "hit5": 3.5,
+    "hit10": 4.2,
+    "mrr": 0.024
+   },
+   {
+    "name": "  without co-change",
+    "hit5": 50.9,
+    "hit10": 60.4,
+    "mrr": 0.392
+   },
+   {
+    "name": "  vector only (no full-text)",
+    "hit5": 43.1,
+    "hit10": 53,
+    "mrr": 0.344
+   },
+   {
+    "name": "  full-text only (no vector)",
+    "hit5": 52.3,
+    "hit10": 61.8,
+    "mrr": 0.41
+   },
+   {
+    "name": "Baseline: grep the code for the ticket’s words",
+    "hit5": 60.4,
+    "hit10": 72.1,
+    "mrr": 0.418
+   },
+   {
+    "name": "Groundwork + grep (fused)",
+    "hit5": 68.2,
+    "hit10": 77.4,
+    "mrr": 0.531
+   },
+   {
+    "name": "Baseline: most-changed files",
+    "hit5": 18.4,
+    "hit10": 29.7,
+    "mrr": 0.11
+   },
+   {
+    "name": "Ceiling (files seen before)",
+    "hit5": null,
+    "hit10": null,
+    "mrr": null
+   }
+  ]
+ }
+}

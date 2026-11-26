@@ -51,6 +51,21 @@ It works as a CLI, a **GitHub Action** (`action.yml`) that comments the ranked f
 
 Hit@5: a file the real fix changed is among the first five suggestions (**2.8× to 5.0×** the file-first baseline on its own; **3.7× to 5.1×** fused with `grep`). Coding agents already use `grep`, and fusing Groundwork with it (`--code`, confidence-weighted WRRF tuned on `--split older` only) beats `grep` alone on every repository: **79.5%** vs 58.5% on `hono`, **62.7%** vs 33.6% on `vitest`, and **68.2%** vs 60.4% on `relatedb/relate` (MRR **0.531** vs 0.418).
 
+Why Relate's own repository looks different: it has only 19 tickets, so each merged PR's title alone stands in for a ticket, and those titles often quote exact code symbols. That is where `grep` is strongest (60.4% vs 50.9% for Groundwork alone), and it is why the fused mode is the default we recommend: the graph adds the files a literal match cannot see, and the two together reach 68.2%.
+
+**What each part of the graph adds** (ablation on the same held-out cases, Hit@5):
+
+| Variant | hono (200) | vitest (220) | relatedb/relate (283) |
+|---|---:|---:|---:|
+| Groundwork (full: vector + full-text WRRF, then graph hops) | **78.0%** | **62.7%** | 50.9% |
+| without the hop through similar PRs to the files they changed | 68.5% | 50.0% | 3.5% |
+| vector only (no full-text index) | 74.0% | 56.4% | 43.1% |
+| full-text only (no vector index) | 79.0% | 60.5% | 52.3% |
+| without similar tickets | 77.5% | 63.6% | 56.9% |
+| without co-change edges | 78.0% | 63.2% | 50.9% |
+
+The graph hop from a similar PR to the files it touched carries most of the result: without it, Hit@5 drops by 9.5 to 47.4 points. The full-text index matters on every repository; the vector index helps on `vitest`, the repository we never tuned on, and is neutral elsewhere. Similar tickets and co-change edges are close to neutral at Hit@5, and we report that as it is (`docs/data/ablation.json`).
+
 **Estimated ROI (from first-hit rank on 703 held-out cases):** taking `1 / MRR` as the files opened before reaching one the fix changed, `grep` alone opens ~2.81 files and misses the top 5 on 48.5% of cases. Groundwork + grep opens ~1.86 files (~34% fewer files opened before first hit) and misses on 30.3%, an estimated ~1,400 tokens saved per ticket.
 
 **Sealed forecasts scored on the future:** on 24 Nov 2026 (`f9e4c54`), we sealed **617 forecasts** for open, unfixed issues with a SHA-256 digest (`docs/predictions/sealed.sha256`). Open PRs are never sealed, since their diffs are public. A daily GitHub Action scores `sealed.json` and the append-only `daily/*.json` seals against fixes merged after each seal, seals issues opened since the last seal that are unfixed and have no linked PR, and freezes the score with one last run right after the contest deadline (`2026-12-12T02:00:00Z` / Dec 11, 2026 6:00 PM PT).

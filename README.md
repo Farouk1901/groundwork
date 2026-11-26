@@ -49,6 +49,19 @@ of hono's tickets**; every number below is on data that never influenced them.
 
 *Hit@k: at least one file the real fix changed is among the first k suggestions. All numbers come from the same held-out `--split newer` run (`docs/data/*.eval.json`).* Relate's own repository has only 19 tickets, so each merged PR's **title alone** stands in for a ticket (replayed as of its merge, with the PR itself hidden). Relate's PR titles often quote exact code symbols, so `grep` beats standalone Groundwork there (`60.4%` vs `50.9%`). Confidence-weighted WRRF fusion (`fuseWithGrep`, tuned on `--split older` only) beats `grep` alone on **every repository**: Relate Hit@5 rises to **68.2%** (+7.8 pp over `grep`) and MRR to **0.531** (vs `0.418`).
 
+**What each part of the graph adds (ablation, same held-out cases, Hit@5):**
+
+| Variant | hono (200) | vitest (220) | relatedb/relate (283) |
+|---|---:|---:|---:|
+| Groundwork (full: vector + full-text WRRF, then graph hops) | **78.0%** | **62.7%** | 50.9% |
+| without the hop through similar PRs to the files they changed | 68.5% | 50.0% | 3.5% |
+| vector only (no full-text index) | 74.0% | 56.4% | 43.1% |
+| full-text only (no vector index) | 79.0% | 60.5% | 52.3% |
+| without similar tickets | 77.5% | 63.6% | 56.9% |
+| without co-change edges | 78.0% | 63.2% | 50.9% |
+
+The graph hop from a similar PR to the files it touched carries most of the result: without it, Hit@5 drops by 9.5 to 47.4 points. The full-text index matters on every repository (vector alone loses 4 to 8 points). The vector index helps on `vitest`, the repository we never tuned on, and is neutral elsewhere; similar tickets and co-change edges are close to neutral at Hit@5. Full results with Hit@10 and MRR: [`docs/data/ablation.json`](docs/data/ablation.json); reproduce with `npx tsx src/cli.ts eval <repo> --split newer` (without `--fast`).
+
 **Estimated ROI (from first-hit rank on 703 held-out cases):**
 Taking `1 / MRR` as the files opened before reaching one the fix changed, `grep` alone averages **~2.81 files** and misses the top 5 on **48.5%** of cases. **Groundwork + grep** averages **~1.86 files** (**~34% fewer files opened before first hit**) and misses on **30.3%**; on `vitest` tickets, misses drop from `66.4%` to `37.3%`. At ~1,500 tokens per source file, that is an estimated **~1,400 tokens per ticket** (~1.4M input tokens per 1,000 tickets).
 
