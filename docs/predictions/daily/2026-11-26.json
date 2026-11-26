@@ -1,0 +1,400 @@
+{
+ "date": "2026-11-26",
+ "sealedAt": "2026-11-26T15:11:16.539Z",
+ "weights": {
+  "vector": 0.5,
+  "coChange": 0.05
+ },
+ "note": "Daily seal (2026-11-26) for newly opened, unfixed issues created after 2026-11-25T08:44:57.219Z with no linked PRs. Append-only; never seals open PRs.",
+ "repos": [
+  {
+   "repo": "honojs/hono",
+   "graphFetchedAt": "2026-11-26T15:10:30.801Z",
+   "popular": [
+    "src/context.ts",
+    "src/hono-base.ts",
+    "src/types.ts",
+    "src/client/client.test.ts",
+    ".github/workflows/ci.yml",
+    "src/hono.test.ts",
+    "src/types.test.ts",
+    "src/request.ts",
+    "deno_dist/context.ts",
+    "src/jsx/dom/render.ts"
+   ],
+   "forecasts": []
+  },
+  {
+   "repo": "vitest-dev/vitest",
+   "graphFetchedAt": "2026-11-26T15:10:46.914Z",
+   "popular": [
+    "pnpm-workspace.yaml",
+    "packages/vitest/src/node/config/resolveConfig.ts",
+    "packages/vitest/src/node/types/config.ts",
+    "packages/vitest/src/node/core.ts",
+    "packages/vitest/src/node/cli/cli-config.ts",
+    ".github/workflows/ci.yml",
+    "docs/guide/cli-generated.md",
+    "docs/guide/migration.md",
+    "docs/.vitepress/config.ts",
+    "packages/vitest/src/runtime/config.ts"
+   ],
+   "forecasts": [
+    {
+     "issue": 12120,
+     "title": "`--changed` and `related` skip tests when the changed file is a CSS file pulled in by `@import`",
+     "url": "https://github.com/vitest-dev/vitest/issues/12120",
+     "createdAt": "2026-11-26T13:59:49Z",
+     "files": [
+      {
+       "path": "test/e2e/test/related-deps.test.ts",
+       "score": 1
+      },
+      {
+       "path": "packages/vitest/src/node/config/resolveConfig.ts",
+       "score": 0.72
+      },
+      {
+       "path": "packages/vitest/src/node/affected-modules.ts",
+       "score": 0.66
+      },
+      {
+       "path": "packages/browser/src/node/plugin.ts",
+       "score": 0.65
+      },
+      {
+       "path": "docs/guide/cli.md",
+       "score": 0.65
+      },
+      {
+       "path": "test/e2e/test/git-changed.test.ts",
+       "score": 0.62
+      },
+      {
+       "path": "packages/vitest/src/node/cache/fsModuleCache.ts",
+       "score": 0.61
+      },
+      {
+       "path": "test/e2e/test/caching.test.ts",
+       "score": 0.56
+      },
+      {
+       "path": "test/README.md",
+       "score": 0.51
+      },
+      {
+       "path": "packages/vitest/src/node/environments/transformService.ts",
+       "score": 0.45
+      }
+     ]
+    },
+    {
+     "issue": 12118,
+     "title": "CLI flags ignored when using projects",
+     "url": "https://github.com/vitest-dev/vitest/issues/12118",
+     "createdAt": "2026-11-26T12:34:01Z",
+     "files": [
+      {
+       "path": "packages/vitest/src/node/projects/resolveProjects.ts",
+       "score": 1
+      },
+      {
+       "path": "packages/vitest/src/node/config/resolveConfig.ts",
+       "score": 0.54
+      },
+      {
+       "path": "test/e2e/test/projects.test.ts",
+       "score": 0.44
+      },
+      {
+       "path": "packages/vitest/src/node/core.ts",
+       "score": 0.38
+      },
+      {
+       "path": "packages/vitest/src/node/types/config.ts",
+       "score": 0.36
+      },
+      {
+       "path": "test/e2e/test/reporters/merge-reports.test.ts",
+       "score": 0.25
+      },
+      {
+       "path": "packages/vitest/src/node/cli/cli-config.ts",
+       "score": 0.21
+      },
+      {
+       "path": "packages/vitest/src/node/project.ts",
+       "score": 0.19
+      },
+      {
+       "path": "docs/guide/cli-generated.md",
+       "score": 0.19
+      },
+      {
+       "path": "packages/vitest/src/node/cli/cli-api.ts",
+       "score": 0.19
+      }
+     ]
+    },
+    {
+     "issue": 12113,
+     "title": "`Mock<T>` loses generics, causing `Mock<T>` not to satisfy `T`",
+     "url": "https://github.com/vitest-dev/vitest/issues/12113",
+     "createdAt": "2026-11-25T18:01:46Z",
+     "files": [
+      {
+       "path": "packages/spy/src/types.ts",
+       "score": 1
+      },
+      {
+       "path": "packages/spy/src/index.ts",
+       "score": 0.83
+      },
+      {
+       "path": "docs/api/mock.md",
+       "score": 0.72
+      },
+      {
+       "path": "test/core/test/mocking/vi-fn.test.ts",
+       "score": 0.59
+      },
+      {
+       "path": "test/core/test/vi.spec.ts",
+       "score": 0.52
+      },
+      {
+       "path": "packages/mocker/src/automocker.ts",
+       "score": 0.38
+      },
+      {
+       "path": "docs/api/vi.md",
+       "score": 0.38
+      },
+      {
+       "path": "packages/vitest/src/public/index.ts",
+       "score": 0.26
+      },
+      {
+       "path": "test/core/test/mocking/vi-fn.test-d.ts",
+       "score": 0.25
+      },
+      {
+       "path": "packages/vitest/src/integrations/vi.ts",
+       "score": 0.23
+      }
+     ]
+    },
+    {
+     "issue": 12112,
+     "title": "Set equality with asymmetric matchers produces false positive when a matcher matches more than 1 value",
+     "url": "https://github.com/vitest-dev/vitest/issues/12112",
+     "createdAt": "2026-11-25T17:05:31Z",
+     "files": [
+      {
+       "path": "packages/expect/src/jest-extend.ts",
+       "score": 1
+      },
+      {
+       "path": "test/unit/test/jest-expect.test.ts",
+       "score": 0.95
+      },
+      {
+       "path": "packages/expect/src/jest-expect.ts",
+       "score": 0.88
+      },
+      {
+       "path": "test/core/test/expect.test.ts",
+       "score": 0.87
+      },
+      {
+       "path": "packages/utils/src/diff/index.ts",
+       "score": 0.79
+      },
+      {
+       "path": "test/unit/test/expect.test.ts",
+       "score": 0.78
+      },
+      {
+       "path": "docs/api/expect.md",
+       "score": 0.64
+      },
+      {
+       "path": "packages/expect/src/jest-utils.ts",
+       "score": 0.62
+      },
+      {
+       "path": "packages/expect/src/jest-asymmetric-matchers.ts",
+       "score": 0.52
+      },
+      {
+       "path": "packages/pretty-format/src/plugins/AsymmetricMatcher.ts",
+       "score": 0.51
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "repo": "relatedb/relate",
+   "graphFetchedAt": "2026-11-26T15:11:02.474Z",
+   "popular": [
+    "docs/api/cli/spec.md",
+    "relate/relate-executor/src/exec/gpm/shortest_route/route.rs",
+    "relate/relate-executor/src/exec/mod.rs",
+    "docs/api/rust/spec.md",
+    "relate/relate/tests/common/mod.rs",
+    ".github/workflows/release.yml",
+    "relate/relate-executor/src/graph/mod.rs",
+    "Makefile",
+    "relate/relate-executor/src/exec/dispatch.rs",
+    "relate/relate-executor/src/exec/project.rs"
+   ],
+   "forecasts": [
+    {
+     "issue": 880,
+     "title": "Windowing a large graph: ORDER BY, deep SKIP and UNION ALL scale with the whole graph (relate 1.3.0, WASM)",
+     "url": "https://github.com/relatedb/relate/issues/880",
+     "createdAt": "2026-11-26T13:49:24Z",
+     "files": [
+      {
+       "path": "relate/relate-executor/src/exec/mod.rs",
+       "score": 1
+      },
+      {
+       "path": "relate/relate-executor/src/exec/project.rs",
+       "score": 0.64
+      },
+      {
+       "path": "testing/xtask/row_vec_allowlist.txt",
+       "score": 0.63
+      },
+      {
+       "path": "relate/relate-executor/src/exec/dispatch.rs",
+       "score": 0.45
+      },
+      {
+       "path": "relate/relate-executor/src/exec/aggregate/group.rs",
+       "score": 0.43
+      },
+      {
+       "path": "relate/relate-executor/src/exec/aggregate/stream.rs",
+       "score": 0.41
+      },
+      {
+       "path": "relate/relate-executor/src/exec/aggregate/mod.rs",
+       "score": 0.41
+      },
+      {
+       "path": "docs/reference/cli-flags.md",
+       "score": 0.39
+      },
+      {
+       "path": "relate/relate-executor/src/exec/match_clause.rs",
+       "score": 0.38
+      },
+      {
+       "path": "relate/relate-executor/src/workspace.rs",
+       "score": 0.38
+      }
+     ]
+    },
+    {
+     "issue": 862,
+     "title": "neo4j-graphrag SimpleKGPipeline writer fails over Bolt: missing APOC and db.create.set*VectorProperty",
+     "url": "https://github.com/relatedb/relate/issues/862",
+     "createdAt": "2026-11-26T10:03:40Z",
+     "files": [
+      {
+       "path": "docs/api/extensions/spec.md",
+       "score": 1
+      },
+      {
+       "path": "docs/api/cli/spec.md",
+       "score": 1
+      },
+      {
+       "path": "relate/relate-executor/src/exec/gpm/shortest_route/route.rs",
+       "score": 0.96
+      },
+      {
+       "path": "relate/relate-executor/src/exec/gpm/shortest_route/guard.rs",
+       "score": 0.96
+      },
+      {
+       "path": "README.md",
+       "score": 0.94
+      },
+      {
+       "path": "relate/relate-executor/src/exec/gpm/shortest_route/reject_tests.rs",
+       "score": 0.93
+      },
+      {
+       "path": "relate/relate-parser/src/parser/tests/patterns.rs",
+       "score": 0.7
+      },
+      {
+       "path": "surfaces/relate-load/src/http.rs",
+       "score": 0.63
+      },
+      {
+       "path": "relate/relate-executor/src/exec/gpm/shortest_route/mod.rs",
+       "score": 0.61
+      },
+      {
+       "path": "relate/relate-executor/src/exec/gpm/shortest_route/anchor.rs",
+       "score": 0.6
+      }
+     ]
+    },
+    {
+     "issue": 860,
+     "title": "Feature requests - basic RBAC for read/write controls",
+     "url": "https://github.com/relatedb/relate/issues/860",
+     "createdAt": "2026-11-26T05:17:21Z",
+     "files": [
+      {
+       "path": "SECURITY.md",
+       "score": 1
+      },
+      {
+       "path": "relate/relate-storage/src/snapshot.rs",
+       "score": 0.53
+      },
+      {
+       "path": "relate/relate-storage/src/codec/markdown/manifest.rs",
+       "score": 0.53
+      },
+      {
+       "path": "relate/relate-storage/src/codec/markdown.rs",
+       "score": 0.53
+      },
+      {
+       "path": "relate/relate-storage/src/tests.rs",
+       "score": 0.51
+      },
+      {
+       "path": "relate/relate-storage/src/schema_files.rs",
+       "score": 0.51
+      },
+      {
+       "path": "docs/testing/workflow-permissions.md",
+       "score": 0.49
+      },
+      {
+       "path": "relate/relate-storage/src/tests/parquet.rs",
+       "score": 0.46
+      },
+      {
+       "path": "relate/relate-storage/src/snapshot/native/tests/harness.rs",
+       "score": 0.46
+      },
+      {
+       "path": "CONTRIBUTING.md",
+       "score": 0.43
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
