@@ -1,0 +1,304 @@
+{
+ "date": "2026-11-27",
+ "sealedAt": "2026-11-27T15:03:20.627Z",
+ "weights": {
+  "vector": 0.5,
+  "coChange": 0.05
+ },
+ "note": "Daily seal (2026-11-27) for newly opened, unfixed issues created after 2026-11-26T15:11:16.539Z with no linked PRs. Append-only; never seals open PRs.",
+ "repos": [
+  {
+   "repo": "honojs/hono",
+   "graphFetchedAt": "2026-11-27T15:02:37.391Z",
+   "popular": [
+    "src/context.ts",
+    "src/hono-base.ts",
+    "src/types.ts",
+    "src/client/client.test.ts",
+    ".github/workflows/ci.yml",
+    "src/hono.test.ts",
+    "src/types.test.ts",
+    "src/request.ts",
+    "deno_dist/context.ts",
+    "src/jsx/dom/render.ts"
+   ],
+   "forecasts": []
+  },
+  {
+   "repo": "vitest-dev/vitest",
+   "graphFetchedAt": "2026-11-27T15:02:52.626Z",
+   "popular": [
+    "pnpm-workspace.yaml",
+    "packages/vitest/src/node/config/resolveConfig.ts",
+    "packages/vitest/src/node/types/config.ts",
+    "packages/vitest/src/node/core.ts",
+    "packages/vitest/src/node/cli/cli-config.ts",
+    ".github/workflows/ci.yml",
+    "docs/guide/cli-generated.md",
+    "docs/guide/migration.md",
+    "docs/.vitepress/config.ts",
+    "packages/vitest/src/runtime/config.ts"
+   ],
+   "forecasts": [
+    {
+     "issue": 12123,
+     "title": "Attribute `onUserConsoleLog` output to test attempts (`retryIndex` / `repeatIndex`)",
+     "url": "https://github.com/vitest-dev/vitest/issues/12123",
+     "createdAt": "2026-11-27T14:41:46Z",
+     "files": [
+      {
+       "path": "packages/vitest/src/runtime/runner/run.ts",
+       "score": 1
+      },
+      {
+       "path": "packages/vitest/src/node/reporters/base.ts",
+       "score": 0.92
+      },
+      {
+       "path": "test/e2e/test/retry.test.ts",
+       "score": 0.87
+      },
+      {
+       "path": "packages/vitest/src/runtime/runner/types.ts",
+       "score": 0.76
+      },
+      {
+       "path": "packages/vitest/src/node/reporters/reported-tasks.ts",
+       "score": 0.74
+      },
+      {
+       "path": "docs/api/advanced/test-case.md",
+       "score": 0.73
+      },
+      {
+       "path": "packages/vitest/src/node/reporters/renderers/utils.ts",
+       "score": 0.71
+      },
+      {
+       "path": "packages/vitest/src/public/node.ts",
+       "score": 0.71
+      },
+      {
+       "path": "packages/vitest/src/public/index.ts",
+       "score": 0.71
+      },
+      {
+       "path": "docs/api/advanced/runner.md",
+       "score": 0.71
+      }
+     ]
+    },
+    {
+     "issue": 12122,
+     "title": "vitest list reports testSet.has(f) as a test",
+     "url": "https://github.com/vitest-dev/vitest/issues/12122",
+     "createdAt": "2026-11-27T09:03:51Z",
+     "files": [
+      {
+       "path": "packages/vitest/src/node/ast-collect.ts",
+       "score": 1
+      },
+      {
+       "path": "test/e2e/test/list.test.ts",
+       "score": 0.79
+      },
+      {
+       "path": "packages/vitest/src/node/core.ts",
+       "score": 0.68
+      },
+      {
+       "path": "test/e2e/test/__snapshots__/list.test.ts.snap",
+       "score": 0.48
+      },
+      {
+       "path": "test/cli/test/static-collect.test.ts",
+       "score": 0.34
+      },
+      {
+       "path": "packages/vitest/src/node/environments/fetchModule.ts",
+       "score": 0.34
+      },
+      {
+       "path": "test/e2e/test/static-collect.test.ts",
+       "score": 0.32
+      },
+      {
+       "path": "test/e2e/fixtures/list-parse-error/vitest.config.ts",
+       "score": 0.31
+      },
+      {
+       "path": "test/e2e/fixtures/list-parse-error/ok.test.ts",
+       "score": 0.31
+      },
+      {
+       "path": "test/e2e/fixtures/list-parse-error/broken.test.ts",
+       "score": 0.31
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "repo": "relatedb/relate",
+   "graphFetchedAt": "2026-11-27T15:03:09.300Z",
+   "popular": [
+    "docs/api/cli/spec.md",
+    "relate/relate-executor/src/exec/mod.rs",
+    "relate/relate-executor/src/exec/gpm/shortest_route/route.rs",
+    "docs/api/rust/spec.md",
+    "relate/relate/tests/common/mod.rs",
+    ".github/workflows/release.yml",
+    "relate/relate-executor/src/graph/mod.rs",
+    "relate/relate-executor/src/exec/dispatch.rs",
+    "relate/relate-executor/src/exec/project.rs",
+    "testing/xtask/row_vec_allowlist.txt"
+   ],
+   "forecasts": [
+    {
+     "issue": 922,
+     "title": "Spec gate: new failing scenarios landed on main",
+     "url": "https://github.com/relatedb/relate/issues/922",
+     "createdAt": "2026-11-27T14:08:48Z",
+     "files": [
+      {
+       "path": "docs/tck/compliance.md",
+       "score": 1
+      },
+      {
+       "path": ".github/workflows/spec-harness.yml",
+       "score": 1
+      },
+      {
+       "path": ".github/workflows/spec-harness-baseline.yml",
+       "score": 0.68
+      },
+      {
+       "path": ".github/workflows/review-scripts-test.yml",
+       "score": 0.34
+      },
+      {
+       "path": "README.md",
+       "score": 0.34
+      },
+      {
+       "path": "AGENTS.md",
+       "score": 0.34
+      },
+      {
+       "path": "surfaces/relate-cli/src/skill/bundle/SKILL.md",
+       "score": 0.33
+      },
+      {
+       "path": "scripts/spec_harness_ids.py",
+       "score": 0.33
+      },
+      {
+       "path": "scripts/spec_harness_common.py",
+       "score": 0.33
+      },
+      {
+       "path": "scripts/spec_harness_baseline.py",
+       "score": 0.33
+      }
+     ]
+    },
+    {
+     "issue": 921,
+     "title": "A unit CALL subquery that ends with a nested CALL changes the outer row count",
+     "url": "https://github.com/relatedb/relate/issues/921",
+     "createdAt": "2026-11-27T13:59:23Z",
+     "files": [
+      {
+       "path": "relate/relate-executor/src/procedure_registry.rs",
+       "score": 1
+      },
+      {
+       "path": "relate/relate/tests/integration/main.rs",
+       "score": 0.99
+      },
+      {
+       "path": "relate/relate/tests/common/mod.rs",
+       "score": 0.97
+      },
+      {
+       "path": "relate/relate-executor/src/exec/gpm/shortest_route/route.rs",
+       "score": 0.9
+      },
+      {
+       "path": "relate/relate-executor/src/exec/gpm/shortest_route/guard.rs",
+       "score": 0.9
+      },
+      {
+       "path": "relate/relate-executor/src/lib.rs",
+       "score": 0.89
+      },
+      {
+       "path": "docs/api/extensions/spec.md",
+       "score": 0.87
+      },
+      {
+       "path": "relate/relate-executor/src/exec/gpm/shortest_route/reject_tests.rs",
+       "score": 0.86
+      },
+      {
+       "path": "relate/relate-executor/src/graph/mod.rs",
+       "score": 0.84
+      },
+      {
+       "path": "relate/relate-executor/src/graph/build_counter.rs",
+       "score": 0.78
+      }
+     ]
+    },
+    {
+     "issue": 916,
+     "title": "Add an OCaml client over the typed C ABI (ADR-0699)",
+     "url": "https://github.com/relatedb/relate/issues/916",
+     "createdAt": "2026-11-27T12:36:30Z",
+     "files": [
+      {
+       "path": "AGENTS.md",
+       "score": 1
+      },
+      {
+       "path": "docs/api/cli/spec.md",
+       "score": 0.76
+      },
+      {
+       "path": "surfaces/relate-python/python/relate/.agents/skills/relate/SKILL.md",
+       "score": 0.71
+      },
+      {
+       "path": "README.md",
+       "score": 0.7
+      },
+      {
+       "path": "docs/api/extensions/spec.md",
+       "score": 0.58
+      },
+      {
+       "path": "distribution/install.sh",
+       "score": 0.44
+      },
+      {
+       "path": "surfaces/relate-http/src/reply.rs",
+       "score": 0.41
+      },
+      {
+       "path": "surfaces/relate-http/src/framing.rs",
+       "score": 0.41
+      },
+      {
+       "path": "relate/relate/src/resize.rs",
+       "score": 0.41
+      },
+      {
+       "path": "relate/relate/src/checkpoint/tests.rs",
+       "score": 0.41
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
