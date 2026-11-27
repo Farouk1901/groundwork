@@ -1,14 +1,14 @@
 {
- "scoredAt": "2026-11-26T15:09:51.103Z",
+ "scoredAt": "2026-11-27T15:02:03.297Z",
  "sealedAt": "2026-11-24T11:16:45.937Z",
  "frozen": false,
- "dailySeals": 1,
+ "dailySeals": 2,
  "totals": {
-  "forecasts": 622,
-  "fixed": 4,
-  "hit5": 75,
-  "hit10": 100,
-  "baselineHit5": 25
+  "forecasts": 629,
+  "fixed": 5,
+  "hit5": 60,
+  "hit10": 80,
+  "baselineHit5": 40
  },
  "repos": [
   {
@@ -21,7 +21,7 @@
   },
   {
    "repo": "vitest-dev/vitest",
-   "forecasts": 354,
+   "forecasts": 358,
    "fixed": 2,
    "hit5": 100,
    "hit10": 100,
@@ -29,14 +29,55 @@
   },
   {
    "repo": "relatedb/relate",
-   "forecasts": 3,
-   "fixed": 2,
-   "hit5": 50,
-   "hit10": 100,
-   "baselineHit5": 50
+   "forecasts": 6,
+   "fixed": 3,
+   "hit5": 33.3,
+   "hit10": 66.7,
+   "baselineHit5": 66.7
   }
  ],
  "cases": [
+  {
+   "repo": "relatedb/relate",
+   "issue": 862,
+   "title": "neo4j-graphrag SimpleKGPipeline writer fails over Bolt: missing APOC and db.create.set*VectorProperty",
+   "url": "https://github.com/relatedb/relate/issues/862",
+   "pr": 888,
+   "mergedAt": "2026-11-27T01:46:00Z",
+   "sealedAt": "2026-11-26T15:11:16.539Z",
+   "truth": [
+    ".changes/888-compat-callables.md",
+    "docs/adr/0699-compat-callables.md",
+    "relate/relate-executor/src/exec/procedure_rows/mod.rs",
+    "relate/relate-executor/src/exec/procedures/resolve.rs",
+    "relate/relate-executor/src/exec/procedures_tests.rs",
+    "relate/relate-executor/src/procedure_registry.rs",
+    "relate/relate-executor/src/procedure_registry/signatures.rs",
+    "relate/relate-front/src/ast/tree.rs",
+    "relate/relate-front/src/compat_callables.rs",
+    "relate/relate-front/src/lib.rs",
+    "relate/relate-front/src/local_callables/mod.rs",
+    "relate/relate-front/src/local_callables/rewrite.rs",
+    "relate/relate-front/src/local_callables/validate.rs",
+    "relate/relate-front/src/preview_gate.rs",
+    "relate/relate/src/connection/admission.rs",
+    "relate/relate/src/connection/cache.rs",
+    "relate/relate/tests/common/mod.rs",
+    "relate/relate/tests/integration/compat_callables.rs",
+    "relate/relate/tests/integration/main.rs",
+    "relate/relate/tests/local_callables.rs"
+   ],
+   "top5": [
+    "docs/api/extensions/spec.md",
+    "docs/api/cli/spec.md",
+    "relate/relate-executor/src/exec/gpm/shortest_route/route.rs",
+    "relate/relate-executor/src/exec/gpm/shortest_route/guard.rs",
+    "README.md"
+   ],
+   "hit5": false,
+   "hit10": false,
+   "baselineHit5": true
+  },
   {
    "repo": "relatedb/relate",
    "issue": 563,
