@@ -1,0 +1,305 @@
+{
+ "date": "2026-11-28",
+ "sealedAt": "2026-11-28T14:12:02.752Z",
+ "weights": {
+  "vector": 0.5,
+  "coChange": 0.05
+ },
+ "note": "Daily seal (2026-11-28) for newly opened, unfixed issues created after 2026-11-27T15:03:20.627Z with no linked PRs. Append-only; never seals open PRs.",
+ "repos": [
+  {
+   "repo": "honojs/hono",
+   "graphFetchedAt": "2026-11-28T14:11:02.509Z",
+   "popular": [
+    "src/context.ts",
+    "src/hono-base.ts",
+    "src/types.ts",
+    "src/client/client.test.ts",
+    ".github/workflows/ci.yml",
+    "src/hono.test.ts",
+    "src/types.test.ts",
+    "src/request.ts",
+    "deno_dist/context.ts",
+    "src/jsx/dom/render.ts"
+   ],
+   "forecasts": [
+    {
+     "issue": 5685,
+     "title": "defineHandler (v5): what a framework like Void needs for page loaders and actions",
+     "url": "https://github.com/honojs/hono/issues/5685",
+     "createdAt": "2026-11-28T10:13:15Z",
+     "files": [
+      {
+       "path": "src/validator/validator.ts",
+       "score": 1
+      },
+      {
+       "path": "src/validator/validator.test.ts",
+       "score": 0.78
+      },
+      {
+       "path": "deno_dist/validator/validator.ts",
+       "score": 0.66
+      },
+      {
+       "path": "src/helper/factory/index.ts",
+       "score": 0.16
+      },
+      {
+       "path": "src/helper/factory/define-handler.ts",
+       "score": 0.15
+      },
+      {
+       "path": "src/hono-base.ts",
+       "score": 0.14
+      },
+      {
+       "path": "src/helper/factory/define-handler.test.ts",
+       "score": 0.14
+      },
+      {
+       "path": "src/types.ts",
+       "score": 0.13
+      },
+      {
+       "path": "src/types.test.ts",
+       "score": 0.12
+      },
+      {
+       "path": "src/request.ts",
+       "score": 0.12
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "repo": "vitest-dev/vitest",
+   "graphFetchedAt": "2026-11-28T14:11:23.174Z",
+   "popular": [
+    "pnpm-workspace.yaml",
+    "packages/vitest/src/node/config/resolveConfig.ts",
+    "packages/vitest/src/node/types/config.ts",
+    "packages/vitest/src/node/core.ts",
+    "packages/vitest/src/node/cli/cli-config.ts",
+    ".github/workflows/ci.yml",
+    "docs/guide/cli-generated.md",
+    "docs/guide/migration.md",
+    "docs/.vitepress/config.ts",
+    "packages/vitest/src/runtime/config.ts"
+   ],
+   "forecasts": [
+    {
+     "issue": 12127,
+     "title": "`--clearCache` keeps the `--since-last-run` records",
+     "url": "https://github.com/vitest-dev/vitest/issues/12127",
+     "createdAt": "2026-11-28T13:13:00Z",
+     "files": [
+      {
+       "path": "packages/vitest/src/node/core.ts",
+       "score": 1
+      },
+      {
+       "path": "packages/vitest/src/node/affected-modules.ts",
+       "score": 0.66
+      },
+      {
+       "path": "packages/vitest/src/node/cli/cli-config.ts",
+       "score": 0.62
+      },
+      {
+       "path": "docs/guide/cli-generated.md",
+       "score": 0.58
+      },
+      {
+       "path": "packages/vitest/src/node/specifications.ts",
+       "score": 0.58
+      },
+      {
+       "path": "packages/vitest/src/node/cli/cli-api.ts",
+       "score": 0.5
+      },
+      {
+       "path": "packages/vitest/src/node/types/config.ts",
+       "score": 0.45
+      },
+      {
+       "path": "packages/vitest/src/runtime/workers/vm.ts",
+       "score": 0.45
+      },
+      {
+       "path": "packages/vitest/src/types/worker.ts",
+       "score": 0.45
+      },
+      {
+       "path": "packages/vitest/src/runtime/runBaseTests.ts",
+       "score": 0.44
+      }
+     ]
+    },
+    {
+     "issue": 12126,
+     "title": "Make `--since-last-run` respect `forceRerunTriggers`",
+     "url": "https://github.com/vitest-dev/vitest/issues/12126",
+     "createdAt": "2026-11-28T13:12:57Z",
+     "files": [
+      {
+       "path": "packages/vitest/src/node/core.ts",
+       "score": 1
+      },
+      {
+       "path": "packages/vitest/src/node/cli/cli-config.ts",
+       "score": 0.55
+      },
+      {
+       "path": "docs/guide/cli-generated.md",
+       "score": 0.52
+      },
+      {
+       "path": "test/e2e/test/watch/file-watching.test.ts",
+       "score": 0.43
+      },
+      {
+       "path": "packages/vitest/src/node/config/resolveConfig.ts",
+       "score": 0.39
+      },
+      {
+       "path": "packages/vitest/src/defaults.ts",
+       "score": 0.36
+      },
+      {
+       "path": "docs/config/forcereruntriggers.md",
+       "score": 0.36
+      },
+      {
+       "path": "packages/vitest/src/node/types/coverage.ts",
+       "score": 0.33
+      },
+      {
+       "path": "packages/vitest/src/node/coverage.ts",
+       "score": 0.32
+      },
+      {
+       "path": "packages/vitest/src/node/reporters/base.ts",
+       "score": 0.3
+      }
+     ]
+    }
+   ]
+  },
+  {
+   "repo": "relatedb/relate",
+   "graphFetchedAt": "2026-11-28T14:11:46.432Z",
+   "popular": [
+    "docs/api/cli/spec.md",
+    "relate/relate-executor/src/exec/mod.rs",
+    "relate/relate-executor/src/exec/gpm/shortest_route/route.rs",
+    "docs/api/rust/spec.md",
+    ".github/workflows/release.yml",
+    "relate/relate/tests/common/mod.rs",
+    "relate/relate-executor/src/graph/mod.rs",
+    "relate/relate-executor/src/exec/dispatch.rs",
+    "relate/relate-executor/src/eval/mod.rs",
+    "Makefile"
+   ],
+   "forecasts": [
+    {
+     "issue": 957,
+     "title": "Feature request: Android support for embedded Relate (on-device agent memory)",
+     "url": "https://github.com/relatedb/relate/issues/957",
+     "createdAt": "2026-11-28T03:06:17Z",
+     "files": [
+      {
+       "path": "docs/api/extensions/spec.md",
+       "score": 1
+      },
+      {
+       "path": "Cargo.toml",
+       "score": 0.88
+      },
+      {
+       "path": "surfaces/relate-cli/src/skill/agents.rs",
+       "score": 0.8
+      },
+      {
+       "path": "relate/relate-executor/src/exec/dispatch.rs",
+       "score": 0.75
+      },
+      {
+       "path": "relate/relate-executor/src/exec/mod.rs",
+       "score": 0.74
+      },
+      {
+       "path": "relate/relate-executor/src/exec/call/mod.rs",
+       "score": 0.71
+      },
+      {
+       "path": "relate/relate-ir/src/ast.rs",
+       "score": 0.69
+      },
+      {
+       "path": "relate/relate-executor/src/exec/row_production.rs",
+       "score": 0.69
+      },
+      {
+       "path": "relate/relate-executor/src/exec/conditional_tests.rs",
+       "score": 0.69
+      },
+      {
+       "path": "relate/relate-executor/src/exec/conditional_branches.rs",
+       "score": 0.69
+      }
+     ]
+    },
+    {
+     "issue": 952,
+     "title": "perf(storage): vectors cost 30–40 bytes per coordinate on disk — compact vector encoding behind WAL v2 / manifest v7 (fix in fork, builds on #938)",
+     "url": "https://github.com/relatedb/relate/issues/952",
+     "createdAt": "2026-11-27T23:19:49Z",
+     "files": [
+      {
+       "path": "docs/api/rust/spec.md",
+       "score": 1
+      },
+      {
+       "path": "relate/relate/Cargo.toml",
+       "score": 0.75
+      },
+      {
+       "path": "docs/api/cli/spec.md",
+       "score": 0.62
+      },
+      {
+       "path": "relate/relate-executor/src/graph/mod.rs",
+       "score": 0.5
+      },
+      {
+       "path": "relate/relate-executor/src/graph/index.rs",
+       "score": 0.49
+      },
+      {
+       "path": "relate/relate-executor/src/vector_similarity.rs",
+       "score": 0.38
+      },
+      {
+       "path": "relate/relate-executor/src/overlay/mod.rs",
+       "score": 0.38
+      },
+      {
+       "path": "relate/relate-executor/src/lib.rs",
+       "score": 0.38
+      },
+      {
+       "path": "relate/relate-executor/src/graph/vector_matrix.rs",
+       "score": 0.38
+      },
+      {
+       "path": "relate/relate-executor/src/graph/build_counter.rs",
+       "score": 0.38
+      }
+     ]
+    }
+   ]
+  }
+ ]
+}
