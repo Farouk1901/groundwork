@@ -1,14 +1,14 @@
 {
- "scoredAt": "2026-11-27T15:02:03.297Z",
+ "scoredAt": "2026-11-28T14:10:22.003Z",
  "sealedAt": "2026-11-24T11:16:45.937Z",
  "frozen": false,
- "dailySeals": 2,
+ "dailySeals": 3,
  "totals": {
-  "forecasts": 629,
-  "fixed": 5,
-  "hit5": 60,
-  "hit10": 80,
-  "baselineHit5": 40
+  "forecasts": 634,
+  "fixed": 6,
+  "hit5": 50,
+  "hit10": 66.7,
+  "baselineHit5": 50
  },
  "repos": [
   {
@@ -21,7 +21,7 @@
   },
   {
    "repo": "vitest-dev/vitest",
-   "forecasts": 358,
+   "forecasts": 360,
    "fixed": 2,
    "hit5": 100,
    "hit10": 100,
@@ -29,14 +29,46 @@
   },
   {
    "repo": "relatedb/relate",
-   "forecasts": 6,
-   "fixed": 3,
-   "hit5": 33.3,
-   "hit10": 66.7,
-   "baselineHit5": 66.7
+   "forecasts": 9,
+   "fixed": 4,
+   "hit5": 25,
+   "hit10": 50,
+   "baselineHit5": 75
   }
  ],
  "cases": [
+  {
+   "repo": "relatedb/relate",
+   "issue": 921,
+   "title": "A unit CALL subquery that ends with a nested CALL changes the outer row count",
+   "url": "https://github.com/relatedb/relate/issues/921",
+   "pr": 933,
+   "mergedAt": "2026-11-27T21:06:16Z",
+   "sealedAt": "2026-11-27T15:03:20.627Z",
+   "truth": [
+    ".changes/933-unit-call-nested-outer-rows.md",
+    "relate/relate-executor/src/exec/call/conditional.rs",
+    "relate/relate-executor/src/exec/call/in_tx_strategy.rs",
+    "relate/relate-executor/src/exec/call/mod.rs",
+    "relate/relate-executor/src/exec/call/tests.rs",
+    "relate/relate-executor/src/exec/conditional_branches.rs",
+    "relate/relate-executor/src/exec/conditional_tests.rs",
+    "relate/relate-executor/src/exec/dispatch.rs",
+    "relate/relate-executor/src/exec/mod.rs",
+    "relate/relate-executor/src/exec/row_production.rs",
+    "relate/relate-ir/src/ast.rs"
+   ],
+   "top5": [
+    "relate/relate-executor/src/procedure_registry.rs",
+    "relate/relate/tests/integration/main.rs",
+    "relate/relate/tests/common/mod.rs",
+    "relate/relate-executor/src/exec/gpm/shortest_route/route.rs",
+    "relate/relate-executor/src/exec/gpm/shortest_route/guard.rs"
+   ],
+   "hit5": false,
+   "hit10": false,
+   "baselineHit5": true
+  },
   {
    "repo": "relatedb/relate",
    "issue": 862,
